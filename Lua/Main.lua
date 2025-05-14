@@ -493,7 +493,6 @@ addHook('PostThinkFrame', function()
 
 	if not (PTV3.time)
 	and not PTV3.overtime then
-		--if PTV3:canOvertime() then
 		if PTV3:canOvertime() then
 			PTV3:overtimeToggle()
 		else

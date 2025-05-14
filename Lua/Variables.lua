@@ -8,13 +8,13 @@ CV_PTV3['time'] = CV_RegisterVar({
 })
 CV_PTV3['max_laps'] = CV_RegisterVar({
 	name = "PTV3_laps",
-	defaultvalue = 4,
+	defaultvalue = 5,
 	flags = CV_NETVAR,
 	PossibleValue = CV_Unsigned
 })
 CV_PTV3['max_elaps'] = CV_RegisterVar({
 	name = "PTV3_extreme_laps",
-	defaultvalue = 5,
+	defaultvalue = 20,
 	flags = CV_NETVAR,
 	PossibleValue = CV_Unsigned
 })

@@ -265,17 +265,17 @@ local oppositefaces = {
 }
 
 PTV3.switchJohnBlocks = function()
-	if mapheaderinfo[gamemap].ptv3_nofofflip ~= nil
+	if mapheaderinfo[gamemap].ptv3_nofofflip ~= nil then
 		return
 	end
 	
-	for sec in sectors.iterate
-		for rover in sec.ffloors()
+	for sec in sectors.iterate do
+		for rover in sec.ffloors() do
 			if not rover.valid then continue end
 			local side = rover.master.frontside
 			
 			if not (side.midtexture == R_TextureNumForName("JOHNBLK1")
-			or side.midtexture == R_TextureNumForName("JOHNBLK0"))
+			or side.midtexture == R_TextureNumForName("JOHNBLK0")) then
 			--or side.midtexture == R_TextureNumForName("TKISBKB1")
 			--or side.midtexture == R_TextureNumForName("TKISBKB2"))
 				continue
@@ -289,7 +289,7 @@ PTV3.switchJohnBlocks = function()
 			if oppositeface == nil then continue end
 			
 			--awake to asleep
-			if rover.flags & FOF_SOLID
+			if rover.flags & FOF_SOLID then
 				rover.flags = $|FOF_TRANSLUCENT|FOF_NOSHADE &~(FOF_SOLID|FOF_CUTLEVEL|FOF_CUTSOLIDS)
 				rover.alpha = 128
 			--asleep to awake
@@ -389,14 +389,13 @@ end
 function PTV3:doPlayerExit(p)
 	if not (p and p.ptv3 and not p.ptv3.fake_exit) then return end
 
-	if not (p.ptv3.extreme
-	or PTV3.overtime) then
+	if not (p.ptv3.extreme or PTV3.overtime) then
 		p.ptv3.canLap = 5*TICRATE
 	end
-	SStartSound(p.mo, sfx_winer)
+	
+	S_StartSound(p.mo, sfx_winer)
 
-	if gametype == GT_PTV3DM
-	and p.ptv3.laps == PTV3.max_laps+PTV3.max_elaps then
+	if gametype == GT_PTV3DM and p.ptv3.laps == PTV3.max_laps+PTV3.max_elaps then
 		P_AddPlayerScore(p, 200)
 	end
 
