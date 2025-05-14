@@ -106,7 +106,7 @@ local sounds = {
 }
 
 function PTV3:checkRank(p)
-	if self:canGet(p, p.ptv3.rank+1)
+	if self:canGet(p, p.ptv3.rank+1) then
 		S_StartSound(nil, sounds[p.ptv3.rank].up, p)
 		p.ptv3.rank = $+1
 		p.ptv3.rank_changetime = leveltime

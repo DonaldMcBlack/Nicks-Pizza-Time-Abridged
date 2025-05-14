@@ -34,6 +34,7 @@ function PTV3:doEffect(mo, effect)
 		mobj.color = effect.color
 		mobj.colorized = true
 		mobj.target = mo
+		mobj.frame = FF_ADD
 
 		if effect.follow then
 			mobj.follow = true

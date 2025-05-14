@@ -1,8 +1,16 @@
-freeslot("MT_PTV3_LAPPORTAL", "S_PTV3_LAPPORTAL", "SPR_LAPR")
+freeslot("MT_PTV3_LAPPORTAL", "MT_PTV3_MINUSLAPPORTAL", "S_PTV3_LAPPORTAL", "S_PTV3_MINUSLAPPORTAL", "SPR_LAPR")
 
 mobjinfo[MT_PTV3_LAPPORTAL] = {
     doomednum = 2048,
     spawnstate = S_PTV3_LAPPORTAL,
+    radius = 50*FRACUNIT,
+    height = 60*FRACUNIT,
+    flags = MF_SPECIAL|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_NOGRAVITY
+}
+
+mobjinfo[MT_PTV3_MINUSLAPPORTAL] = {
+	doomednum = 2049,
+    spawnstate = S_PTV3_MINUSLAPPORTAL,
     radius = 50*FRACUNIT,
     height = 60*FRACUNIT,
     flags = MF_SPECIAL|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_NOGRAVITY
@@ -16,15 +24,33 @@ states[S_PTV3_LAPPORTAL] = {
 	var2 = 2
 }
 
+states[S_PTV3_MINUSLAPPORTAL] = {
+	sprite = SPR_LAPR,
+	frame = A|FF_ANIMATE|FF_SUBTRACT|FF_TRANS90,
+	tics = -1,
+	var1 = 2,
+	var2 = 2
+}
+
+
 local tplist = {}
+local minustplist = {}
 
 addHook("NetVars", function(n)
 	tplist = n($)
 end)
 
+
+-- local function StoreTeleported(mo)
+-- 	mo.teleported = {}
+-- end
+
 addHook("MobjSpawn", function(mo)
 	mo.teleported = {}
 end, MT_PTV3_LAPPORTAL)
+
+addHook("MobjSpawn", function(mo)
+end, MT_PTV3_MINUSLAPPORTAL)
 
 addHook("ThinkFrame", do
 	local rmvlist = {}
@@ -37,8 +63,19 @@ addHook("ThinkFrame", do
 		PTV3:newLap(pmo.player)
 		table.insert(rmvlist, pmo)
 	end
+
+	for pmo, _ in pairs(minustplist) do
+		if not (pmo and pmo.valid and pmo.player) then
+			table.insert(rmvlist, _)
+			continue
+		end
+
+		PTV3:newLap(pmo.player, -1)
+		table.insert(rmvlist, pmo)
+	end
+
 	for _,i in pairs(rmvlist) do
-		tplist[i] = nil
+		minustplist[i] = nil
 	end
 end)
 
@@ -50,6 +87,19 @@ addHook("TouchSpecial", function(mo, pmo)
 	if not (PTV3:canLap(pmo.player)) then return true end
 
 	tplist[pmo] = true
-	print "lap"
+	print "Lapped."
 	return true
 end, MT_PTV3_LAPPORTAL)
+
+addHook("TouchSpecial", function(mo, pmo)
+	if not (mo and mo.valid) then return true end
+	if not (pmo and pmo.player and pmo.player.ptv3) then return true end
+	if tplist[pmo] then return true end
+	if not (PTV3:canLap(pmo.player)) then return true end
+
+	if not PTV3.pizzatime then PTV3:startPizzaTime(pmo.player) end
+
+	minustplist[pmo] = true
+	print "Lapped?"
+	return true
+end, MT_PTV3_MINUSLAPPORTAL)

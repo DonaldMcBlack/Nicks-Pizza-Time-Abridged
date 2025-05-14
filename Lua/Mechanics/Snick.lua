@@ -41,13 +41,13 @@ end
 
 local function P_FlyTo(mo, fx, fy, fz, sped, addques)
 	local z = mo.z+(mo.height/2)
-    if mo.valid
+    if mo.valid then
         local flyto = P_AproxDistance(P_AproxDistance(fx - mo.x, fy - mo.y), fz - z)
-        if flyto < 1
+        if flyto < 1 then
             flyto = 1
         end
 		
-        if addques
+        if addques then
             mo.momx = $ + FixedMul(FixedDiv(fx - mo.x, flyto), sped)
             mo.momy = $ + FixedMul(FixedDiv(fy - mo.y, flyto), sped)
             mo.momz = $ + FixedMul(FixedDiv(fz - z, flyto), sped)

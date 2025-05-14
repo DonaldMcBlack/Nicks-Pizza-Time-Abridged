@@ -392,7 +392,7 @@ function PTV3:doPlayerExit(p)
 	if not (p.ptv3.extreme or PTV3.overtime) then
 		p.ptv3.canLap = 5*TICRATE
 	end
-	
+
 	S_StartSound(p.mo, sfx_winer)
 
 	if gametype == GT_PTV3DM and p.ptv3.laps == PTV3.max_laps+PTV3.max_elaps then
@@ -452,14 +452,13 @@ function PTV3:teleportPlayer(p, coords)
 	PTV3.callbacks('TeleportPlayer', p)
 end
 
-function PTV3:newLap(p)
+function PTV3:newLap(p, int)
 	if not self.pizzatime then return end
 	if not p.ptv3 then return end
 	if p.ptv3.pizzaface then return end
 	if not (self:canLap(p)) then return end
 
-	if p.ptv3.isSwap
-	and not p.ptv3.swapModeFollower then
+	if p.ptv3.isSwap and not p.ptv3.swapModeFollower then
 		self:newLap(p.ptv3.isSwap)
 	end
 
@@ -468,7 +467,10 @@ function PTV3:newLap(p)
 	if p.ptv3.lap_time >= 0 then
 		raw_time = leveltime - p.ptv3.lap_time
 	end
-	p.ptv3.laps = $+1
+
+	if not int then int = 1 end
+	p.ptv3.laps = $+int
+
 	p.powers[pw_shield] = p.ptv3.exitShield
 	p.ptv3.exitShield = SH_NONE
 
@@ -479,12 +481,13 @@ function PTV3:newLap(p)
 		self:extremeToggle(p)
 		event_text = $.." If Overtime starts while in Extreme Laps, then this player will die."
 	end
+
 	if p.ptv3.extreme then
 		event_text = $:gsub("to Lap", "to Extreme Lap")
 	end
 
 	if not p.ptv3.extreme then
-		P_AddPlayerScore(p, 450)
+		P_AddPlayerScore(p, 1000)
 	end
 
 	p.ptv3.lap_time = leveltime
@@ -494,8 +497,8 @@ function PTV3:newLap(p)
 	end
 
 	p.powers[pw_invulnerability] = 5*TICRATE
-	if p.ptv3.isSwap
-	and p.ptv3.isSwap.valid then
+
+	if p.ptv3.isSwap and p.ptv3.isSwap.valid then
 		p.ptv3.isSwap.powers[pw_invulnerability] = 5*TICRATE
 	end
 
@@ -503,17 +506,18 @@ function PTV3:newLap(p)
 
 	p.ptv3.fake_exit = false
 	p.mo.flags2 = $ & ~MF2_DONTDRAW
+	
 	if p.ptv3.combo then
 		p.ptv3.combo_pos = self.MAX_COMBO_TIME
 	end
 
-	-- HAHA PIZZAFACE LAP 3
-	if p.ptv3.laps >= 4
-	and not (self.snick and self.snick.valid) then
-		self:snickSpawn()
-	elseif p.ptv3.laps >= 3 then
-		self.pftime = 0
-	end
+	-- Spawn chasers
+	if p.ptv3.laps <= -3 or p.ptv3.laps >= 3 then self.pftime = 0 end -- Pizzaface
+
+	if p.ptv3.laps <= -4 and not (self.snick and self.snick.valid)
+	or p.ptv3.laps >= 4 and not (self.snick and self.snick.valid) then self:snickSpawn() end -- Snick
+
+	-- TODO: Put John Ghost here
 	
 	PTV3:logEvent(event_text, 2)
 	PTV3.callbacks('NewLap', p)

@@ -22,7 +22,7 @@ local function FakeExit(p)
 		if gametype == GT_PTV3
 		and p.ptv3.laps == PTV3.max_laps then
 			if p.ptv3.extremeNotif then
-				if p.ptv3.extremeNotif < 4*TICRATE
+				if p.ptv3.extremeNotif < 4*TICRATE then
 					PTV3:newLap(p)
 				end
 			else
@@ -124,6 +124,7 @@ local function normalThinker(p)
 		PTV3:doPlayerExit(p)
 	end
 
+	-- Score reduction
 	if PTV3.pizzatime
 	and not (leveltime % TICRATE) 
 	and not p.ptv3.pizzaface
@@ -380,11 +381,12 @@ addHook('ThinkFrame', function()
 	if not PTV3:isPTV3() then return end
 
 	for p in players.iterate do
-		if not p.mo then continue end
-		if not p.ptv3 then continue end
+		if not p.mo and not p.ptv3 then continue end
 		if p.ptv3.specforce then continue end
 		if p.ptv3.swapModeFollower
 		and p.ptv3.swapModeFollower.valid then continue end
+
+		if p.ptv3.laps < 0 then P_FlashPal(p, 5, 8) end
 
 		if p.ptv3.banana
 		and P_IsObjectOnGround(p.mo) then
@@ -469,7 +471,9 @@ addHook('PostThinkFrame', function()
 
 	if PTV3.pizzatime then
 		PTV3.time = max(0, $-1)
-		PTV3.pftime = max(0, $-1)
+
+		if multiplayer then PTV3.pftime = max(0, $-1) end
+
 		if not PTV3.overtime
 		and PTV3.time <= 5*TICRATE
 		and not PTV3.__fadedmus then
@@ -546,7 +550,8 @@ addHook('PostThinkFrame', function()
 		end
 	end
 
-	if PTV3.pizzatime and not (PTV3.pftime) and not PTV3.pizzaface then
+	if (PTV3.pizzatime and multiplayer and not PTV3.pftime and not PTV3.pizzaface)
+	or (PTV3.pizzatime and not PTV3.time and not PTV3.pizzaface) then
 		PTV3:pizzafaceSpawn()
 	end
 	if PTV3.pizzatime and consoleplayer then

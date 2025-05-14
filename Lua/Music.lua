@@ -1,5 +1,5 @@
 local music = {
-	minus = { "ANTIPIZ", "ILOAED", "LAMLAER", "UNKNONI", "INSTANCE" },
+	minus = { "ANTIPI", "ILOAED", "LAMAER", "UNKOWN", "INSTNC" },
 	plus = { "PIZTIM", "DEAOLI", "LAP3LO", "FORTHC", "MANIAC"},
 	"POTMAC"
 }

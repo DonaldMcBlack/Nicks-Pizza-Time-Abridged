@@ -1,9 +1,14 @@
 freeslot("MT_PTV3_PIZZAFACE",
 	"SPR_PZAT",
 	"S_PTV3_PIZZAFACE",
-	"sfx_pflgh"
+	"sfx_pflgh",
+	"sfx_pizmov"
 )
-sfxinfo[sfx_pflgh].caption = "Hahahahahaaa!"
+sfxinfo[sfx_pflgh].caption = "Pizzaface is coming..."
+sfxinfo[sfx_pizmov] = {
+	flags = SF_X2AWAYSOUND|SF_NOMULTIPLESOUND,
+	caption = "Pizzaface is near..."
+}
 
 mobjinfo[MT_PTV3_PIZZAFACE] = {
 	doomednum = -1,
@@ -20,8 +25,8 @@ states[S_PTV3_PIZZAFACE] = {
     frame = FF_ANIMATE|A,
     tics = -1,
     action = nil,
-    var1 = 15,
-    var2 = 1,
+    var1 = P,
+    var2 = 2,
     nextstate = S_PTV3_PIZZAFACE
 }
 
@@ -31,13 +36,13 @@ end
 
 local function P_FlyTo(mo, fx, fy, fz, sped, addques)
 	local z = mo.z+(mo.height/2)
-    if mo.valid
+    if mo.valid then
         local flyto = P_AproxDistance(P_AproxDistance(fx - mo.x, fy - mo.y), fz - z)
-        if flyto < 1
+        if flyto < 1 then
             flyto = 1
         end
 		
-        if addques
+        if addques then
             mo.momx = $ + FixedMul(FixedDiv(fx - mo.x, flyto), sped)
             mo.momy = $ + FixedMul(FixedDiv(fy - mo.y, flyto), sped)
             mo.momz = $ + FixedMul(FixedDiv(fz - z, flyto), sped)
@@ -45,8 +50,8 @@ local function P_FlyTo(mo, fx, fy, fz, sped, addques)
             mo.momx = FixedMul(FixedDiv(fx - mo.x, flyto), sped)
             mo.momy = FixedMul(FixedDiv(fy - mo.y, flyto), sped)
             mo.momz = FixedMul(FixedDiv(fz - z, flyto), sped)
-        end    
-    end    
+        end
+    end
 end
 
 local function getNearestPlayer(pos, conditions)
@@ -103,8 +108,8 @@ rawset(_G, "L_SpeedCap", function(mo,limit,factor)
 	local spd, ang =
 		R_PointToDist2(0,0,spd_xy,mo.momz),
 		R_PointToAngle2(0,0,mo.momx,mo.momy)
-	if spd > limit
-		if factor == nil
+	if spd > limit then
+		if factor == nil then
 			factor = FixedDiv(limit,spd)
 		end
 		L_DoBrakes(mo,factor)
@@ -134,6 +139,7 @@ addHook('MobjThinker', function(pf)
 	if not (leveltime % 8)
 	and (pf.momx ~= 0 or pf.momy ~= 0 or pf.momz ~= 0) then
 		PTV3:doEffect(pf, "PF Afterimage")
+		S_StartSound(pf, sfx_pizmov)
 	end
 
 	if not runCode then return end
@@ -180,7 +186,7 @@ local function PFTouchSpecial(pf, pmo)
 		src = pf.tracer
 	end
 	
-	if pmo.player.powers[pw_invulnerability] 
+	if pmo.player.powers[pw_invulnerability]
 	or (pmo.player.ptv3 and pmo.player.ptv3.fake_exit) then
 		return
 	end
