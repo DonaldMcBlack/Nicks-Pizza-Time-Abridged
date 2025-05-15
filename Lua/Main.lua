@@ -43,7 +43,7 @@ addHook('PlayerSpawn', function(p)
 	if not (p and p.mo) then return end
 	if not p.ptv3 then PTV3:player(p) end
 
-	if PTV3.pizzatime then
+	if PTV3.pizzatime or PTV3.minusworld then
 		PTV3:teleportPlayer(p)
 	end
 	if p.ptv3.insecret then
@@ -118,15 +118,15 @@ local function normalThinker(p)
 	if not (PTV3.spawnGate and PTV3.spawnGate.valid)
 	and not p.ptv3.fake_exit
 	and PTV3.spawnsector
-	and PTV3.pizzatime
+	and (PTV3.pizzatime or PTV3.minusworld)
 	and p.mo.subsector.sector == PTV3.spawnsector
 	and PTV3:canExit(p) then
 		PTV3:doPlayerExit(p)
 	end
 
 	-- Score reduction
-	if PTV3.pizzatime
-	and not (leveltime % TICRATE) 
+	if (PTV3.pizzatime or PTV3.minusworld)
+	and not (leveltime % TICRATE)
 	and not p.ptv3.pizzaface
 	and not p.ptv3.fake_exit
 	and p.score > 0 then
@@ -343,7 +343,7 @@ addHook('PlayerThink', function(p)
 			p.ptv3.pfcamper_sectors = {}
 			p.ptv3.pfcamper = false
 		end
-	elseif PTV3.pizzatime
+	elseif (PTV3.pizzatime or PTV3.minusworld)
 	and not PTV3.panicSpriteBlacklist[p.mo.skin] then
 		local speed = FixedHypot(p.rmomx, p.rmomy)
 
@@ -380,13 +380,15 @@ end)
 addHook('ThinkFrame', function()
 	if not PTV3:isPTV3() then return end
 
+	if PTV3.pizzatime or PTV3.minusworld then P_StartQuake(PTV3.shakeintensity*FU, -1) end
+
 	for p in players.iterate do
 		if not p.mo and not p.ptv3 then continue end
 		if p.ptv3.specforce then continue end
 		if p.ptv3.swapModeFollower
 		and p.ptv3.swapModeFollower.valid then continue end
 
-		if p.ptv3.laps < 0 then P_FlashPal(p, 5, 8) end
+		if PTV3.minusworld then P_FlashPal(p, 5, 8) end
 
 		if p.ptv3.banana
 		and P_IsObjectOnGround(p.mo) then
@@ -429,6 +431,11 @@ addHook("PlayerCmd", function(p, cmd)
 	cmd.sidemove = 0
 end)
 
+-- Kill stuff while running
+addHook("PlayerCanDamage", function(p, mobj)
+	if p.speed >= skins[p.mo.skin].runspeed and not mobj.player then return true end
+end)
+
 sfxinfo[freeslot "sfx_doorsh"].caption = "SLAM!"
 
 addHook('PostThinkFrame', function()
@@ -447,7 +454,7 @@ addHook('PostThinkFrame', function()
 	if PTV3.spawnGate
 	and PTV3.spawnGate.valid then
 		if leveltime > PTV3.maxTitlecardTime+TICRATE
-		and not PTV3.pizzatime then
+		and not (PTV3.pizzatime or PTV3.minusworld) then
 			if PTV3.spawnGate._frame ~= A then
 				S_StartSound(PTV3.spawnGate, sfx_doorsh)
 				P_StartQuake(FU*5, TICRATE/2)
@@ -469,7 +476,7 @@ addHook('PostThinkFrame', function()
 		return
 	end
 
-	if PTV3.pizzatime then
+	if PTV3.pizzatime or PTV3.minusworld then
 		PTV3.time = max(0, $-1)
 
 		if multiplayer then PTV3.pftime = max(0, $-1) end
@@ -495,8 +502,7 @@ addHook('PostThinkFrame', function()
 		end
 	end
 
-	if not (PTV3.time)
-	and not PTV3.overtime then
+	if not (PTV3.time) and not PTV3.overtime then
 		if PTV3:canOvertime() then
 			PTV3:overtimeToggle()
 		else
@@ -508,7 +514,7 @@ addHook('PostThinkFrame', function()
 
 	if gametype == GT_PTV3DM
 	and not PTV3.overtime
-	and PTV3.pizzatime
+	and (PTV3.pizzatime or PTV3.minusworld)
 	and #total > 2
 	and #alive <= 2 then
 		PTV3:overtimeToggle()
@@ -550,18 +556,22 @@ addHook('PostThinkFrame', function()
 		end
 	end
 
-	if (PTV3.pizzatime and multiplayer and not PTV3.pftime and not PTV3.pizzaface)
-	or (PTV3.pizzatime and not PTV3.time and not PTV3.pizzaface) then
+	if ((PTV3.pizzatime or PTV3.minusworld) and multiplayer and not PTV3.pftime and not PTV3.pizzaface)
+	or ((PTV3.pizzatime or PTV3.minusworld) and not PTV3.time and not PTV3.pizzaface) then
 		PTV3:pizzafaceSpawn()
 	end
-	if PTV3.pizzatime and consoleplayer then
+	if (PTV3.pizzatime or PTV3.minusworld) and consoleplayer then
 		consoleplayer.realtime = PTV3.time
 	end
 	if PTV3.titlecards[gamemap]
 	and consoleplayer
-	and not PTV3.pizzatime then
+	and not (PTV3.pizzatime or PTV3.minusworld) then
 		consoleplayer.realtime = max(0, leveltime-cutsceneTime)
 	end
+end)
+
+addHook("MapChange", function(map)
+	PTV3:ResetAll()
 end)
 
 addHook("MobjDeath", function(t,i,s)

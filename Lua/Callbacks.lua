@@ -19,6 +19,11 @@ PTV3.callbacks = {
 	-- Triggers on Pizza Time.
 	-- Arguments:
 	-- p - Player that started Pizza Time.
+
+	['MinusWorld'] = {},
+	-- Triggers on entering the Negative Pizza Portal.
+	-- Arguments:
+	-- p - Player that started Minus World.
 	
 	['VariableInit'] = {},
 	-- Runs when all variables get initalized, except the player for reasons.

@@ -1,6 +1,10 @@
 freeslot("MT_PTV3_PIZZAFACE",
 	"SPR_PZAT",
+	"SPR_PZTL",
+	"SPR_PZAR",
 	"S_PTV3_PIZZAFACE",
+	"S_PTV3_PIZZAMAD",
+	"S_PTV3_PIZZATROLL",
 	"sfx_pflgh",
 	"sfx_pizmov"
 )
@@ -28,6 +32,24 @@ states[S_PTV3_PIZZAFACE] = {
     var1 = P,
     var2 = 2,
     nextstate = S_PTV3_PIZZAFACE
+}
+
+states[S_PTV3_PIZZAMAD] = {
+	sprite = SPR_PZAR,
+	frame = FF_ANIMATE|A,
+	tics = -1,
+	action = nil,
+	var1 = 10,
+	var2 = 2,
+	nextstate = S_PTV3_PIZZAMAD
+}
+
+states[S_PTV3_PIZZATROLL] = {
+	sprite = SPR_PZTL,
+	frame = A,
+	action = nil,
+	tics = -1,
+	nextstate = S_PTV3_PIZZATROLL
 }
 
 local function followC(p)
@@ -82,9 +104,12 @@ local function getNearestPlayer(pos, conditions)
 end
 
 addHook('MobjSpawn', function(pf)
-	pf.flyspeed = 23*FU
+	pf.flyspeed = 23
+	pf.rubberbandspeed = 60
 	pf.destscale = (FU/2)*5/4
 	pf.scale = (FU/2)*5/4
+	pf.spritexscale = $*2
+	pf.spriteyscale = $*2
 	S_StartSound(nil, sfx_pflgh)
 
 	local player = getNearestPlayer(pf, followC)
@@ -126,7 +151,7 @@ addHook('MobjThinker', function(pf)
 	end
 
 	if pf.tracer
-	and pf.tracer.valid then 
+	and pf.tracer.valid then
 		local t = pf.tracer
 		P_SetOrigin(pf,
 			t.x-t.momx,
@@ -142,14 +167,23 @@ addHook('MobjThinker', function(pf)
 		S_StartSound(pf, sfx_pizmov)
 	end
 
+	if (PTV3.extreme or PTV3.overtime) and not PTV3.minusworld then pf.angry = true
+	else pf.angry = false end
+
+	-- CONS_Printf(consoleplayer, "Pizzaface's Anger"..tostring(pf.angry))
 	if not runCode then return end
+
+	-- print "Running code"
 
 	local player = getNearestPlayer(pf, followC)
 	pf.target = player and player.mo
+
+	-- CONS_Printf(consoleplayer, pf.target.player.name)
 	if not pf.target then
 		pf.momx,pf.momy,pf.momz = 0,0,0
 	end
 	if pf.target then
+		local gap = P_AproxDistance(pf.x - pf.target.x, pf.y - pf.target.y)
 		pf.angle = R_PointToAngle2(pf.x, pf.y, pf.target.x, pf.target.y)
 		if gametype == GT_PTV3DM then
 			-- a bit of yoink from FlyTo
@@ -172,7 +206,30 @@ addHook('MobjThinker', function(pf)
             pf.momz = $ + FixedMul(FixedDiv(tmomz - pf.momz, flyto2), sped2)
 			L_SpeedCap(pf, sped)
 		else
-			P_FlyTo(pf, pf.target.x, pf.target.y, pf.target.z, pf.flyspeed)
+
+			-- Behaviour changes ---------------------
+			if pf.angry then -- Enraged Pizzaface
+				if pf.state ~= S_PTV3_PIZZAMAD then pf.state = S_PTV3_PIZZAMAD end
+				if gap > FU*2000 then P_FlyTo(pf, pf.target.x, pf.target.y, pf.target.z, (pf.flyspeed*FU)*5) else
+					P_FlyTo(pf, pf.target.x, pf.target.y, pf.target.z, pf.flyspeed*FU)
+				end
+				
+			else -- Normal Pizzaface
+				-- CONS_Printf(consoleplayer, "Minus World "..tostring(PTV3.minusworld).." Pizza Time "..tostring(PTV3.pizzatime))
+				if PTV3.minusworld and not PTV3.pizzatime then
+					if gap < FU*300 and pf.state ~= S_PTV3_PIZZATROLL then pf.state = S_PTV3_PIZZATROLL
+					elseif pf.state ~= S_PTV3_PIZZAFACE then pf.state = S_PTV3_PIZZAFACE end
+					
+					if gap > FU*1000 then
+						P_FlyTo(pf, pf.target.x, pf.target.y, pf.target.z, pf.rubberbandspeed*FU)
+					else
+						P_FlyTo(pf, pf.target.x, pf.target.y, pf.target.z, pf.flyspeed*FU) 
+					end
+
+				elseif PTV3.pizzatime and not PTV3.minusworld then
+					P_FlyTo(pf, pf.target.x, pf.target.y, pf.target.z, pf.flyspeed*FU)
+				end
+			end
 		end
 	end
 end, MT_PTV3_PIZZAFACE)
@@ -237,5 +294,6 @@ function PTV3:pizzafaceSpawn()
 		end
 
 		PTV3.pizzaface = spawnAIpizza(clonething)
+		PTV3.pizzaface.angry = false
 	end
 end

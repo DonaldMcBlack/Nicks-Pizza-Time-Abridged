@@ -131,7 +131,7 @@ addHook("NetVars",function(n)
 end)
 
 local function isIcyF(map)
-	if (mapheaderinfo[map] == nil)
+	if (mapheaderinfo[map] == nil) then
 		return false;
 	end
 	
@@ -140,13 +140,13 @@ local function isIcyF(map)
 	or mapheaderinfo[map].skynum == 29
 	or mapheaderinfo[map].skynum == 30
 	or mapheaderinfo[map].skynum == 107
-	or mapheaderinfo[map].skynum == 55)
+	or mapheaderinfo[map].skynum == 55) then
 		return true;
 	end
 
 	if (mapheaderinfo[map].musname == "MP_ICE"
 	or mapheaderinfo[map].musname == "FHZ"
-	or mapheaderinfo[map].musname == "CCZ")
+	or mapheaderinfo[map].musname == "CCZ") then
 		// ice music
 		return true;
 	end
@@ -178,7 +178,7 @@ local function isIcyF(map)
 
 	local stageName = string.lower(mapheaderinfo[map].lvlttl);
 	for i = 1,#icywords do
-		if (string.find(stageName, icywords[i]) != nil)
+		if (string.find(stageName, icywords[i]) ~= nil) then
 			-- Has a very distinctly desert word in its title
 			return true;
 		end
@@ -196,16 +196,16 @@ addHook("MapThingSpawn",function(mo,mt)
 	//looks like an ERROR in a source game!
 	mo.flags2 = $|MF2_DONTDRAW
 	
-	if PTV3:isPTV3()
+	if PTV3:isPTV3() then
 		local mul = 14
-		if isIcy
+		if isIcy then
 			local gus = P_SpawnMobjFromMobj(mo,0,0,(mo.height*mul),MT_GUSTAVO_EXITSIGN)
 			gus.state = S_GUSTAVO_EXIT_WAIT
 			gus.icygus = true
 			gus.angle = mo.angle
 			gus.tracer = mo
 			return true
-		elseif gamemap == A5
+		elseif gamemap == A5 then
 			local gus = P_SpawnMobjFromMobj(mo,0,0,(mo.height*mul),MT_GUSTAVO_EXITSIGN)
 			gus.state = S_GUSTAVO_EXIT_WAIT
 			gus.rattygus = true
@@ -213,7 +213,7 @@ addHook("MapThingSpawn",function(mo,mt)
 			gus.tracer = mo
 			return true
 		else
-			if (P_RandomChance(FU/2))
+			if (P_RandomChance(FU/2)) then
 				local gus = P_SpawnMobjFromMobj(mo,0,0,(mo.height*mul),MT_GUSTAVO_EXITSIGN)
 				gus.state = S_GUSTAVO_EXIT_WAIT
 				gus.angle = mo.angle
@@ -224,7 +224,7 @@ addHook("MapThingSpawn",function(mo,mt)
 				stick.state = S_STICK_EXIT_WAIT
 				stick.angle = mo.angle
 				stick.tracer = mo
-				return true		
+				return true
 			end
 		end
 	end
@@ -232,24 +232,18 @@ addHook("MapThingSpawn",function(mo,mt)
 end,MT_PIZZATOWER_EXITSIGN_SPAWN)
 
 addHook("MobjThinker",function(mo)
-	if not mo
-	or not mo.valid
-		return
-	end
-	
-	if not PTV3
-		return
-	end
+	if not mo or not mo.valid then return end
+	if not PTV3 then return end
 	
 	local grounded = P_IsObjectOnGround(mo)
 	
 	mo.angle = mo.tracer.angle
 	
 	if mo.state == S_GUSTAVO_EXIT_WAIT
-	and not mo.alreadyfell
+	and not mo.alreadyfell then
 		mo.flags2 = $|MF2_DONTDRAW
 		mo.flags = $|MF_NOGRAVITY
-		if PTV3.pizzatime
+		if PTV3.pizzatime or PTV3.minusworld then
 			
 			local px = mo.x
 			local py = mo.y
@@ -259,10 +253,10 @@ addHook("MobjThinker",function(mo)
 				if found and found.valid
 				and found.health
 				and found.player
-				and (P_CheckSight(mo,found))
-					if mo.icygus
+				and (P_CheckSight(mo,found)) then
+					if mo.icygus then
 						mo.state = S_GUSTAVO_ICE_RALLY
-					elseif mo.rattygus
+					elseif mo.rattygus then
 						mo.state = S_GUSTAVO_RAT_FALL
 					else
 						mo.state = S_GUSTAVO_EXIT_FALL
@@ -274,41 +268,38 @@ addHook("MobjThinker",function(mo)
 	else
 		mo.flags2 = $ &~MF2_DONTDRAW
 		mo.flags = $ &~MF_NOGRAVITY
-		if grounded
-			if mo.rattygus
-				if mo.state ~= S_GUSTAVO_RAT_RALLY
+		if grounded then
+			if mo.rattygus then
+				if mo.state ~= S_GUSTAVO_RAT_RALLY then
 					mo.state = S_GUSTAVO_RAT_RALLY
 				end
-			elseif not (mo.icygus)
-				if mo.state ~= S_GUSTAVO_EXIT_RALLY
+			elseif not (mo.icygus) then
+				if mo.state ~= S_GUSTAVO_EXIT_RALLY then
 					mo.state = S_GUSTAVO_EXIT_RALLY
 				end
 			end
 		else
-			if mo.rattygus
+			if mo.rattygus then
 				mo.state = S_GUSTAVO_RAT_FALL
-			elseif not (mo.icygus)
+			elseif not (mo.icygus) then
 				mo.state = S_GUSTAVO_EXIT_FALL
 			end			
 		end
 	end
 end,MT_GUSTAVO_EXITSIGN)
 
-addHook("MobjThinker",function(mo)
-	if not mo
-	or not mo.valid
-		return
-	end
+addHook("MobjThinker", function(mo)
+	if not mo or not mo.valid then return end
 
 	local grounded = P_IsObjectOnGround(mo)
 	
 	mo.angle = mo.tracer.angle
 
 	if mo.state == S_STICK_EXIT_WAIT
-	and not mo.alreadyfell
+	and not mo.alreadyfell then
 		mo.flags2 = $|MF2_DONTDRAW
 		mo.flags = $|MF_NOGRAVITY
-		if PTV3.pizzatime
+		if PTV3.pizzatime or PTV3.minusworld then
 			local px = mo.x
 			local py = mo.y
 			local br = dist*mo.scale
@@ -317,7 +308,7 @@ addHook("MobjThinker",function(mo)
 				if found and found.valid
 				and found.health
 				and found.player
-				and (P_CheckSight(mo,found))
+				and (P_CheckSight(mo,found)) then
 					mo.state = S_STICK_EXIT_FALL
 					mo.alreadyfell = true
 				end
@@ -326,8 +317,8 @@ addHook("MobjThinker",function(mo)
 	else
 		mo.flags2 = $ &~MF2_DONTDRAW
 		mo.flags = $ &~MF_NOGRAVITY
-		if grounded
-			if mo.state ~= S_STICK_EXIT_RALLY
+		if grounded then
+			if mo.state ~= S_STICK_EXIT_RALLY then
 				mo.state = S_STICK_EXIT_RALLY
 			end
 		else

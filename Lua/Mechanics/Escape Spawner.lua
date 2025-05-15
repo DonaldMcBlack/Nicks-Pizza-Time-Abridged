@@ -66,7 +66,7 @@ states[S_ESCAPESPAWNER20] = { sprite = SPR_SPWE, frame = FF_FULLBRIGHT|T, tics =
 states[S_ESCAPESPAWNER6].action = A_PizzaTowerEscapeSpawn
 
 --The Pizza Tower Escape Spawning List
-if not(PT_EscapeSpawnList)
+if not(PT_EscapeSpawnList) then
 	rawset(_G, "PT_EscapeSpawnList", {})
 end
 PT_EscapeSpawnList[MT_BLUECRAWLA] = MT_BLUECRAWLA
@@ -117,7 +117,7 @@ PT_EscapeSpawnList[MT_HANGSTER] = MT_HANGSTER
 addHook("MapLoad", function()
 	if not PTV3:isPTV3() then return end
 	local listofspawners = {}
-	for enemy in mobjs.iterate()
+	for enemy in mobjs.iterate() do
 		if PT_EscapeSpawnList[enemy.type] == nil then continue end --You want the Object to spawn in
 		local spawnlocation = {
 			x = enemy.x,
@@ -169,9 +169,9 @@ addHook("MobjThinker", function(spawner)
 		spawner.reactiontime = 5*TICRATE
 	elseif spawner.reactiontime > 0 then
 		spawner.reactiontime = $1-1
-	elseif PTV3.pizzatime
+	elseif (PTV3.pizzatime or PTV3.minusworld)
 	and P_LookForPlayers(spawner,FixedMul(spawnrange,spawner.scale),true,false) == true
-	and (spawner.target and spawner.target.player.ptv3 and spawner.target.player.ptv3.laps > spawner.spawnlap) then
+	and (spawner.target and spawner.target.player.ptv3 and spawner.target.player.ptv3.laps ~= spawner.spawnlap) then
 		--Spawn in
 		spawner.state = S_ESCAPESPAWNER1
 		spawner.spawnlap = spawner.target.player.ptv3.laps

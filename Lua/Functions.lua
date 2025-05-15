@@ -453,7 +453,7 @@ function PTV3:teleportPlayer(p, coords)
 end
 
 function PTV3:newLap(p, int)
-	if not self.pizzatime then return end
+	if not (self.pizzatime or self.minusworld) then return end
 	if not p.ptv3 then return end
 	if p.ptv3.pizzaface then return end
 	if not (self:canLap(p)) then return end
@@ -470,6 +470,13 @@ function PTV3:newLap(p, int)
 
 	if not int then int = 1 end
 	p.ptv3.laps = $+int
+	
+	-- For the quakes
+	if ((PTV3.minusworld and not PTV3.pizzatime) or PTV3.extreme) 
+	and PTV3.shakeintensity < 5 then PTV3.shakeintensity = abs(int*2) end
+
+	-- Speed up Pizzaface
+	if PTV3.pizzaface and PTV3.pizzaface.angry then PTV3.pizzaface.flyspeed = $+4 end
 
 	p.powers[pw_shield] = p.ptv3.exitShield
 	p.ptv3.exitShield = SH_NONE
@@ -512,7 +519,10 @@ function PTV3:newLap(p, int)
 	end
 
 	-- Spawn chasers
-	if p.ptv3.laps <= -3 or p.ptv3.laps >= 3 then self.pftime = 0 end -- Pizzaface
+	if (p.ptv3.laps <= -3 or p.ptv3.laps >= 3) and not PTV3.pizzaface then
+		self.pftime = 0
+		self:pizzafaceSpawn()
+	end -- Pizzaface
 
 	if p.ptv3.laps <= -4 and not (self.snick and self.snick.valid)
 	or p.ptv3.laps >= 4 and not (self.snick and self.snick.valid) then self:snickSpawn() end -- Snick
@@ -523,26 +533,7 @@ function PTV3:newLap(p, int)
 	PTV3.callbacks('NewLap', p)
 end
 
-function PTV3:startPizzaTime(p)
-	self.pizzatime = true
-	self.hud_pt = leveltime
-	if gametype == GT_PTV3DM then
-		self:snickSpawn()
-	end
-	for player in players.iterate do
-		if not player.mo then continue end
-		if not player.ptv3 then continue end
-
-		if (player.ptv3.insecret) then
-			player.ptv3.secret_tptoend = true
-		elseif player ~= p then
-			self:teleportPlayer(player, self.endpos)
-		end
-		if player.ptv3.combo then
-			player.ptv3.combo_pos = PTV3.MAX_COMBO_TIME
-		end
-	end
-	
+local function PrepareYourPizza(p)
 	local time = string.format( "%02d:%02d", G_TicsToMinutes(leveltime), G_TicsToSeconds(leveltime) )
 	PTV3:logEvent(p.name.." has started Pizza Time in "..time.."!", 1)
 
@@ -574,8 +565,55 @@ function PTV3:startPizzaTime(p)
 		end
 		PTV3:logEvent(pfp.name.." is Pizzaface for this round.", 1)
 	end
-	
+
 	PTV3.switchJohnBlocks()
+end
+
+function PTV3:startMinusWorld(p)
+	self.minusworld = true
+	self.hud_pt = leveltime
+	self.shakeintensity = 2
+
+	for player in players.iterate do
+		if not player.mo and not player.ptv3 then continue end
+
+		if (player.ptv3.insecret) then
+			player.ptv3.secret_tptoend = true
+		elseif player ~= p then
+			self:teleportPlayer(player, self.endpos)
+		end
+		if player.ptv3.combo then
+			player.ptv3.combo_pos = PTV3.MAX_COMBO_TIME
+		end
+	end
+
+	PrepareYourPizza(p)
+	PTV3.callbacks('MinusWorld', p)
+end
+
+function PTV3:startPizzaTime(p)
+	self.pizzatime = true
+	self.hud_pt = leveltime
+	self.shakeintensity = 2
+
+	if gametype == GT_PTV3DM then
+		self:snickSpawn()
+	end
+
+	for player in players.iterate do
+		if not player.mo and not player.ptv3 then continue end
+
+		if (player.ptv3.insecret) then
+			player.ptv3.secret_tptoend = true
+		elseif player ~= p then
+			self:teleportPlayer(player, self.endpos)
+		end
+		if player.ptv3.combo then
+			player.ptv3.combo_pos = PTV3.MAX_COMBO_TIME
+		end
+	end
+
+	PrepareYourPizza(p)
 	PTV3.callbacks('PizzaTime', p)
 end
 
@@ -633,4 +671,17 @@ function PTV3:doFollowerTP(flwr, lder, index)
 	end
 
 	flwr.state = state
+end
+
+function PTV3:ResetAll()
+	if not PTV3:isPTV3() then return end
+
+	PTV3.pizzatime = false
+	PTV3.minusworld = false
+
+	for p in players.iterate do
+		if not p.ptv3 and not p.valid then continue end
+
+		if p.ptv3.specforce then p.ptv3.specforce = not p.ptv3.specforce end
+	end
 end

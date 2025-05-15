@@ -25,6 +25,7 @@ end, MT_PTV3_PILLARJOHN)
 
 local function killJohn(john, pmo)
 	if not john.isAlive then return end
+	if PTV3.minusworld then return end
 
 	local killAngle = R_PointToAngle2(john.x, john.y, pmo.x, pmo.y)
 
@@ -34,7 +35,8 @@ local function killJohn(john, pmo)
 	john.momy = FixedMul(-16*sin(killAngle), john.scale)
 	john.momz = 16*john.scale
 
-	S_StartSound(john, sfx_jpilr)
+	S_StartSound(nil, sfx_jpilr)
+	if consoleplayer and consoleplayer.valid then P_FlashPal(consoleplayer, 1, 5) end
 	john.isAlive = false
 
 	PTV3:startPizzaTime(pmo.player)
@@ -51,11 +53,14 @@ end, MT_PTV3_PILLARJOHN)
 addHook("MobjThinker", function(john)
 	if not (john and john.valid) then return end
 
-	if not john.isAlive or PTV3.pizzatime then
-		john.flags = $|MF_NOCLIP|MF_NOCLIPHEIGHT
-		if (john.z > john.ceilingz
-		or john.z+john.height < john.floorz) then
-			P_RemoveMobj(john)
+	if not john.isAlive or (PTV3.pizzatime or PTV3.minusworld) then
+		if PTV3.minusworld then P_RemoveMobj(john)
+		else
+			john.flags = $|MF_NOCLIP|MF_NOCLIPHEIGHT
+			if (john.z > john.ceilingz
+			or john.z+john.height < john.floorz) then
+				P_RemoveMobj(john)
+			end
 		end
 	end
 end, MT_PTV3_PILLARJOHN)

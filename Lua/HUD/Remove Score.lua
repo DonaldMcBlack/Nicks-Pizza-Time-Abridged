@@ -1,7 +1,7 @@
 return function(v,p)
 	if not PTV3:isPTV3() then return end
-	if not PTV3.pizzatime then return end
-	if type(p.ptv3.scoreReduce) ~= "number" then return end
+	if not (PTV3.pizzatime or PTV3.minusworld) then return end
+	if p.ptv3.scoreReduce ~= nil and type(p.ptv3.scoreReduce) ~= "number" then return end
 
 	local tweenTime = max(0, min(FixedDiv(leveltime-p.ptv3.scoreReduce, TICRATE), FU))
 

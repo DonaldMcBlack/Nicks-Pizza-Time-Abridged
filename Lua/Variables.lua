@@ -215,7 +215,7 @@ function PTV3:player(player)
 		['pfcamper'] = false,
 	}
 	
-	if self.pizzatime then
+	if self.pizzatime or self.minusworld then
 		player.ptv3.specforce = true
 	end
 	player.score = 0

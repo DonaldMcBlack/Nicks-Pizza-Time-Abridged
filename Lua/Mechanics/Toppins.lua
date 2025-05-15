@@ -123,7 +123,7 @@ local function __think(tpn)
 
 		if (data.x == tpn.setx and data.y == tpn.sety)
 		and (abs(tpn.t_offx-tpn.offx) < FU and abs(tpn.t_offy-tpn.offy) < FU) then
-			if not PTV3.pizzatime
+			if not PTV3.pizzatime or not PTV3.minusworld then
 				changeToppinState(tpn, "idle")
 			else
 				changeToppinState(tpn, "panic")

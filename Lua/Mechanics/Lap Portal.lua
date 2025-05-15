@@ -34,7 +34,6 @@ states[S_PTV3_MINUSLAPPORTAL] = {
 
 
 local tplist = {}
-local minustplist = {}
 
 addHook("NetVars", function(n)
 	tplist = n($)
@@ -54,52 +53,47 @@ end, MT_PTV3_MINUSLAPPORTAL)
 
 addHook("ThinkFrame", do
 	local rmvlist = {}
+	
 	for pmo,_ in pairs(tplist) do
 		if not (pmo and pmo.valid and pmo.player) then
 			table.insert(rmvlist, _)
 			continue
 		end
 
-		PTV3:newLap(pmo.player)
-		table.insert(rmvlist, pmo)
-	end
+		if PTV3.minusworld then 
+			PTV3:newLap(pmo.player, -1)
+		else PTV3:newLap(pmo.player) end
 
-	for pmo, _ in pairs(minustplist) do
-		if not (pmo and pmo.valid and pmo.player) then
-			table.insert(rmvlist, _)
-			continue
-		end
-
-		PTV3:newLap(pmo.player, -1)
 		table.insert(rmvlist, pmo)
 	end
 
 	for _,i in pairs(rmvlist) do
-		minustplist[i] = nil
+		tplist[i] = nil
 	end
 end)
 
 addHook("TouchSpecial", function(mo, pmo)
-	if not PTV3.pizzatime then return true end
+	if PTV3.minusworld and not PTV3.pizzatime then return true end
 	if not (mo and mo.valid) then return true end
 	if not (pmo and pmo.player and pmo.player.ptv3) then return true end
 	if tplist[pmo] then return true end
 	if not (PTV3:canLap(pmo.player)) then return true end
 
 	tplist[pmo] = true
-	print "Lapped."
+	-- print "Lapped."
 	return true
 end, MT_PTV3_LAPPORTAL)
 
 addHook("TouchSpecial", function(mo, pmo)
+	if PTV3.pizzatime and not PTV3.minusworld then return true end
 	if not (mo and mo.valid) then return true end
 	if not (pmo and pmo.player and pmo.player.ptv3) then return true end
 	if tplist[pmo] then return true end
 	if not (PTV3:canLap(pmo.player)) then return true end
 
-	if not PTV3.pizzatime then PTV3:startPizzaTime(pmo.player) end
+	if not PTV3.pizzatime and not PTV3.minusworld then PTV3:startMinusWorld(pmo.player) end
 
-	minustplist[pmo] = true
-	print "Lapped?"
+	tplist[pmo] = true
+	-- print "Lapped?"
 	return true
 end, MT_PTV3_MINUSLAPPORTAL)

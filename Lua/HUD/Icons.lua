@@ -153,7 +153,8 @@ local function _iconShit(v,x,y,scale,patch,color,...)
 			"PTFNT",
 			nil,
 			"center",
-			FixedMul(FU/3, scale))
+			FixedMul(FU/3, scale),
+		    color)
 	end
 end
 
@@ -222,6 +223,14 @@ local function drawPizzaIcon(v,dp,c)
 	local scale = max(FU/2, FixedMul(result.scale, FU))
 	local p = (PTV3.pizzaface.tracer and PTV3.pizzaface.tracer.valid) and PTV3.pizzaface.tracer.player
 
+	local icon = "PIZZAICON"
+	local fontcolor = nil
+
+	if PTV3.pizzaface.angry then 
+		icon = "PIZZAICON2"
+		fontcolor = SKINCOLOR_RED
+	end
+
 	if not result.onScreen then 
 		local playerResult = SG_ObjectTracking(v,dp,c,dp.mo)
 
@@ -246,9 +255,9 @@ local function drawPizzaIcon(v,dp,c)
 		_iconShit(v,
 			x,y,
 			FU/2,
-			v.cachePatch("PIZZAICON"), nil,
+			v.cachePatch(icon), fontcolor,
 			tostring(dist/FU).." FU",
-			p and "PLAYER" or "AI",
+			p and "PLAYER" or "PIZZAFACE",
 			p and p.ptv3 and p.ptv3.pfcamper and "CAMPER" or ""
 		)
 
@@ -260,9 +269,9 @@ local function drawPizzaIcon(v,dp,c)
 	_iconShit(v,
 		result.x,result.y,
 		max(result.scale, FU/2),
-		v.cachePatch("PIZZAICON"), nil,
+		v.cachePatch(icon), nil,
 		tostring(dist/FU).." FU",
-		p and "PLAYER" or "AI",
+		p and "PLAYER" or "PIZZAFACE",
 		p and p.ptv3 and p.ptv3.pfcamper and "CAMPER" or ""
 	)
 end

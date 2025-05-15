@@ -7,7 +7,7 @@ local music = {
 local function playPizzaTimeMusic()
 	if not PTV3:isPTV3() then return end
 	if not (displayplayer and displayplayer.ptv3) then return end
-	if gametype ~= GT_PTV3DM and not PTV3.pizzatime then return end
+	if gametype ~= GT_PTV3DM and not (PTV3.pizzatime or PTV3.minusworld) then return end
 	if PTV3.titlecards[gamemap] and leveltime < PTV3.maxTitlecardTime then return end
 
 	return true

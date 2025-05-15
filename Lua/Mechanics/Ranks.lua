@@ -35,7 +35,20 @@ PTV3.ranks = {
 			and p.ptv3.laps >= 2
 			and p.ptv3.secretsfound >= #PTV3.secrets
 		end
+	},
+	{
+		rank = "M",
+		music = "PRANK",
+		fill = false,
+		canGet = function(p)
+			return p.ptv3
+			and not p.ptv3.combo_dropped
+			and p.ptv3.started_combo
+			and p.ptv3.laps <= -2
+			and p.ptv3.secretsfound >= #PTV3.secrets
+		end
 	}
+
 }
 
 for i = 1,5 do
