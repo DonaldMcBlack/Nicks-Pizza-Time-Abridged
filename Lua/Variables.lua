@@ -70,6 +70,14 @@ COM_AddCommand('PTV3_endgame', function(p)
 	PTV3:endGame()
 end, COM_ADMIN)
 
+COM_AddCommand('PTV3_addlaps', function(p, num)
+	if not PTV3:isPTV3() then return end
+	if not (IsPlayerAdmin(p) or p == server) then return end
+
+	num = tonumber(num)
+	PTV3:newLap(p, num)
+end, COM_ADMIN)
+
 -- vars
 local synced_variables = {
 	['pizzatime'] = false,

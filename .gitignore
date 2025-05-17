@@ -1,6 +1,14 @@
 # Compiled Lua sources
 luac.out
 
+# Zone Builder files
+*.backup1
+*.backup2
+*.backup3
+*.autosave1
+*.autosave2
+*.dbs
+
 # luarocks build files
 *.src.rock
 *.zip
@@ -30,12 +38,3 @@ luac.out
 *.so
 *.so.*
 *.dylib
-
-# Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
-

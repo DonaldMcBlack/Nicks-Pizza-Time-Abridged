@@ -7,8 +7,10 @@ freeslot(
 
 states[S_PTV3_PILLARJOHN] = {
 	sprite = SPR_JOHN,
-	frame = A,
+	frame = A|FF_ANIMATE,
 	tics = -1,
+	var1 = 9,
+	var2 = 2,
 	nextstate = S_PTV3_PILLARJOHN
 }
 

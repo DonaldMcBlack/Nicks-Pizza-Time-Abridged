@@ -211,24 +211,23 @@ local function drawPlayerIcon(v,dp,p,c)
 	)
 end
 
-local function drawPizzaIcon(v,dp,c)
+local function drawChaserIcon(v,dp,c, chaser, icon)
 	if (dp and dp.ptv3 and dp.ptv3.pizzaface) then return end
-	if not (PTV3.pizzaface and PTV3.pizzaface.valid) then return end
+	if not (chaser and chaser.valid) then return end
 
-	local result = SG_ObjectTracking(v,dp,c,PTV3.pizzaface)
+	local result = SG_ObjectTracking(v,dp,c,chaser)
 
-	local dist = R_PointToDist2(c.x, c.y, PTV3.pizzaface.x, PTV3.pizzaface.y)
+	local dist = R_PointToDist2(c.x, c.y, chaser.x, chaser.y)
 	if dist > 12000*FU then return end
 
 	local scale = max(FU/2, FixedMul(result.scale, FU))
-	local p = (PTV3.pizzaface.tracer and PTV3.pizzaface.tracer.valid) and PTV3.pizzaface.tracer.player
 
-	local icon = "PIZZAICON"
-	local fontcolor = nil
-
-	if PTV3.pizzaface.angry then 
-		icon = "PIZZAICON2"
-		fontcolor = SKINCOLOR_RED
+	local p
+	if chaser == PTV3.pizzaface then
+		p = (PTV3.pizzaface.tracer and PTV3.pizzaface.tracer.valid) and PTV3.pizzaface.tracer.player
+		if PTV3.pizzaface.angry then icon = "PIZZAICON2" end
+	else
+		p = (chaser.target and chaser.target.valid) and chaser.target.player
 	end
 
 	if not result.onScreen then 
@@ -255,12 +254,11 @@ local function drawPizzaIcon(v,dp,c)
 		_iconShit(v,
 			x,y,
 			FU/2,
-			v.cachePatch(icon), fontcolor,
+			v.cachePatch(icon), nil,
 			tostring(dist/FU).." FU",
-			p and "PLAYER" or "PIZZAFACE",
+			chaser.displayname or p and p.name,
 			p and p.ptv3 and p.ptv3.pfcamper and "CAMPER" or ""
 		)
-
 		return
 	end
 
@@ -271,7 +269,7 @@ local function drawPizzaIcon(v,dp,c)
 		max(result.scale, FU/2),
 		v.cachePatch(icon), nil,
 		tostring(dist/FU).." FU",
-		p and "PLAYER" or "PIZZAFACE",
+		chaser.displayname or p and p.name,
 		p and p.ptv3 and p.ptv3.pfcamper and "CAMPER" or ""
 	)
 end
@@ -284,5 +282,6 @@ return function(v,dp,c)
 		if not (p and p.mo and p.mo.health) then continue end
 		drawPlayerIcon(v,dp,p,c)
 	end
-	drawPizzaIcon(v,dp,c)
+	drawChaserIcon(v,dp,c, PTV3.snick, "SNICKICON")
+	drawChaserIcon(v,dp,c, PTV3.pizzaface, "PIZZAICON")
 end

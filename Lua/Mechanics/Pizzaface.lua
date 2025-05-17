@@ -6,9 +6,11 @@ freeslot("MT_PTV3_PIZZAFACE",
 	"S_PTV3_PIZZAMAD",
 	"S_PTV3_PIZZATROLL",
 	"sfx_pflgh",
+	"sfx_fplgh",
 	"sfx_pizmov"
 )
 sfxinfo[sfx_pflgh].caption = "Pizzaface is coming..."
+sfxinfo[sfx_fplgh].caption = "Is that the...Pizzaface?"
 sfxinfo[sfx_pizmov] = {
 	flags = SF_X2AWAYSOUND|SF_NOMULTIPLESOUND,
 	caption = "Pizzaface is near..."
@@ -110,7 +112,9 @@ addHook('MobjSpawn', function(pf)
 	pf.scale = (FU/2)*5/4
 	pf.spritexscale = $*2
 	pf.spriteyscale = $*2
-	S_StartSound(nil, sfx_pflgh)
+
+	if PTV3.minusworld then S_StartSound(nil, sfx_fplgh)
+	else S_StartSound(nil, sfx_pflgh) end
 
 	local player = getNearestPlayer(pf, followC)
 	pf.cooldown = 5*TICRATE
@@ -218,13 +222,18 @@ addHook('MobjThinker', function(pf)
 				-- CONS_Printf(consoleplayer, "Minus World "..tostring(PTV3.minusworld).." Pizza Time "..tostring(PTV3.pizzatime))
 				if PTV3.minusworld and not PTV3.pizzatime then
 					if gap < FU*300 and pf.state ~= S_PTV3_PIZZATROLL then pf.state = S_PTV3_PIZZATROLL
-					elseif pf.state ~= S_PTV3_PIZZAFACE then pf.state = S_PTV3_PIZZAFACE end
+					elseif gap > FU*300 and pf.state ~= S_PTV3_PIZZAFACE then pf.state = S_PTV3_PIZZAFACE end
+
+					pf.flyspeed = max(FixedMul(FU/16, gap-(FU*500)), 23*FU)
+					P_FlyTo(pf, pf.target.x, pf.target.y, pf.target.z, pf.flyspeed)
 					
-					if gap > FU*1000 then
-						P_FlyTo(pf, pf.target.x, pf.target.y, pf.target.z, pf.rubberbandspeed*FU)
-					else
-						P_FlyTo(pf, pf.target.x, pf.target.y, pf.target.z, pf.flyspeed*FU) 
-					end
+					-- if gap > FU*1000 then
+					-- 	pf.flyspeed = max(FixedMul(FU/16, gap-(FU*1000)), 23*FU)
+					-- 	P_FlyTo(pf, pf.target.x, pf.target.y, pf.target.z, pf.flyspeed)
+
+					-- else
+					-- 	P_FlyTo(pf, pf.target.x, pf.target.y, pf.target.z, pf.flyspeed*FU) 
+					-- end
 
 				elseif PTV3.pizzatime and not PTV3.minusworld then
 					P_FlyTo(pf, pf.target.x, pf.target.y, pf.target.z, pf.flyspeed*FU)
@@ -281,7 +290,7 @@ local function spawnAIpizza(s)
 end
 
 function PTV3:pizzafaceSpawn()
-	if not PTV3.pizzaface then
+	if not self.pizzaface then
 		local position = {}
 		local clonething = self.endpos
 
@@ -293,7 +302,8 @@ function PTV3:pizzafaceSpawn()
 			position[_] = i
 		end
 
-		PTV3.pizzaface = spawnAIpizza(clonething)
-		PTV3.pizzaface.angry = false
+		self.pizzaface = spawnAIpizza(clonething)
+		self.pizzaface.angry = false
+		self.pizzaface.displayname = "PIZZAFACE"
 	end
 end

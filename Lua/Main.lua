@@ -115,30 +115,27 @@ local function normalThinker(p)
 		return
 	end
 
-	if not (PTV3.spawnGate and PTV3.spawnGate.valid)
-	and not p.ptv3.fake_exit
-	and PTV3.spawnsector
-	and (PTV3.pizzatime or PTV3.minusworld)
-	and p.mo.subsector.sector == PTV3.spawnsector
-	and PTV3:canExit(p) then
-		PTV3:doPlayerExit(p)
-	end
+	if (PTV3.pizzatime or PTV3.minusworld) then
+		if not (PTV3.spawnGate and PTV3.spawnGate.valid)
+		and not p.ptv3.fake_exit and PTV3.spawnsector
+		and p.mo.subsector.sector == PTV3.spawnsector
+		and PTV3:canExit(p) then
+			PTV3:doPlayerExit(p)
+		end
 
-	-- Score reduction
-	if (PTV3.pizzatime or PTV3.minusworld)
-	and not (leveltime % TICRATE)
-	and not p.ptv3.pizzaface
-	and not p.ptv3.fake_exit
-	and p.score > 0 then
-		local reduceBy = 10
-		if p.ptv3.extreme then
-			reduceBy = 20
+		-- Score reduction
+		if not (leveltime % TICRATE) and not p.ptv3.pizzaface
+		and not p.ptv3.fake_exit and p.score > 0 then
+			local reduceBy = 10
+			if p.ptv3.extreme then
+				reduceBy = 20
+			end
+			if PTV3.overtime then
+				reduceBy = 40
+			end
+			p.score = max(0, $-reduceBy)
+			p.ptv3.scoreReduce = leveltime
 		end
-		if PTV3.overtime then
-			reduceBy = 40
-		end
-		p.score = max(0, $-reduceBy)
-		p.ptv3.scoreReduce = leveltime
 	end
 
 	PTV3.callbacks("PlayerThink", p)

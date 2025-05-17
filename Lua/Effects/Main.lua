@@ -13,6 +13,7 @@ mobjinfo[MT_PTV3_EFFECT] = {
 local files = {
 	"Taunt",
 	"PF Afterimage",
+	"Snick Afterimage",
 	"Debris",
 	"Treasure Effect"
 }
@@ -34,7 +35,7 @@ function PTV3:doEffect(mo, effect)
 		mobj.color = effect.color
 		mobj.colorized = true
 		mobj.target = mo
-		mobj.frame = FF_ADD
+		mobj.frame = FF_MODULATE
 
 		if effect.follow then
 			mobj.follow = true
