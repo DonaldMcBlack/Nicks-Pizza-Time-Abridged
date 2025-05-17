@@ -41,3 +41,10 @@ jobs:
       with:
         name: PizzaTimeV3Abridged
         path: build/PTV3A-${{ env.BUILD_DATE }}.pk3
+
+    - name: Upload build to Discord
+      uses: sinshutu/upload-to-discord@master
+      env:
+        DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+      with:
+        args: build/SaxasMM-${{ env.BUILD_DATE }}.pk3
