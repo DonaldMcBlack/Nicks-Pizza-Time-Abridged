@@ -1,0 +1,43 @@
+name: Makefile CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Update version.lua
+      run: |
+        rm src/Lua/version.lua
+        printf "local commit_sha = \"${{ github.sha }}\"\n\nreturn commit_sha" > src/Lua/version.lua
+
+    - name: Make date
+      run: echo "BUILD_DATE=$(git rev-parse --abbrev-ref HEAD)-$(date +%Y-%m-%d)" >> $GITHUB_ENV
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get install -y nodejs
+        sudo npm install argparse
+        sudo npm install deasync
+        sudo npm install jimp
+        sudo npm install jszip
+        git clone https://github.com/UnmatchedBracket/PaK3.git
+
+    - name: Make build
+      run: |
+        mkdir build
+        node PaK3/main.js src/ build/PTV3A-${{ env.BUILD_DATE }}.pk3
+
+    - name: Upload build to Actions
+      uses: actions/upload-artifact@v4
+      with:
+        name: PizzaTimeV3Abridged
+        path: build/PTV3A-${{ env.BUILD_DATE }}.pk3
