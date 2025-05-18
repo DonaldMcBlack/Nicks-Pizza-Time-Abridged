@@ -64,6 +64,21 @@ COM_AddCommand('PTV3_pizzatimenow', function(p)
 	
 	PTV3:startPizzaTime(p)
 end)
+
+COM_AddCommand('PTV3_breakreality', function(p)
+	if not PTV3:isPTV3() then return end
+	if not (IsPlayerAdmin(p) or p == server) then return end
+
+	PTV3:startMinusWorld(p)
+end)
+
+COM_AddCommand('PTV3_forceovertime', function(p)
+	if not PTV3:isPTV3() then return end
+	if not (IsPlayerAdmin(p) or p == server) then return end
+
+	PTV3:overtimeToggle()
+end)
+
 COM_AddCommand('PTV3_endgame', function(p)
 	if not PTV3:isPTV3() then return end
 
@@ -76,6 +91,27 @@ COM_AddCommand('PTV3_addlaps', function(p, num)
 
 	num = tonumber(num)
 	PTV3:newLap(p, num)
+end, COM_ADMIN)
+
+COM_AddCommand('PTV3_spawnaipizzaface', function(p)
+	if not PTV3:isPTV3() then return end
+	if not (IsPlayerAdmin(p) or p == server) then return end
+
+	PTV3:pizzafaceSpawn()
+end, COM_ADMIN)
+
+COM_AddCommand('PTV3_spawnsnick', function(p)
+	if not PTV3:isPTV3() then return end
+	if not (IsPlayerAdmin(p) or p == server) then return end
+
+	PTV3:snickSpawn()
+end, COM_ADMIN)
+
+COM_AddCommand('PTV3_spawnjohnghost', function(p)
+	if not PTV3:isPTV3() then return end
+	if not (IsPlayerAdmin(p) or p == server) then return end
+
+	PTV3:johnSpawn()
 end, COM_ADMIN)
 
 -- vars
@@ -91,6 +127,7 @@ local synced_variables = {
 	['skybox'] = false,
 	['pizzaface'] = false,
 	['snick'] = false,
+	['john'] = false,
 	['overtime'] = false,
 	['overtimeStart'] = 0,
 	['time'] = 600*TICRATE,
@@ -176,7 +213,6 @@ function PTV3:player(player)
 	player.ptv3 = {
 		["buttons"] = player.cmd.buttons,
 		['laps'] = 1,
-		['pizzaface'] = false,
 		['specforce'] = false,
 		['extreme'] = false,
 		['fake_exit'] = false,
@@ -198,7 +234,7 @@ function PTV3:player(player)
 		['banana'] = 0,
 		['banana_angle'] = 0,
 		['banana_speed'] = 0,
-		
+
 		['exitShield'] = SH_NONE,
 		['pvpCooldown'] = 0,
 		

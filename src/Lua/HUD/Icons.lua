@@ -240,7 +240,7 @@ local function drawChaserIcon(v,dp,c, chaser, icon)
 		local radius = FixedMul(dp.mo.radius, dp.mo.scale)
 		local height = FixedMul(dp.mo.height, dp.mo.scale)
 
-		local angle = R_PointToAngle2(dp.mo.x, dp.mo.y, PTV3.pizzaface.x, PTV3.pizzaface.y) - c.angle + ANGLE_90
+		local angle = R_PointToAngle2(dp.mo.x, dp.mo.y, chaser.x, chaser.y) - c.angle + ANGLE_90
 
 		local x = playerResult.x
 		local y = playerResult.y-FixedMul(height/2, playerResult.scale)
@@ -262,7 +262,7 @@ local function drawChaserIcon(v,dp,c, chaser, icon)
 		return
 	end
 
-	result.y = $-FixedMul(PTV3.pizzaface.height, result.scale)
+	result.y = $-FixedMul(chaser.height, result.scale)
 
 	_iconShit(v,
 		result.x,result.y,
@@ -282,6 +282,8 @@ return function(v,dp,c)
 		if not (p and p.mo and p.mo.health) then continue end
 		drawPlayerIcon(v,dp,p,c)
 	end
+
 	drawChaserIcon(v,dp,c, PTV3.snick, "SNICKICON")
+	drawChaserIcon(v,dp,c, PTV3.john, "JOHNICON")
 	drawChaserIcon(v,dp,c, PTV3.pizzaface, "PIZZAICON")
 end

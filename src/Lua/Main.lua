@@ -7,20 +7,16 @@ local function FakeExit(p)
 	if not p.ptv3 then return end
 	if not p.ptv3.fake_exit then return end
 
-	if p.ptv3.swapModeFollower
-	and p.ptv3.swapModeFollower.valid then
+	if p.ptv3.swapModeFollower and p.ptv3.swapModeFollower.valid then
 		return
 	end
 
 	p.pflags = $|PF_FULLSTASIS
 
-	if ((p.cmd.buttons & BT_ATTACK
-	and not (p.ptv3.buttons & BT_ATTACK))
-	and p.ptv3.canLap)
-	or p.ptv3.extreme
+	if ((p.cmd.buttons & BT_ATTACK and not (p.ptv3.buttons & BT_ATTACK))
+	and p.ptv3.canLap) or p.ptv3.extreme
 	or gametype == GT_PTV3DM then
-		if gametype == GT_PTV3
-		and p.ptv3.laps == PTV3.max_laps then
+		if gametype == GT_PTV3 and p.ptv3.laps == PTV3.max_laps then
 			if p.ptv3.extremeNotif then
 				if p.ptv3.extremeNotif < 4*TICRATE then
 					PTV3:newLap(p)
@@ -30,9 +26,7 @@ local function FakeExit(p)
 				p.ptv3.canLap = 5*TICRATE
 			end
 		else
-			if p.ptv3.canLap > TICRATE then
-				p.ptv3.canLap = TICRATE
-			end
+			if p.ptv3.canLap > TICRATE then p.ptv3.canLap = TICRATE end
 			PTV3:newLap(p)
 		end
 	end
@@ -43,9 +37,18 @@ addHook('PlayerSpawn', function(p)
 	if not (p and p.mo) then return end
 	if not p.ptv3 then PTV3:player(p) end
 
-	if PTV3.pizzatime or PTV3.minusworld then
-		PTV3:teleportPlayer(p)
-	end
+	table.insert(p.ptv3.savedData, {
+		x = p.mo.x,
+		y = p.mo.y,
+		z = p.mo.z,
+		angle = p.drawangle,
+		momx = p.mo.momx,
+		momy = p.mo.momy,
+		momz = p.mo.momz
+	})
+
+	if PTV3.pizzatime or PTV3.minusworld then PTV3:teleportPlayer(p) end
+
 	if p.ptv3.insecret then
 		local link = PTV3.secrets[p.ptv3.insecret][0]
 		PTV3:teleportPlayer(p, {x=link.x,y=link.y,z=link.z,a=p.mo.angle})
@@ -74,8 +77,7 @@ local function normalThinker(p)
 	end]]
 
 	if leveltime < cutsceneTime
-	and PTV3.spawnGate
-	and PTV3.spawnGate.valid then
+	and PTV3.spawnGate and PTV3.spawnGate.valid then
 		if leveltime < PTV3.maxTitlecardTime then return end
 
 		local time = leveltime - PTV3.maxTitlecardTime
@@ -125,17 +127,14 @@ local function normalThinker(p)
 
 		-- Score reduction
 		if not (leveltime % TICRATE) and not p.ptv3.pizzaface
-		and not p.ptv3.fake_exit and p.score > 0 then
-			local reduceBy = 10
+		and not p.ptv3.fake_exit and not p.ptv3.overtime and p.score > 0 then
+			local reduceBy = 5
 			if p.ptv3.extreme then
-				reduceBy = 20
-			end
-			if PTV3.overtime then
-				reduceBy = 40
+				reduceBy = 15
 			end
 			p.score = max(0, $-reduceBy)
 			p.ptv3.scoreReduce = leveltime
-		end
+		elseif p.ptv3.overtime then p.score = max(0, $-1) end
 	end
 
 	PTV3.callbacks("PlayerThink", p)

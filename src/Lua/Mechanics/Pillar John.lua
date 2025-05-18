@@ -21,6 +21,8 @@ mobjinfo[MT_PTV3_PILLARJOHN] = {
 	flags = MF_SPECIAL|MF_ENEMY
 }
 
+sfxinfo[sfx_jpilr].caption = "John collapsed!"
+
 addHook("MobjSpawn", function(john)
 	john.isAlive = true
 end, MT_PTV3_PILLARJOHN)

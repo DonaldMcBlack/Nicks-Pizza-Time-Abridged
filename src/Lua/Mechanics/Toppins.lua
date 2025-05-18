@@ -110,6 +110,8 @@ local function __think(tpn)
 
 		local p = trgt.player
 
+		if not p.ptv3.savedData then return end
+
 		local sData = p.ptv3.savedData
 		local data = sData[min(#sData, tpn.chaseOffset*(5-(tpn.collectOffset-1)))]
 

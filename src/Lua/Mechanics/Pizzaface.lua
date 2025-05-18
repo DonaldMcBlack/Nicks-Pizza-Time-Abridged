@@ -224,7 +224,7 @@ addHook('MobjThinker', function(pf)
 					if gap < FU*300 and pf.state ~= S_PTV3_PIZZATROLL then pf.state = S_PTV3_PIZZATROLL
 					elseif gap > FU*300 and pf.state ~= S_PTV3_PIZZAFACE then pf.state = S_PTV3_PIZZAFACE end
 
-					pf.flyspeed = max(FixedMul(FU/16, gap-(FU*500)), 23*FU)
+					pf.flyspeed = max(FixedMul(FU/8, gap-(FU*250)), 23*FU)
 					P_FlyTo(pf, pf.target.x, pf.target.y, pf.target.z, pf.flyspeed)
 					
 					-- if gap > FU*1000 then

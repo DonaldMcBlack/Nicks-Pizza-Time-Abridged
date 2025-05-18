@@ -1,5 +1,6 @@
 dofile "Mechanics/Pizzaface"
 dofile "Mechanics/Snick"
+dofile "Mechanics/John Ghost"
 dofile "Mechanics/Pillar John"
 dofile "Mechanics/Spawn Gate"
 dofile "Mechanics/Toppins"

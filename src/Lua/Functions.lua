@@ -444,11 +444,22 @@ function PTV3:overtimeToggle()
 	PTV3.callbacks("OvertimeStart")
 end
 
-function PTV3:teleportPlayer(p, coords)
+function PTV3:teleportPlayer(p, coords, relative)
 	local e = coords or self.endpos
 	P_SetOrigin(p.mo, e.x, e.y, e.z+(2*FU))
 	p.mo.angle = e.a
-	p.mo.momx,p.mo.momy,p.mo.momz = 0,0,0
+	
+	table.insert(p.ptv3.savedData, {
+		x = p.mo.x,
+		y = p.mo.y,
+		z = p.mo.z,
+		angle = p.drawangle,
+		momx = p.mo.momx,
+		momy = p.mo.momy,
+		momz = p.mo.momz
+	})
+	
+	if not relative then p.mo.momx, p.mo.momy, p.mo.momz = 0,0,0 end
 	PTV3.callbacks('TeleportPlayer', p)
 end
 
@@ -527,7 +538,8 @@ function PTV3:newLap(p, int)
 	if p.ptv3.laps <= -4 and not (self.snick and self.snick.valid)
 	or p.ptv3.laps >= 4 and not (self.snick and self.snick.valid) then self:snickSpawn() end -- Snick
 
-	-- TODO: Put John Ghost here
+	if p.ptv3.laps <= -5 and not (self.john and self.john.valid)
+	or p.ptv3.laps >= 5 and not (self.john and self.john.valid) then self:johnSpawn() end -- John Ghost
 	
 	PTV3:logEvent(event_text, 2)
 	PTV3.callbacks('NewLap', p)
