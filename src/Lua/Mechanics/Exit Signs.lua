@@ -8,6 +8,9 @@ states[S_EXITSPAWN_PLACEHOLDER] = {
 	tics = -1,
 }
 mobjinfo[MT_PIZZATOWER_EXITSIGN_SPAWN] = {
+	--$Name "Exit Sign Spawn"
+    --$Category "PTV3A"
+	--$Angled
 	doomednum = 1263, //1-26-[202]3
 	spawnstate = S_EXITSPAWN_PLACEHOLDER,
 	spawnhealth = 1000, //gus cannot die lol

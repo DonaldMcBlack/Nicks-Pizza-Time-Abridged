@@ -75,13 +75,26 @@ local function normalThinker(p)
 	and p.mo.subsector.sector == PTV3.endsec then
 		PTV3:startPizzaTime(p)
 	end]]
+	
+
+	if PTV3.titlecards[gamemap] then
+		cutsceneTime = PTV3.maxTitlecardTime+(2*TICRATE)
+	else
+		cutsceneTime = 2*TICRATE
+	end
 
 	if leveltime < cutsceneTime
 	and PTV3.spawnGate and PTV3.spawnGate.valid then
-		if leveltime < PTV3.maxTitlecardTime then return end
+		local time
+		local remain
+		if PTV3.titlecards[gamemap] then
+			if leveltime < PTV3.maxTitlecardTime then return end
+			time = leveltime - PTV3.maxTitlecardTime
+		else
+			time = leveltime
+		end
 
-		local time = leveltime - PTV3.maxTitlecardTime
-		local remain = cutsceneTime - leveltime
+		remain = cutsceneTime - leveltime
 
 		local tweenTime = min(FixedDiv(time, TICRATE), FU)
 
@@ -437,7 +450,7 @@ sfxinfo[freeslot "sfx_doorsh"].caption = "SLAM!"
 addHook('PostThinkFrame', function()
 	if not PTV3:isPTV3() then return end
 
-	G_SetCustomExitVars(M_MapNumber("LB"))
+	G_SetCustomExitVars(M_MapNumber("PT"))
 
 	for p in players.iterate do
 		if p.ptv3 then
@@ -447,21 +460,37 @@ addHook('PostThinkFrame', function()
 		end
 	end
 
-	if PTV3.spawnGate
-	and PTV3.spawnGate.valid then
-		if leveltime > PTV3.maxTitlecardTime+TICRATE
-		and not (PTV3.pizzatime or PTV3.minusworld) then
-			if PTV3.spawnGate._frame ~= A then
-				S_StartSound(PTV3.spawnGate, sfx_doorsh)
-				P_StartQuake(FU*5, TICRATE/2)
-			end
-			PTV3.spawnGate._frame = A
-			if gametype == GT_PTV3DM
-			and not (PTV3.pizzaface and PTV3.pizzaface.valid) then
-				PTV3:pizzafaceSpawn()
+	if PTV3.spawnGate and PTV3.spawnGate.valid then
+		if PTV3.titlecards[gamemap] then
+			if leveltime > PTV3.maxTitlecardTime+TICRATE
+			and not (PTV3.pizzatime or PTV3.minusworld) then
+				if PTV3.spawnGate._frame ~= A then
+					S_StartSound(PTV3.spawnGate, sfx_doorsh)
+					P_StartQuake(FU*5, TICRATE/2)
+				end
+				PTV3.spawnGate._frame = A
+				if gametype == GT_PTV3DM
+				and not (PTV3.pizzaface and PTV3.pizzaface.valid) then
+					PTV3:pizzafaceSpawn()
+				end
+			else
+				PTV3.spawnGate._frame = B
 			end
 		else
-			PTV3.spawnGate._frame = B
+			if leveltime > TICRATE
+			and not (PTV3.pizzatime or PTV3.minusworld) then
+				if PTV3.spawnGate._frame ~= A then
+					S_StartSound(PTV3.spawnGate, sfx_doorsh)
+					P_StartQuake(FU*5, TICRATE/2)
+				end
+				PTV3.spawnGate._frame = A
+				if gametype == GT_PTV3DM
+				and not (PTV3.pizzaface and PTV3.pizzaface.valid) then
+					PTV3:pizzafaceSpawn()
+				end
+			else
+				PTV3.spawnGate._frame = B
+			end
 		end
 	end
 

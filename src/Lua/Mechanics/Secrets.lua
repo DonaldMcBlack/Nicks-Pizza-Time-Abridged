@@ -12,6 +12,16 @@ freeslot("sfx_secfou",
 sfxinfo[sfx_secfou].caption = "Secret found!"
 
 mobjinfo[MT_PTV3_SECRET] = {
+	--$Name "Secret Eye"
+    --$Sprite SIDLA0
+    --$Category "PTV3A"
+	--$Angled
+	--$Color 16
+    --$Arg0 Secret Group
+    --$Arg1 Destination Tag
+    --$Arg1Type 14
+    --$Arg2 Exit Tag
+    --$Arg2Type 14
     doomednum = 2222,
     spawnstate = S_NULL,
     radius = 16*FRACUNIT,

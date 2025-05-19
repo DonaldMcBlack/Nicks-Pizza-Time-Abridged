@@ -162,10 +162,8 @@ local function spawnSector(t)
 
 	local a = PTV3.spawn.a
 
-	if PTV3.titlecards[gamemap] then
-		PTV3.spawnGate = P_SpawnMobj(PTV3.spawn.x+(-230*cos(a)), PTV3.spawn.y+(-230*sin(a)), PTV3.spawn.z, MT_PTV3_SPAWNGATE)
-		PTV3.spawnGate.angle = a
-	end
+	PTV3.spawnGate = P_SpawnMobj(PTV3.spawn.x+(-230*cos(a)), PTV3.spawn.y+(-230*sin(a)), PTV3.spawn.z, MT_PTV3_SPAWNGATE)
+	PTV3.spawnGate.angle = a
 
 	PTV3.spawnsector = sec
 end

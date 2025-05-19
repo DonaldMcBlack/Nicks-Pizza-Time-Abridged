@@ -1,18 +1,28 @@
 freeslot("MT_PTV3_LAPPORTAL", "MT_PTV3_MINUSLAPPORTAL", "S_PTV3_LAPPORTAL", "S_PTV3_MINUSLAPPORTAL", "SPR_LAPR")
 
 mobjinfo[MT_PTV3_LAPPORTAL] = {
+	--$Name "Lap Portal"
+    --$Sprite LAPRA1
+    --$Category "PTV3A"
+	--$Color 14
+	--$Angled
     doomednum = 2048,
     spawnstate = S_PTV3_LAPPORTAL,
     radius = 50*FRACUNIT,
-    height = 60*FRACUNIT,
+    height = 140*FRACUNIT,
     flags = MF_SPECIAL|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_NOGRAVITY
 }
 
 mobjinfo[MT_PTV3_MINUSLAPPORTAL] = {
+	--$Name "Minus Lap Portal"
+    --$Sprite LAPRA1
+    --$Category "PTV3A"
+	--$Color 9
+	--$Angled
 	doomednum = 2049,
     spawnstate = S_PTV3_MINUSLAPPORTAL,
     radius = 50*FRACUNIT,
-    height = 60*FRACUNIT,
+    height = 140*FRACUNIT,
     flags = MF_SPECIAL|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_NOGRAVITY
 }
 

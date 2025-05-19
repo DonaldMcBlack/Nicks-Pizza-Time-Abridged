@@ -1,0 +1,14 @@
+MainCfg
+
+Level PT
+LevelName = The Pizza Tower
+TypeOfLevel = Singleplayer, Match, PTV3
+Act = 0
+Music = MONDAY
+NextLevel = TITLE
+SkyNum = 20
+Weather = 0
+NoZone = 1
+Hidden = 0
+LevelSelect = 0
+SaveGame = true
