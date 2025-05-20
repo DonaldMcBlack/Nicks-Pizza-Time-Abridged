@@ -40,7 +40,6 @@ local function killJohn(john, pmo)
 	john.momz = 16*john.scale
 
 	S_StartSound(nil, sfx_jpilr)
-	if consoleplayer and consoleplayer.valid then P_FlashPal(consoleplayer, 1, 5) end
 	john.isAlive = false
 
 	PTV3:startPizzaTime(pmo.player)

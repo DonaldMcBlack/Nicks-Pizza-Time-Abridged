@@ -101,7 +101,11 @@ addHook("TouchSpecial", function(mo, pmo)
 	if tplist[pmo] then return true end
 	if not (PTV3:canLap(pmo.player)) then return true end
 
-	if not PTV3.pizzatime and not PTV3.minusworld then PTV3:startMinusWorld(pmo.player) end
+	if not PTV3.pizzatime and not PTV3.minusworld then 
+		PTV3:startMinusWorld(pmo.player)
+		pmo.player.ptv3.laps = -1
+		return true 
+	end
 
 	tplist[pmo] = true
 	-- print "Lapped?"

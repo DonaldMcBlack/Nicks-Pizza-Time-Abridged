@@ -411,6 +411,8 @@ function PTV3:extremeToggle(p)
 		
 		P_SetSkyboxMobj(nil,false)
 		P_SetupLevelSky(34)
+		S_StartSound(nil, P_RandomRange(41,43))
+		P_FlashPal(consoleplayer, 1, 15)
 	end
 end
 
@@ -443,11 +445,14 @@ function PTV3:overtimeToggle()
 
 	PTV3.callbacks("OvertimeStart")
 end
-
+-- TODO: Figure how what causes players to zip up once after entering Minus Lap Portal and John Ghost
 function PTV3:teleportPlayer(p, coords, relative)
+	if not p or not p.mo then return end
+
 	local e = coords or self.endpos
-	P_SetOrigin(p.mo, e.x, e.y, e.z+(2*FU))
+	P_SetOrigin(p.mo, e.x, e.y, e.z)
 	p.mo.angle = e.a
+	if not relative then p.mo.momx, p.mo.momy, p.mo.momz = 0,0,0 end
 	
 	table.insert(p.ptv3.savedData, {
 		x = p.mo.x,
@@ -459,7 +464,7 @@ function PTV3:teleportPlayer(p, coords, relative)
 		momz = p.mo.momz
 	})
 	
-	if not relative then p.mo.momx, p.mo.momy, p.mo.momz = 0,0,0 end
+	CONS_Printf(consoleplayer, "Teleported to: X: "..tostring(e.x).." Y: "..tostring(e.y).." Z: "..tostring(e.z))
 	PTV3.callbacks('TeleportPlayer', p)
 end
 
@@ -545,9 +550,9 @@ function PTV3:newLap(p, int)
 	PTV3.callbacks('NewLap', p)
 end
 
-local function PrepareYourPizza(p)
+local function PrepareYourPizza(p, event)
 	local time = string.format( "%02d:%02d", G_TicsToMinutes(leveltime), G_TicsToSeconds(leveltime) )
-	PTV3:logEvent(p.name.." has started Pizza Time in "..time.."!", 1)
+	PTV3:logEvent(p.name.." has started "..event.." in "..time.."!", 1)
 
 	local alive, pizzafaces, finished, unfinished, alive_2, total = PTV3:playerCount()
 
@@ -591,7 +596,7 @@ function PTV3:startMinusWorld(p)
 
 		if (player.ptv3.insecret) then
 			player.ptv3.secret_tptoend = true
-		elseif player ~= p then
+		else
 			self:teleportPlayer(player, self.endpos)
 		end
 		if player.ptv3.combo then
@@ -599,7 +604,7 @@ function PTV3:startMinusWorld(p)
 		end
 	end
 
-	PrepareYourPizza(p)
+	PrepareYourPizza(p, "Minus World")
 	PTV3.callbacks('MinusWorld', p)
 end
 
@@ -625,7 +630,7 @@ function PTV3:startPizzaTime(p)
 		end
 	end
 
-	PrepareYourPizza(p)
+	PrepareYourPizza(p, "Pizza Time")
 	PTV3.callbacks('PizzaTime', p)
 end
 

@@ -37,16 +37,6 @@ addHook('PlayerSpawn', function(p)
 	if not (p and p.mo) then return end
 	if not p.ptv3 then PTV3:player(p) end
 
-	table.insert(p.ptv3.savedData, {
-		x = p.mo.x,
-		y = p.mo.y,
-		z = p.mo.z,
-		angle = p.drawangle,
-		momx = p.mo.momx,
-		momy = p.mo.momy,
-		momz = p.mo.momz
-	})
-
 	if PTV3.pizzatime or PTV3.minusworld then PTV3:teleportPlayer(p) end
 
 	if p.ptv3.insecret then
@@ -125,6 +115,16 @@ local function normalThinker(p)
 		else
 			p.mo.state = S_PLAY_STND
 			p.mo.angle = PTV3.spawnGate.angle
+			
+			table.insert(p.ptv3.savedData, {
+				x = p.mo.x,
+				y = p.mo.y,
+				z = p.mo.z,
+				angle = p.drawangle,
+				momx = p.mo.momx,
+				momy = p.mo.momy,
+				momz = p.mo.momz
+			})
 		end
 
 		return
@@ -177,16 +177,6 @@ local function normalThinker(p)
 			PTV3:initSwapMode(p, p2)
 		end
 	end
-
-	table.insert(p.ptv3.savedData, {
-		x = p.mo.x,
-		y = p.mo.y,
-		z = p.mo.z,
-		angle = p.drawangle,
-		momx = p.mo.momx,
-		momy = p.mo.momy,
-		momz = p.mo.momz
-	})
 
 	if #p.ptv3.savedData > (3*6) then
 		table.remove(p.ptv3.savedData, 1)
@@ -447,12 +437,39 @@ end)
 
 sfxinfo[freeslot "sfx_doorsh"].caption = "SLAM!"
 
+local function SpawnGateController(MaxTimeOpen)
+
+	if (leveltime > MaxTimeOpen and not (PTV3.pizzatime or PTV3.minusworld))
+	or (PTV3.game_over >= 0 and (PTV3.pizzatime or PTV3.minusworld)) then
+		if PTV3.spawnGate._frame ~= A then
+			S_StartSound(PTV3.spawnGate, sfx_doorsh)
+			P_StartQuake(FU*5, TICRATE/2)
+		end
+
+		PTV3.spawnGate._frame = A
+
+		if gametype == GT_PTV3DM and not (PTV3.pizzaface and PTV3.pizzaface.valid) then
+			PTV3:pizzafaceSpawn()
+		end
+	else
+		PTV3.spawnGate._frame = B
+	end
+end
+
 addHook('PostThinkFrame', function()
 	if not PTV3:isPTV3() then return end
 
 	G_SetCustomExitVars(M_MapNumber("PT"))
 
 	for p in players.iterate do
+		
+		if not multiplayer then
+			if ((p.pflags & PF_FINISHED) or p.exiting)
+			and p.mo.subsector.sector.special == 8192 then
+				p.exiting = 0
+				p.pflags = $ & ~(PF_FINISHED | PF_FULLSTASIS)
+			end
+		end
 		if p.ptv3 then
 			p.ptv3.canLap = max(0, $-1)
 			PTV3:checkRank(p)
@@ -462,35 +479,9 @@ addHook('PostThinkFrame', function()
 
 	if PTV3.spawnGate and PTV3.spawnGate.valid then
 		if PTV3.titlecards[gamemap] then
-			if leveltime > PTV3.maxTitlecardTime+TICRATE
-			and not (PTV3.pizzatime or PTV3.minusworld) then
-				if PTV3.spawnGate._frame ~= A then
-					S_StartSound(PTV3.spawnGate, sfx_doorsh)
-					P_StartQuake(FU*5, TICRATE/2)
-				end
-				PTV3.spawnGate._frame = A
-				if gametype == GT_PTV3DM
-				and not (PTV3.pizzaface and PTV3.pizzaface.valid) then
-					PTV3:pizzafaceSpawn()
-				end
-			else
-				PTV3.spawnGate._frame = B
-			end
+			SpawnGateController(PTV3.maxTitlecardTime+TICRATE)
 		else
-			if leveltime > TICRATE
-			and not (PTV3.pizzatime or PTV3.minusworld) then
-				if PTV3.spawnGate._frame ~= A then
-					S_StartSound(PTV3.spawnGate, sfx_doorsh)
-					P_StartQuake(FU*5, TICRATE/2)
-				end
-				PTV3.spawnGate._frame = A
-				if gametype == GT_PTV3DM
-				and not (PTV3.pizzaface and PTV3.pizzaface.valid) then
-					PTV3:pizzafaceSpawn()
-				end
-			else
-				PTV3.spawnGate._frame = B
-			end
+			SpawnGateController(TICRATE)
 		end
 	end
 

@@ -353,13 +353,17 @@ addHook('MapLoad', function()
 		endSector(thing)
 	end
 
+	-- I don't care if it's not there in the actual gametype, I want it gone.
+	for mobj in mobjs.iterate() do
+		if mobj.type == MT_SIGN and mobj.valid then P_RemoveMobj(mobj) end
+	end
+
 	local alive, pizzafaces, total = PTV3.playerCount and PTV3:playerCount()
 	PTV3.time = CV_PTV3['time'].value*TICRATE
 	PTV3.pftime = 30*TICRATE
 	PTV3.maxpftime = PTV3.pftime
 	
-	if gametype == GT_PTV3DM
-	and not PTV3.titlecards[gamemap] then
+	if gametype == GT_PTV3DM and not PTV3.titlecards[gamemap] then
 		PTV3:pizzafaceSpawn()
 		PTV3:snickSpawn()
 	end

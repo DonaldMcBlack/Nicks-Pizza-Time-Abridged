@@ -1,5 +1,6 @@
 local ReduceHUD = dofile "HUD/Remove Score"
 local PizzaTimeHUD = dofile "HUD/Pizza Time"
+local MinusWorldHUD = dofile "HUD/Minus World"
 local OvertimeHUD = dofile "HUD/Overtime Text"
 local LapHUD = dofile "HUD/Laps"
 local SecretHUD = dofile "HUD/Secrets"
@@ -39,6 +40,7 @@ customhud.SetupItem("Icons", "ptv3", IconHUD, "game")
 customhud.SetupItem("Reduce Score", "ptv3", ReduceHUD, "game")
 customhud.SetupItem("Laps", "ptv3", LapHUD, "game", 1)
 customhud.SetupItem("Pizza Time", "ptv3", PizzaTimeHUD, "game", 1)
+customhud.SetupItem("Minus World", "ptv3", MinusWorldHUD, "game", 1)
 customhud.SetupItem("Overtime", "ptv3", OvertimeHUD, "game", 1)
 customhud.SetupItem("Pizzaface Timer", "ptv3", PizzafaceTimerHUD, "game", 1)
 customhud.SetupItem("Timer", "ptv3", TimerHUD, "game", 1)
