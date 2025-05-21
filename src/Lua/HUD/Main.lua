@@ -15,6 +15,7 @@ local RankHUD = dofile "HUD/Ranks"
 local ComboHUD = dofile "HUD/Combo"
 local IconHUD = dofile "HUD/Icons"
 local TitlecardHUD = dofile "HUD/Titlecards"
+local InversionHUD = dofile "HUD/Inversion"
 
 function PTV3.HUD_returnTime(startTime, length, offset, useTics)
 	if offset == nil then
@@ -53,3 +54,4 @@ customhud.SetupItem("Camper", "ptv3", CamperHud, "game", 2)
 customhud.SetupItem("Can Lap", "ptv3", CanLapHUD, "game", 2)
 customhud.SetupItem("Extreme Notif", "ptv3", ExtremeNHud, "game", 3)
 customhud.SetupItem("Titlecards", "ptv3", TitlecardHUD, "gameandscores", 4)
+customhud.SetupItem("Inversion", "ptv3", InversionHUD, "game", 5)

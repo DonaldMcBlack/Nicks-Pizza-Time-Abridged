@@ -120,6 +120,7 @@ local synced_variables = {
 	['total_laps'] = 1,
 	['spawn'] = {x=0,y=0,z=0},
 	['endpos'] = {x=0,y=0,z=0,a=0},
+	['tplist'] = {mobjteleport = {mo=nil, coords=nil,relative=false}},
 	['endsec'] = false,
 	['spawnsector'] = false,
 	['game_ended'] = false,

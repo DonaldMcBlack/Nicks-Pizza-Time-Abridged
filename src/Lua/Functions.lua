@@ -446,25 +446,16 @@ function PTV3:overtimeToggle()
 	PTV3.callbacks("OvertimeStart")
 end
 -- TODO: Figure how what causes players to zip up once after entering Minus Lap Portal and John Ghost
-function PTV3:teleportPlayer(p, coords, relative)
+function PTV3:queueTeleport(p, coords, relative)
 	if not p or not p.mo then return end
 
-	local e = coords or self.endpos
-	P_SetOrigin(p.mo, e.x, e.y, e.z)
-	p.mo.angle = e.a
-	if not relative then p.mo.momx, p.mo.momy, p.mo.momz = 0,0,0 end
-	
-	table.insert(p.ptv3.savedData, {
-		x = p.mo.x,
-		y = p.mo.y,
-		z = p.mo.z,
-		angle = p.drawangle,
-		momx = p.mo.momx,
-		momy = p.mo.momy,
-		momz = p.mo.momz
-	})
-	
-	CONS_Printf(consoleplayer, "Teleported to: X: "..tostring(e.x).." Y: "..tostring(e.y).." Z: "..tostring(e.z))
+	local mobjteleport = {
+		mo = p.mo,
+		coords = coords or self.endpos,
+		relative = relative
+	}
+
+	table.insert(PTV3.tplist, mobjteleport)
 	PTV3.callbacks('TeleportPlayer', p)
 end
 
@@ -525,7 +516,7 @@ function PTV3:newLap(p, int)
 		p.ptv3.isSwap.powers[pw_invulnerability] = 5*TICRATE
 	end
 
-	self:teleportPlayer(p)
+	self:queueTeleport(p, PTV3.endpos, false)
 
 	p.ptv3.fake_exit = false
 	p.mo.flags2 = $ & ~MF2_DONTDRAW
@@ -597,7 +588,7 @@ function PTV3:startMinusWorld(p)
 		if (player.ptv3.insecret) then
 			player.ptv3.secret_tptoend = true
 		else
-			self:teleportPlayer(player, self.endpos)
+			self:queueTeleport(player, self.endpos)
 		end
 		if player.ptv3.combo then
 			player.ptv3.combo_pos = PTV3.MAX_COMBO_TIME
@@ -623,7 +614,7 @@ function PTV3:startPizzaTime(p)
 		if (player.ptv3.insecret) then
 			player.ptv3.secret_tptoend = true
 		elseif player ~= p then
-			self:teleportPlayer(player, self.endpos)
+			self:queueTeleport(player, self.endpos)
 		end
 		if player.ptv3.combo then
 			player.ptv3.combo_pos = PTV3.MAX_COMBO_TIME

@@ -387,7 +387,7 @@ addHook('ThinkFrame', function()
 		if p.ptv3.swapModeFollower
 		and p.ptv3.swapModeFollower.valid then continue end
 
-		if PTV3.minusworld then P_FlashPal(p, 5, 8) end
+		-- if PTV3.minusworld then P_FlashPal(p, 5, 8) end
 
 		if p.ptv3.banana
 		and P_IsObjectOnGround(p.mo) then
@@ -460,6 +460,35 @@ addHook('PostThinkFrame', function()
 	if not PTV3:isPTV3() then return end
 
 	G_SetCustomExitVars(M_MapNumber("PT"))
+
+	if #PTV3.tplist > 0 then
+		for _, tps in pairs(PTV3.tplist) do
+			if not tps then continue end
+			if tps.mo == nil or not (tps.mo and tps.mo.valid and tps.mo.player) then
+				table.remove(PTV3.tplist, tonumber(_))
+				continue
+			end
+			-- CONS_Printf(consoleplayer, "Duped teleport")
+
+			local p = tps.mo.player
+			P_SetOrigin(tps.mo, tps.coords.x, tps.coords.y, tps.coords.z)
+			tps.mo.angle = tps.coords.a
+
+			if tps.relative then tps.mo.momx, tps.mo.momy, tps.mo.momz = 0,0,0 end
+			
+			table.insert(p.ptv3.savedData, {
+				x = p.mo.x,
+				y = p.mo.y,
+				z = p.mo.z,
+				angle = p.drawangle,
+				momx = p.mo.momx,
+				momy = p.mo.momy,
+				momz = p.mo.momz
+			})
+
+			table.remove(PTV3.tplist, tonumber(_))
+		end
+	end
 
 	for p in players.iterate do
 		

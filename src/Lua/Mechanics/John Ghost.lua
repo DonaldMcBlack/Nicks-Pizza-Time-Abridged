@@ -1,7 +1,9 @@
 freeslot(
     "MT_PTV3_JOHNGHOST",
     "S_PTV3_JOHNGHOST",
+	"S_PTV3_JONATHANPHANTOM",
     "SPR_JNGT",
+	"SPR_JNPM",
     "sfx_jghtsp",
     "sfx_jghtct"
 )
@@ -29,6 +31,16 @@ states[S_PTV3_JOHNGHOST] = {
     var1 = 7,
     var2 = 2,
     nextstate = S_PTV3_JOHNGHOST
+}
+
+states[S_PTV3_JONATHANPHANTOM] = {
+	sprite = SPR_JNPM,
+	frame = FF_ANIMATE|A|FF_TRANS30|FF_SUBTRACT,
+	tics = -1,
+	action = nil,
+	var1 = 3,
+	var2 = 2,
+	nextstate = S_PTV3_JONATHANPHANTOM
 }
 
 local function followC(p)
@@ -103,6 +115,11 @@ addHook('MobjThinker', function(john)
 	local player = getNearestPlayer(PTV3.spawn, followC)
 	john.target = player and player.mo
 	john.momx,john.momy,john.momz = 0,0,0
+
+	if PTV3.minusworld and not PTV3.pizzatime then
+		if john.state ~= S_PTV3_JONATHANPHANTOM then john.state = S_PTV3_JONATHANPHANTOM end
+	end
+
 	if john.target then
 		local dist = P_AproxDistance(john.x - john.target.x, john.y - john.target.y)
 		john.angle = R_PointToAngle2(john.x, john.y, john.target.x, john.target.y)
@@ -124,7 +141,7 @@ local function JohnTouchSpecial(john, pmo)
 		return
 	end
 
-    PTV3:teleportPlayer(p)
+    PTV3:queueTeleport(p, PTV3.endpos, false)
 
 	if pmo.player.ptv3
 	and multiplayer
