@@ -464,17 +464,21 @@ addHook('PostThinkFrame', function()
 	if #PTV3.tplist > 0 then
 		for _, tps in pairs(PTV3.tplist) do
 			if not tps then continue end
+			
 			if tps.mo == nil or not (tps.mo and tps.mo.valid and tps.mo.player) then
 				table.remove(PTV3.tplist, tonumber(_))
 				continue
 			end
-			-- CONS_Printf(consoleplayer, "Duped teleport")
+
+			CONS_Printf(consoleplayer, tps.mo.player.name)
 
 			local p = tps.mo.player
 			P_SetOrigin(tps.mo, tps.coords.x, tps.coords.y, tps.coords.z)
 			tps.mo.angle = tps.coords.a
 
 			if tps.relative then tps.mo.momx, tps.mo.momy, tps.mo.momz = 0,0,0 end
+
+			if p.ptv3.lap_in then p.ptv3.lap_in = false end
 			
 			table.insert(p.ptv3.savedData, {
 				x = p.mo.x,

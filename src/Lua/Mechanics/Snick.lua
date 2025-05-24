@@ -93,8 +93,10 @@ end
 addHook('MobjSpawn', function(snick)
 	local player = getNearestPlayer(PTV3.spawn, followC)
 	if not player then return end
-	snick.speed = 7*FU
+
+	snick.speed = 10*FU
 	snick.target = player.mo
+	snick.shadowscale = snick.scale
 end, MT_PTV3_SNICK)
 
 addHook("ShouldDamage", function(t,i,s)
@@ -114,22 +116,22 @@ addHook('MobjThinker', function(snick)
 	snick.momx,snick.momy,snick.momz = 0,0,0
 	if snick.target then
 		local dist = P_AproxDistance(snick.x - snick.target.x, snick.y - snick.target.y)
-		local speedup = 600*FU
+		local speedup = 650*FU
 		snick.angle = R_PointToAngle2(snick.x, snick.y, snick.target.x, snick.target.y)
 		
 		if dist > speedup then
-			snick.speed = min(FixedMul(FU/16, dist), 200*FU)
+			snick.speed = min(FixedMul(FU/20, dist), 300*FU)
 			if snick.state ~= S_PTV3_SNICK_LUNGE then
 				snick.state = S_PTV3_SNICK_LUNGE
 			end
 		else
-			snick.speed = ease.linear(FU/32, snick.speed, 7*FU)
+			snick.speed = ease.linear(FU/32, snick.speed, 10*FU)
 			if snick.state ~= S_PTV3_SNICK then
 				snick.state = S_PTV3_SNICK
 			end
 		end
 		
-		P_FlyTo(snick, snick.target.x, snick.target.y, snick.target.z, snick.speed)
+		P_FlyTo(snick, snick.target.x, snick.target.y, snick.target.z+8*FU, snick.speed)
 	end
 end, MT_PTV3_SNICK)
 

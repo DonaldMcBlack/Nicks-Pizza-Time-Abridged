@@ -117,6 +117,7 @@ end, COM_ADMIN)
 -- vars
 local synced_variables = {
 	['pizzatime'] = false,
+	['minusworld'] = false,
 	['total_laps'] = 1,
 	['spawn'] = {x=0,y=0,z=0},
 	['endpos'] = {x=0,y=0,z=0,a=0},
@@ -211,22 +212,27 @@ function PTV3:player(player)
 
 	player.ptv3 = {
 		["buttons"] = player.cmd.buttons,
-		['laps'] = 1,
 		['specforce'] = false,
 		['extreme'] = false,
 		['fake_exit'] = false,
+
 		['insecret'] = 0,
 		['secretsfound'] = 0,
 		['secret_tptoend'] = false,
+		
 		['combo'] = 0,
 		['combo_pos'] = 0,
 		['combo_display'] = 0,
 		['combo_start_time'] = 0,
 		['started_combo'] = false,
 		['combo_offtime'] = false,
-		['combo_rank'] = false,
+		['combo_rank'] = { rank = nil, rankn = 0, very = false, time = 5*TICRATE},
+
+		['laps'] = 0,
 		['lap_time'] = -1,
 		['canLap'] = 0,
+		['lap_in'] = false,
+		['lap_out'] = false,
 
 		['toppins'] = {},
 
@@ -297,9 +303,11 @@ PTV3:init()
 addHook('NetVars', function(n)
 	local net = {
 		"pizzatime",
+		"minusworld",
 		"total_laps",
 		"spawn",
 		"endpos",
+		"tplist",
 		"endsec",
 		"spawnsector",
 		"game_ended",

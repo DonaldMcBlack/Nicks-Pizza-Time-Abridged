@@ -26,26 +26,21 @@ PTV3.ranks = {
 	},
 	{
 		rank = "P",
+		altrank = "M",
 		music = "PRANK",
 		fill = false,
 		canGet = function(p)
-			return p.ptv3
+			if PTV3.pizzatime then return p.ptv3
 			and not p.ptv3.combo_dropped
 			and p.ptv3.started_combo
 			and p.ptv3.laps >= 2
 			and p.ptv3.secretsfound >= #PTV3.secrets
-		end
-	},
-	{
-		rank = "M",
-		music = "PRANK",
-		fill = false,
-		canGet = function(p)
-			return p.ptv3
+			elseif PTV3.minusworld then return p.ptv3
 			and not p.ptv3.combo_dropped
 			and p.ptv3.started_combo
 			and p.ptv3.laps <= -2
 			and p.ptv3.secretsfound >= #PTV3.secrets
+			end
 		end
 	}
 
@@ -73,6 +68,8 @@ function PTV3:canGet(p, rank)
 	and not PTV3.ranks[rank].canGet(p) then
 		return false
 	end
+
+	if p.ptv3.rank == "P" and PTV3.minusworld then p.ptv3.rank = PTV3.ranks[rank].altrank end
 
 
 	return true

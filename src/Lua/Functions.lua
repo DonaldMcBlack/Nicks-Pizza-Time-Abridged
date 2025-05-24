@@ -321,6 +321,11 @@ function PTV3:canLap(p)
 			return 2
 		end
 	end
+
+	for _, tps in pairs(PTV3.tplist) do
+		if tps.mo.player == p then return 0 end
+	end
+
 	return 0
 end
 
@@ -413,6 +418,7 @@ function PTV3:extremeToggle(p)
 		P_SetupLevelSky(34)
 		S_StartSound(nil, P_RandomRange(41,43))
 		P_FlashPal(consoleplayer, 1, 15)
+		P_SwitchWeather(5)
 	end
 end
 
@@ -454,7 +460,7 @@ function PTV3:queueTeleport(p, coords, relative)
 		coords = coords or self.endpos,
 		relative = relative
 	}
-
+	
 	table.insert(PTV3.tplist, mobjteleport)
 	PTV3.callbacks('TeleportPlayer', p)
 end
@@ -465,18 +471,22 @@ function PTV3:newLap(p, int)
 	if p.ptv3.pizzaface then return end
 	if not (self:canLap(p)) then return end
 
+	CONS_Printf(consoleplayer, "Called")
+
 	if p.ptv3.isSwap and not p.ptv3.swapModeFollower then
 		self:newLap(p.ptv3.isSwap)
 	end
+
+	if not int then return end
+	p.ptv3.laps = $+int
+
+	if p.ptv3.laps ~= 1 then self:queueTeleport(p, PTV3.endpos, false) end
 
 	local raw_time = leveltime - PTV3.hud_pt
 
 	if p.ptv3.lap_time >= 0 then
 		raw_time = leveltime - p.ptv3.lap_time
 	end
-
-	if not int then int = 1 end
-	p.ptv3.laps = $+int
 	
 	-- For the quakes
 	if ((PTV3.minusworld and not PTV3.pizzatime) or PTV3.extreme) 
@@ -515,8 +525,6 @@ function PTV3:newLap(p, int)
 	if p.ptv3.isSwap and p.ptv3.isSwap.valid then
 		p.ptv3.isSwap.powers[pw_invulnerability] = 5*TICRATE
 	end
-
-	self:queueTeleport(p, PTV3.endpos, false)
 
 	p.ptv3.fake_exit = false
 	p.mo.flags2 = $ & ~MF2_DONTDRAW
@@ -582,8 +590,12 @@ function PTV3:startMinusWorld(p)
 	self.hud_pt = leveltime
 	self.shakeintensity = 2
 
+	S_StartSound(nil, sfx_supert)
+
 	for player in players.iterate do
 		if not player.mo and not player.ptv3 then continue end
+		
+		player.ptv3.laps = $-1
 
 		if (player.ptv3.insecret) then
 			player.ptv3.secret_tptoend = true
@@ -610,6 +622,8 @@ function PTV3:startPizzaTime(p)
 
 	for player in players.iterate do
 		if not player.mo and not player.ptv3 then continue end
+
+		player.ptv3.laps = $+1
 
 		if (player.ptv3.insecret) then
 			player.ptv3.secret_tptoend = true

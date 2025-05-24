@@ -112,6 +112,7 @@ addHook('MobjSpawn', function(pf)
 	pf.scale = (FU/2)*5/4
 	pf.spritexscale = $*2
 	pf.spriteyscale = $*2
+	pf.shadowscale = pf.scale*3
 
 	if PTV3.minusworld then S_StartSound(nil, sfx_fplgh)
 	else S_StartSound(nil, sfx_pflgh) end
