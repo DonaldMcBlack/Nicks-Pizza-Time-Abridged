@@ -7,10 +7,6 @@ return function(v)
 	local scale = (v.height()/v.dupx())*FU
 
     if rendoption == "opengl" then
-        -- CONS_Printf(consoleplayer, rendoption)
         v.drawScaled(0,0,scale,patch,V_SNAPTOTOP|V_SNAPTOLEFT|V_SUBTRACT|TR_TRANS20)
-    elseif rendoption == "software" then
-        -- CONS_Printf(consoleplayer, rendoption)
-        --v.fadeScreen(0xFF00, 8)
     end
 end

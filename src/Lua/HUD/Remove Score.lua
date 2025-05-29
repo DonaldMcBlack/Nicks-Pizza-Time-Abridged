@@ -1,21 +1,14 @@
 return function(v,p)
 	if not PTV3:isPTV3() then return end
 	if not (PTV3.pizzatime or PTV3.minusworld) then return end
-	if p.ptv3.scoreReduce ~= nil and type(p.ptv3.scoreReduce) ~= "number" then return end
+	if p.ptv3.scoreReduce.time ~= nil and type(p.ptv3.scoreReduce.time) ~= "number" then return end
 
-	local tweenTime = max(0, min(FixedDiv(leveltime-p.ptv3.scoreReduce, TICRATE), FU))
+	local tweenTime = max(0, min(FixedDiv(leveltime-p.ptv3.scoreReduce.time, TICRATE), FU))
 
-	local one = v.cachePatch("STTNUM1")
-	local zero = v.cachePatch("STTNUM0")
-	if PTV3.overtime then
-		one = v.cachePatch("STTNUM4")
-		zero = v.cachePatch("STTNUM5")
-	elseif p.ptv3.extreme then
-		one = v.cachePatch("STTNUM2")
-		zero = v.cachePatch("STTNUM0")
-	else
-		one = v.cachePatch("STTNUM1")
-		zero = v.cachePatch("STTNUM0")
+	local numstr = tostring(p.ptv3.scoreReduce.by)
+	local patchstr = {}
+	for i = 1, #numstr do -- Needs to be single integers or else it'd break
+		patchstr[i] = v.cachePatch("STTNUM"+numstr:sub(i, i))
 	end
 
 	local x = ease.linear(tweenTime, 105*FU, 125*FU)
@@ -23,7 +16,11 @@ return function(v,p)
 	local flags = V_SNAPTOLEFT|V_SNAPTOTOP|(V_10TRANS*alphaTween)
 
 	if alphaTween < 10 then
-		v.drawScaled(x, 10*FU, FU, one, flags, v.getColormap(TC_RAINBOW, SKINCOLOR_PEPPER))
-		v.drawScaled(x+(one.width*FU), 10*FU, FU, zero, flags, v.getColormap(TC_RAINBOW, SKINCOLOR_PEPPER))
+		for i = 1, #patchstr do
+			if i == 1 then v.drawScaled(x, 10*FU, FU, patchstr[i], flags, v.getColormap(TC_RAINBOW, SKINCOLOR_PEPPER)) end
+			if i > 1 then
+				v.drawScaled((x+(patchstr[i-1].width*FU)), 10*FU, FU, patchstr[i], flags, v.getColormap(TC_RAINBOW, SKINCOLOR_PEPPER))
+			end
+		end
 	end
 end

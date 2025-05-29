@@ -14,7 +14,7 @@ CV_PTV3['max_laps'] = CV_RegisterVar({
 })
 CV_PTV3['max_elaps'] = CV_RegisterVar({
 	name = "PTV3_extreme_laps",
-	defaultvalue = 20,
+	defaultvalue = 7,
 	flags = CV_NETVAR,
 	PossibleValue = CV_Unsigned
 })
@@ -249,7 +249,7 @@ function PTV3:player(player)
 		['rank_changetime'] = -1,
 		['extremeNotif'] = 0,
 
-		['scoreReduce'] = false,
+		['scoreReduce'] = {time = false, by = 0},
 
 		['pizzaface'] = false,
 		['pizzaMobj'] = false,

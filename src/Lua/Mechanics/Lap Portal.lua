@@ -1,4 +1,4 @@
-freeslot("MT_PTV3_LAPPORTAL", "MT_PTV3_MINUSLAPPORTAL", "S_PTV3_LAPPORTAL", "S_PTV3_MINUSLAPPORTAL", "SPR_LAPR")
+freeslot("MT_PTV3_LAPPORTAL", "MT_PTV3_MINUSLAPPORTAL", "S_PTV3_LAPPORTAL", "S_PTV3_MINUSLAPPORTAL", "SPR_LAPR", "SPR_LAPM")
 
 mobjinfo[MT_PTV3_LAPPORTAL] = {
 	--$Name "Lap Portal"
@@ -15,7 +15,7 @@ mobjinfo[MT_PTV3_LAPPORTAL] = {
 
 mobjinfo[MT_PTV3_MINUSLAPPORTAL] = {
 	--$Name "Minus Lap Portal"
-    --$Sprite LAPRA1
+    --$Sprite LAPMA1
     --$Category "PTV3A"
 	--$Color 9
 	--$Angled
@@ -35,8 +35,8 @@ states[S_PTV3_LAPPORTAL] = {
 }
 
 states[S_PTV3_MINUSLAPPORTAL] = {
-	sprite = SPR_LAPR,
-	frame = A|FF_ANIMATE|FF_SUBTRACT|FF_TRANS90,
+	sprite = SPR_LAPM,
+	frame = A|FF_ANIMATE|FF_SUBTRACT,
 	tics = -1,
 	var1 = 2,
 	var2 = 2

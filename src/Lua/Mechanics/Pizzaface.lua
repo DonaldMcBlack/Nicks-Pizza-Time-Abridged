@@ -106,8 +106,9 @@ local function getNearestPlayer(pos, conditions)
 end
 
 addHook('MobjSpawn', function(pf)
-	pf.flyspeed = 23
-	pf.rubberbandspeed = 60
+	pf.speed = 23
+	pf.incremspeed = FU
+	pf.incremspeedthreshold = 16
 	pf.destscale = (FU/2)*5/4
 	pf.scale = (FU/2)*5/4
 	pf.spritexscale = $*2
@@ -175,15 +176,11 @@ addHook('MobjThinker', function(pf)
 	if (PTV3.extreme or PTV3.overtime) and not PTV3.minusworld then pf.angry = true
 	else pf.angry = false end
 
-	-- CONS_Printf(consoleplayer, "Pizzaface's Anger"..tostring(pf.angry))
 	if not runCode then return end
-
-	-- print "Running code"
 
 	local player = getNearestPlayer(pf, followC)
 	pf.target = player and player.mo
 
-	-- CONS_Printf(consoleplayer, pf.target.player.name)
 	if not pf.target then
 		pf.momx,pf.momy,pf.momz = 0,0,0
 	end
@@ -211,34 +208,27 @@ addHook('MobjThinker', function(pf)
             pf.momz = $ + FixedMul(FixedDiv(tmomz - pf.momz, flyto2), sped2)
 			L_SpeedCap(pf, sped)
 		else
-
 			-- Behaviour changes ---------------------
 			if pf.angry then -- Enraged Pizzaface
 				if pf.state ~= S_PTV3_PIZZAMAD then pf.state = S_PTV3_PIZZAMAD end
-				if gap > FU*2000 then P_FlyTo(pf, pf.target.x, pf.target.y, pf.target.z, (pf.flyspeed*FU)*5) else
-					P_FlyTo(pf, pf.target.x, pf.target.y, pf.target.z, pf.flyspeed*FU)
+				if gap > FU*2000 then
+					pf.speed = max(FixedMul(FU/pf.incremspeedthreshold, gap-(FU*500)), 23*pf.incremspeed)
+				else
+					pf.speed = ease.linear(FU/pf.incremspeedthreshold, pf.speed, 23*pf.incremspeed)
 				end
+
+				P_FlyTo(pf, pf.target.x, pf.target.y, pf.target.z, pf.speed)
 				
 			else -- Normal Pizzaface
-				-- CONS_Printf(consoleplayer, "Minus World "..tostring(PTV3.minusworld).." Pizza Time "..tostring(PTV3.pizzatime))
 				if PTV3.minusworld and not PTV3.pizzatime then
 					if gap < FU*300 and pf.state ~= S_PTV3_PIZZATROLL then pf.state = S_PTV3_PIZZATROLL
 					elseif gap > FU*300 and pf.state ~= S_PTV3_PIZZAFACE then pf.state = S_PTV3_PIZZAFACE end
 
-					pf.flyspeed = max(FixedMul(FU/8, gap-(FU*250)), 23*FU)
-					P_FlyTo(pf, pf.target.x, pf.target.y, pf.target.z, pf.flyspeed)
-					
-					-- if gap > FU*1000 then
-					-- 	pf.flyspeed = max(FixedMul(FU/16, gap-(FU*1000)), 23*FU)
-					-- 	P_FlyTo(pf, pf.target.x, pf.target.y, pf.target.z, pf.flyspeed)
-
-					-- else
-					-- 	P_FlyTo(pf, pf.target.x, pf.target.y, pf.target.z, pf.flyspeed*FU) 
-					-- end
-
+					pf.speed = max(FixedMul(FU/8, gap-(FU*250)), 23*FU)
 				elseif PTV3.pizzatime and not PTV3.minusworld then
-					P_FlyTo(pf, pf.target.x, pf.target.y, pf.target.z, pf.flyspeed*FU)
+					pf.speed = 23*FU
 				end
+				P_FlyTo(pf, pf.target.x, pf.target.y, pf.target.z, pf.speed)
 			end
 		end
 	end

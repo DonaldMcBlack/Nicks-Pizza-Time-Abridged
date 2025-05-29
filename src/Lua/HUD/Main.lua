@@ -7,6 +7,7 @@ local SecretHUD = dofile "HUD/Secrets"
 local CanLapHUD = dofile "HUD/Can Lap"
 local CamperHud = dofile "HUD/PF Camper"
 local ExtremeNHud = dofile "HUD/ELap Notif"
+local PizzafaceRageHUD = dofile "HUD/Pizzaface Rage"
 local PizzafaceTimerHUD = dofile "HUD/Pizzaface Timer"
 local TimerHUD = dofile "HUD/Normal Timer"
 local WarTimerHUD = dofile "HUD/Overtime Timer"
@@ -43,6 +44,7 @@ customhud.SetupItem("Laps", "ptv3", LapHUD, "game", 1)
 customhud.SetupItem("Pizza Time", "ptv3", PizzaTimeHUD, "game", 1)
 customhud.SetupItem("Minus World", "ptv3", MinusWorldHUD, "game", 1)
 customhud.SetupItem("Overtime", "ptv3", OvertimeHUD, "game", 1)
+customhud.SetupItem("Pizzaface Timer", "ptv3", PizzafaceRageHUD, "game", 1)
 customhud.SetupItem("Pizzaface Timer", "ptv3", PizzafaceTimerHUD, "game", 1)
 customhud.SetupItem("Timer", "ptv3", TimerHUD, "game", 1)
 customhud.SetupItem("Overtime Timer", "ptv3", WarTimerHUD, "game", 1)

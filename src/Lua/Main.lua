@@ -19,7 +19,7 @@ local function FakeExit(p)
 		if gametype == GT_PTV3 and p.ptv3.laps == PTV3.max_laps then
 			if p.ptv3.extremeNotif then
 				if p.ptv3.extremeNotif < 4*TICRATE then
-					PTV3:newLap(p)
+					PTV3:newLap(p, 1)
 				end
 			else
 				p.ptv3.extremeNotif = 5*TICRATE
@@ -27,7 +27,7 @@ local function FakeExit(p)
 			end
 		else
 			if p.ptv3.canLap > TICRATE then p.ptv3.canLap = TICRATE end
-			PTV3:newLap(p)
+			PTV3:newLap(p, 1)
 		end
 	end
 end
@@ -36,6 +36,8 @@ addHook('PlayerSpawn', function(p)
 	if not PTV3:isPTV3() then return end
 	if not (p and p.mo) then return end
 	if not p.ptv3 then PTV3:player(p) end
+
+	p.lives = INFLIVES
 
 	if PTV3.pizzatime or PTV3.minusworld then PTV3:teleportPlayer(p) end
 
@@ -146,7 +148,8 @@ local function normalThinker(p)
 				reduceBy = 15
 			end
 			p.score = max(0, $-reduceBy)
-			p.ptv3.scoreReduce = leveltime
+			p.ptv3.scoreReduce.by = reduceBy
+			p.ptv3.scoreReduce.time = leveltime
 		elseif p.ptv3.overtime then p.score = max(0, $-1) end
 	end
 
@@ -575,8 +578,7 @@ addHook('PostThinkFrame', function()
 		PTV3:endGame()
 	end
 
-	if multiplayer
-	and #alive
+	if #alive
 	and #finished == #alive then
 		local canEnd = true
 
@@ -590,6 +592,7 @@ addHook('PostThinkFrame', function()
 		end
 
 		if canEnd then
+			CONS_Printf(consoleplayer, "End")
 			PTV3:endGame()
 		end
 	end

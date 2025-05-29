@@ -305,9 +305,11 @@ end
 function PTV3:canLap(p)
 	if not p.ptv3 then return 0 end
 	if p.ptv3.pizzaface then return 0 end
+
 	if gametype == GT_PTV3DM then
 		return 1
 	end
+
 	if not self.overtime then
 		if p.ptv3.laps <= self.max_laps then
 			return 1
@@ -322,8 +324,8 @@ function PTV3:canLap(p)
 		end
 	end
 
-	for _, tps in pairs(PTV3.tplist) do
-		if tps.mo.player == p then return 0 end
+	for i = 1, (#PTV3.tplist) do
+		if PTV3.tplist[i].mo == p.mo then return 0 end
 	end
 
 	return 0
@@ -471,8 +473,6 @@ function PTV3:newLap(p, int)
 	if p.ptv3.pizzaface then return end
 	if not (self:canLap(p)) then return end
 
-	CONS_Printf(consoleplayer, "Called")
-
 	if p.ptv3.isSwap and not p.ptv3.swapModeFollower then
 		self:newLap(p.ptv3.isSwap)
 	end
@@ -493,7 +493,10 @@ function PTV3:newLap(p, int)
 	and PTV3.shakeintensity < 5 then PTV3.shakeintensity = abs(int*2) end
 
 	-- Speed up Pizzaface
-	if PTV3.pizzaface and PTV3.pizzaface.angry then PTV3.pizzaface.flyspeed = $+4 end
+	if PTV3.pizzaface and PTV3.pizzaface.angry then 
+		PTV3.pizzaface.incremspeed = $+(FU/(PTV3.max_elaps - (PTV3.max_elaps/2)))
+		PTV3.pizzaface.incremspeedthreshold = $-1
+	end
 
 	p.powers[pw_shield] = p.ptv3.exitShield
 	p.ptv3.exitShield = SH_NONE
@@ -590,7 +593,7 @@ function PTV3:startMinusWorld(p)
 	self.hud_pt = leveltime
 	self.shakeintensity = 2
 
-	S_StartSound(nil, sfx_supert)
+	S_StartSound(nil, sfx_s3k9f)
 
 	for player in players.iterate do
 		if not player.mo and not player.ptv3 then continue end

@@ -44,20 +44,25 @@ addHook("MobjThinker", function(gate)
 	end
 	for p,_ in pairs(gate.lappers) do
 		if not (p and p.ptv3 and p.mo and not p.ptv3.specforce) then continue end
-		PTV3:newLap(p)
+		PTV3:newLap(p, 1)
 	end
 	gate.lappers = {}
 end, MT_PTV3_SPAWNGATE)
 
 addHook("TouchSpecial", function(gate, pmo)
-	if not (gate
-		and gate.valid
-		and pmo
-		and pmo.valid
-		and pmo.player
-		and pmo.player.ptv3) then return true end
+	if not (gate and gate.valid
+	and pmo and pmo.valid and pmo.player and pmo.player.ptv3) then
+		return true
+	end
 
 	if not (PTV3.pizzatime or PTV3.minusworld) then return true end
+	if pmo.player.ptv3.fake_exit then return true end
+
+	CONS_Printf(consoleplayer, "List Check")
+
+	for i = 1, (#PTV3.tplist) do
+		if PTV3.tplist[i].mo == pmo then return true end
+	end
 
 	local p = pmo.player
 

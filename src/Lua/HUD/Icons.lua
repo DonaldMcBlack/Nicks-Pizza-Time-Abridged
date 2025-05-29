@@ -34,7 +34,7 @@ end)
 
 // This version of the function was prototyped in Lua by Nev3r ... a HUGE thank you goes out to them!
 -- if only it was exposed
-local baseFov = 90*FRACUNIT
+local baseFov = CV_FindVar("fov").value
 local BASEVIDWIDTH = 320
 local BASEVIDHEIGHT = 200
 rawset(_G, "SG_ObjectTracking", function(v, p, c, point, reverse, allowspectator)
@@ -122,7 +122,7 @@ rawset(_G, "SG_ObjectTracking", function(v, p, c, point, reverse, allowspectator
 	result.x = $ + screenHalfW
 	result.y = $ + screenHalfH
 
-	result.scale = FixedDiv(screenHalfW, h+1)
+	result.scale = FixedDiv(screenHalfW, (h*2)+1)
 
 	result.onScreen = not ((abs(da) > ANG60) or (abs(viewpointAiming - R_PointToAngle2(0, 0, h, (viewz - point.z))) > ANGLE_45))
 
@@ -141,7 +141,7 @@ rawset(_G, "SG_ObjectTracking", function(v, p, c, point, reverse, allowspectator
 	return result
 end)
 
-local function _iconShit(v,x,y,scale,patch,color,...)
+local function _iconShit(v,x,y,scale,patch,color,namecolor,...)
 	local texts = {...}
 
 	v.drawScaled(x, y, scale, patch, nil, color)
@@ -154,7 +154,7 @@ local function _iconShit(v,x,y,scale,patch,color,...)
 			nil,
 			"center",
 			FixedMul(FU/3, scale),
-		    color)
+		    namecolor)
 	end
 end
 
@@ -206,7 +206,9 @@ local function drawPlayerIcon(v,dp,p,c)
 	_iconShit(v,
 		result.x,result.y,
 		max(result.scale, FU/2),
-		patch, v.getColormap(p.mo.skin, p.mo.color),
+		patch, 
+		v.getColormap(p.mo.skin, p.mo.color),
+		v.getColormap(p.mo.skin, p.mo.color),
 		tostring(dist/FU).." FU"
 	)
 end
@@ -223,9 +225,18 @@ local function drawChaserIcon(v,dp,c, chaser, icon)
 	local scale = max(FU/2, FixedMul(result.scale, FU))
 
 	local p
+	local color = SKINCOLOR_WHITE
 	if chaser == PTV3.pizzaface then
 		p = (PTV3.pizzaface.tracer and PTV3.pizzaface.tracer.valid) and PTV3.pizzaface.tracer.player
-		if PTV3.pizzaface.angry then icon = "PIZZAICON2" end
+		if PTV3.pizzaface.angry then
+
+			if (leveltime % 8)/2 then
+				color = SKINCOLOR_KETCHUP
+			else
+				color = SKINCOLOR_CRIMSON
+			end
+			icon = "PIZZAICON2"
+		end
 	else
 		p = (chaser.target and chaser.target.valid) and chaser.target.player
 	end
@@ -236,6 +247,8 @@ local function drawChaserIcon(v,dp,c, chaser, icon)
 		if not playerResult.onScreen then
 			return
 		end
+
+		if chaser ~= PTV3.pizzaface and PTV3.extreme then return end
 
 		local radius = FixedMul(dp.mo.radius, dp.mo.scale)
 		local height = FixedMul(dp.mo.height, dp.mo.scale)
@@ -253,8 +266,10 @@ local function drawChaserIcon(v,dp,c, chaser, icon)
 
 		_iconShit(v,
 			x,y,
-			FU/2,
-			v.cachePatch(icon), nil,
+			scale,
+			v.cachePatch(icon),
+			nil,
+			color,
 			tostring(dist/FU).." FU",
 			chaser.displayname or p and p.name,
 			p and p.ptv3 and p.ptv3.pfcamper and "CAMPER" or ""
@@ -267,7 +282,9 @@ local function drawChaserIcon(v,dp,c, chaser, icon)
 	_iconShit(v,
 		result.x,result.y,
 		max(result.scale, FU/2),
-		v.cachePatch(icon), nil,
+		v.cachePatch(icon),
+		nil,
+		color,
 		tostring(dist/FU).." FU",
 		chaser.displayname or p and p.name,
 		p and p.ptv3 and p.ptv3.pfcamper and "CAMPER" or ""

@@ -52,7 +52,7 @@ mobjinfo[MT_PTV3_CODESECRET] = {
 
 states[S_PTV3_SECRET] = {
     sprite = SPR_SIDL,
-    frame = A,
+    frame = A|FF_ANIMATE,
     tics = -1,
     action = nil,
     var1 = 2,
@@ -62,7 +62,7 @@ states[S_PTV3_SECRET] = {
 
 states[S_PTV3_SECRET_CRY] = {
     sprite = SPR_SCRY,
-    frame = A,
+    frame = A|FF_ANIMATE,
     tics = -1,
     action = nil,
     var1 = 2,
