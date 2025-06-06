@@ -411,6 +411,7 @@ function PTV3:doPlayerExit(p)
 	p.powers[pw_shield] = SH_NONE
 end
 
+-- Enters Extreme Mode.
 function PTV3:extremeToggle(p)
 	p.ptv3.extreme = true
 	if not self.extreme then
@@ -426,6 +427,7 @@ end
 
 sfxinfo[freeslot "sfx_timexp"].caption = "BOOM!"
 
+-- Enters Overtime.
 function PTV3:overtimeToggle()
 	if self.overtime then return end
 	self.overtime = true
@@ -453,7 +455,7 @@ function PTV3:overtimeToggle()
 
 	PTV3.callbacks("OvertimeStart")
 end
--- TODO: Figure how what causes players to zip up once after entering Minus Lap Portal and John Ghost
+-- Sets a teleport to a specified set of coordinates. Mainly used by Lap Portals, transitions, and John.
 function PTV3:queueTeleport(p, coords, relative)
 	if not p or not p.mo then return end
 
@@ -467,6 +469,7 @@ function PTV3:queueTeleport(p, coords, relative)
 	PTV3.callbacks('TeleportPlayer', p)
 end
 
+-- Enters a new lap for the player who entered a Lap Portal.
 function PTV3:newLap(p, int)
 	if not (self.pizzatime or self.minusworld) then return end
 	if not p.ptv3 then return end
@@ -514,7 +517,7 @@ function PTV3:newLap(p, int)
 	end
 
 	if not p.ptv3.extreme then
-		P_AddPlayerScore(p, 1000)
+		P_AddPlayerScore(p, 3000)
 	end
 
 	p.ptv3.lap_time = leveltime
@@ -663,7 +666,7 @@ end
 function PTV3:doFollowerTP(flwr, lder, index)
 	if index == nil then index = 2 end
 	if not lder.ptv3 then return end
-	local data = lder.ptv3.savedData
+	local data = lder.ptv3.movementData
 	if not data[1] then return end
 
 	if data[#data-index] then

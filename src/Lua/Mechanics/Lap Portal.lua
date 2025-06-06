@@ -50,8 +50,20 @@ addHook("MobjSpawn", function(mo)
 	mo.shadowscale = mo.scale
 end, MT_PTV3_MINUSLAPPORTAL)
 
+addHook("MobjThinker", function(mo)
+	if displayplayer and displayplayer.valid then
+		local p = displayplayer
+
+		if not (PTV3.pizzatime or PTV3.minusworld) or not PTV3:canLap(p) then
+			mo.frame = $|TR_TRANS50
+		else
+			mo.frame = $ & ~TR_TRANS50
+		end
+	end
+end, MT_PTV3_LAPPORTAL)
+
 addHook("TouchSpecial", function(mo, pmo)
-	if PTV3.minusworld and not PTV3.pizzatime then return true end
+	if not PTV3.pizzatime then return true end
 	if not (mo and mo.valid) then return true end
 	if not (pmo and pmo.player and pmo.player.ptv3) then return true end
 	if pmo.player.ptv3.lap_in then return true end
@@ -62,6 +74,10 @@ addHook("TouchSpecial", function(mo, pmo)
 	-- print "Lapped."
 	return true
 end, MT_PTV3_LAPPORTAL)
+
+addHook("MobjThinker", function(mo)
+	if PTV3.pizzatime then P_RemoveMobj(mo) end
+end, MT_PTV3_MINUSLAPPORTAL)
 
 addHook("TouchSpecial", function(mo, pmo)
 	if PTV3.pizzatime and not PTV3.minusworld then return true end

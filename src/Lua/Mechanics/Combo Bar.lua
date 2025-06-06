@@ -21,7 +21,7 @@ addHook('MobjDamage', function(t,i,s)
 
 end, MT_PLAYER)
 
-local function increaseCombo(p, type, increase)
+function PTV3:increaseCombo(p, type, increase)
 	if type == 1 then
 		p.ptv3.combo_pos = PTV3.MAX_COMBO_TIME
 		if not (p.ptv3.combo) then
@@ -42,7 +42,7 @@ addHook('MobjDamage', function(t,i,s)
 	if not (s.player.ptv3 and s.player.ptv3.combo) then return end
 	if not (t.flags & MF_ENEMY) then return end
 	
-	increaseCombo(s.player, 3)
+	PTV3:increaseCombo(s.player, 3)
 end)
 
 addHook('MobjDeath', function(t,i,s)
@@ -50,11 +50,11 @@ addHook('MobjDeath', function(t,i,s)
 	if not (s and s.type == MT_PLAYER) then return end
 	
 	if t.flags & MF_ENEMY then
-		increaseCombo(s.player, 1)
+		PTV3:increaseCombo(s.player, 1)
 	elseif t.flags & MF_MONITOR then
-		increaseCombo(s.player, 3)
+		PTV3:increaseCombo(s.player, 3)
 	else
-		increaseCombo(s.player, 2, PTV3.MAX_COMBO_TIME/5)
+		PTV3:increaseCombo(s.player, 2, PTV3.MAX_COMBO_TIME/5)
 	end
 end)
 

@@ -32,29 +32,6 @@ local function FakeExit(p)
 	end
 end
 
-addHook('PlayerSpawn', function(p)
-	if not PTV3:isPTV3() then return end
-	if not (p and p.mo) then return end
-	if not p.ptv3 then PTV3:player(p) end
-
-	p.lives = INFLIVES
-
-	if PTV3.pizzatime or PTV3.minusworld then PTV3:teleportPlayer(p) end
-
-	if p.ptv3.insecret then
-		local link = PTV3.secrets[p.ptv3.insecret][0]
-		PTV3:teleportPlayer(p, {x=link.x,y=link.y,z=link.z,a=p.mo.angle})
-		return
-	end
-end)
-
-addHook('MobjDamage', function(mo)
-	if not PTV3:isPTV3() then return end
-	if not mo.player then return end
-
-	mo.player.score = max($-250, 0)
-end, MT_PLAYER)
-
 states[freeslot "S_PTV3_WALKANIM"] = {
 	sprite = SPR_PLAY,
 	frame = SPR2_WALK,
@@ -118,7 +95,7 @@ local function normalThinker(p)
 			p.mo.state = S_PLAY_STND
 			p.mo.angle = PTV3.spawnGate.angle
 			
-			table.insert(p.ptv3.savedData, {
+			table.insert(p.ptv3.currentTeleportDest, {
 				x = p.mo.x,
 				y = p.mo.y,
 				z = p.mo.z,
@@ -175,14 +152,25 @@ local function normalThinker(p)
 		and p2.mo
 		and p2.mo.health then
 			P_SetOrigin(p2.mo, p.mo.x, p.mo.y, p.mo.z)
-			p.ptv3.savedData = {}
+			p.ptv3.movementData = {}
+			p.ptv3.currentTeleportDest = {}
 		
 			PTV3:initSwapMode(p, p2)
 		end
 	end
 
-	if #p.ptv3.savedData > (3*6) then
-		table.remove(p.ptv3.savedData, 1)
+	table.insert(p.ptv3.movementData, {
+		x = p.mo.x,
+		y = p.mo.y,
+		z = p.mo.z,
+		angle = p.drawangle,
+		momx = p.mo.momx,
+		momy = p.mo.momy,
+		momz = p.mo.momz
+	})
+
+	if #p.ptv3.movementData > (3*6) then
+		table.remove(p.ptv3.movementData, 1)
 	end
 end
 
@@ -212,7 +200,7 @@ local function cAngle(p)
 end
 
 addHook("ShouldDamage", function(t,i,s)
-	if not (t and t.player and t.player.ptv3 and t.player.ptv3.pizzaface) then return end
+	if not (t and t.player and t.player.ptv3 and t.player.ptv3.pizzaface) then return true end
 
 	return false
 end)
@@ -462,7 +450,7 @@ end
 addHook('PostThinkFrame', function()
 	if not PTV3:isPTV3() then return end
 
-	G_SetCustomExitVars(M_MapNumber("PT"))
+	if gametype == (GT_PTV3 or GT_PTV3DM) then G_SetCustomExitVars(M_MapNumber("PT")) end
 
 	if #PTV3.tplist > 0 then
 		for _, tps in pairs(PTV3.tplist) do
@@ -473,8 +461,6 @@ addHook('PostThinkFrame', function()
 				continue
 			end
 
-			CONS_Printf(consoleplayer, tps.mo.player.name)
-
 			local p = tps.mo.player
 			P_SetOrigin(tps.mo, tps.coords.x, tps.coords.y, tps.coords.z)
 			tps.mo.angle = tps.coords.a
@@ -483,7 +469,7 @@ addHook('PostThinkFrame', function()
 
 			if p.ptv3.lap_in then p.ptv3.lap_in = false end
 			
-			table.insert(p.ptv3.savedData, {
+			table.insert(p.ptv3.currentTeleportDest, {
 				x = p.mo.x,
 				y = p.mo.y,
 				z = p.mo.z,
@@ -498,7 +484,6 @@ addHook('PostThinkFrame', function()
 	end
 
 	for p in players.iterate do
-		
 		if not multiplayer then
 			if ((p.pflags & PF_FINISHED) or p.exiting)
 			and p.mo.subsector.sector.special == 8192 then
@@ -528,55 +513,54 @@ addHook('PostThinkFrame', function()
 		return
 	end
 
+	-- Everything that's controlled when the timer starts is in here
 	if PTV3.pizzatime or PTV3.minusworld then
 		PTV3.time = max(0, $-1)
 
-		if multiplayer then PTV3.pftime = max(0, $-1) end
+		if consoleplayer then consoleplayer.realtime = PTV3.time end
 
-		if not PTV3.overtime
-		and PTV3.time <= 5*TICRATE
-		and not PTV3.__fadedmus then
-			local maxtime = min(5*TICRATE, PTV3.time)
-			S_FadeMusic(25, maxtime*MUSICRATE/TICRATE)
-			PTV3.__fadedmus = true
-		end
-		if PTV3.overtime then
-			PTV3.overtime_time = max(0, $-1)
-			if PTV3.overtime_time
-			and not (PTV3.overtime_time % TICRATE) then
-				S_StartSoundAtVolume(nil, sfx_wartim, 255/3)
+		if multiplayer then
+			PTV3.pftime = max(0, $-1)
+
+			if not PTV3.pftime and not (PTV3.pizzaface and PTV3.pizzaface.valid) then PTV3:pizzafaceSpawn() end
+
+			if not PTV3.overtime
+			and PTV3.time <= 5*TICRATE
+			and not PTV3.__fadedmus then
+				local maxtime = min(5*TICRATE, PTV3.time)
+				S_FadeMusic(25, maxtime*MUSICRATE/TICRATE)
+				PTV3.__fadedmus = true
 			end
 
-			if PTV3.overtime_time == 0
-			or not PTV3:canOvertime() then
-				PTV3:endGame()
-			end
-		end
-	end
+			if PTV3.overtime then
+				PTV3.overtime_time = max(0, $-1)
 
-	if not (PTV3.time) and not PTV3.overtime then
-		if PTV3:canOvertime() then
-			PTV3:overtimeToggle()
+				if PTV3.overtime_time and not (PTV3.overtime_time % TICRATE) then
+					S_StartSoundAtVolume(nil, sfx_wartim, 255/3)
+				end
+
+				if PTV3.overtime_time == 0 or not PTV3:canOvertime() then
+					PTV3:endGame()
+				end
+			end
+
+			if not (PTV3.time) and not PTV3.overtime then
+				if PTV3:canOvertime() then
+					PTV3:overtimeToggle()
+				else
+					PTV3:endGame()
+				end
+			end
 		else
-			PTV3:endGame()
+			if not (PTV3.time) and not (PTV3.pizzaface and PTV3.pizzaface.valid) then PTV3:pizzafaceSpawn() end
+		end
+	else
+		if PTV3.titlecards[gamemap] and consoleplayer then
+			consoleplayer.realtime = max(0, leveltime-cutsceneTime)
 		end
 	end
 
 	local alive, pizzafaces, finished, unfinished, alive_2, total = PTV3:playerCount()
-
-	if gametype == GT_PTV3DM
-	and not PTV3.overtime
-	and (PTV3.pizzatime or PTV3.minusworld)
-	and #total > 2
-	and #alive <= 2 then
-		PTV3:overtimeToggle()
-	end
-
-	if (PTV3.pizzaface or PTV3.snick)
-	and multiplayer
-	and #alive == 0 then
-		PTV3:endGame()
-	end
 
 	if #alive
 	and #finished == #alive then
@@ -597,28 +581,28 @@ addHook('PostThinkFrame', function()
 		end
 	end
 
-	if gametype == GT_PTV3DM
-	and PTV3.pizzaface
-	and PTV3.pizzaface.valid then
-		local increase = (FU/(TICRATE*18))
-		if not PTV3.overtime then
-			PTV3.pizzaface.flyspeed = $+increase
-		else
-			PTV3.pizzaface.flyspeed = $+FixedMul(increase, FU+FU/3)
+	if gametype == GT_PTV3DM then
+		if PTV3.overtime
+		and (PTV3.pizzatime or PTV3.minusworld)
+		and #total > 2
+		and #alive <= 2 then
+			PTV3:overtimeToggle()
+		end
+
+		if PTV3.pizzaface and PTV3.pizzaface.valid then
+			local increase = (FU/(TICRATE*18))
+			if not PTV3.overtime then
+				PTV3.pizzaface.speed = $+increase
+			else
+				PTV3.pizzaface.speed = $+FixedMul(increase, FU+FU/3)
+			end
 		end
 	end
 
-	if ((PTV3.pizzatime or PTV3.minusworld) and multiplayer and not PTV3.pftime and not PTV3.pizzaface)
-	or ((PTV3.pizzatime or PTV3.minusworld) and not PTV3.time and not PTV3.pizzaface) then
-		PTV3:pizzafaceSpawn()
-	end
-	if (PTV3.pizzatime or PTV3.minusworld) and consoleplayer then
-		consoleplayer.realtime = PTV3.time
-	end
-	if PTV3.titlecards[gamemap]
-	and consoleplayer
-	and not (PTV3.pizzatime or PTV3.minusworld) then
-		consoleplayer.realtime = max(0, leveltime-cutsceneTime)
+	if (PTV3.pizzaface or PTV3.snick)
+	and multiplayer
+	and #alive == 0 then
+		PTV3:endGame()
 	end
 end)
 
@@ -630,14 +614,35 @@ addHook("MobjDeath", function(t,i,s)
 	if not PTV3:isPTV3() then return end
 	if not (s and s.player) then return end
 
-	s.player.score = $+15
+	s.player.score = $+10
 end, MT_RING)
 
-addHook("MobjDamage", function(t,i,s)
+addHook('PlayerSpawn', function(p)
 	if not PTV3:isPTV3() then return end
-	if not (t and t.player) then return end
+	if not (p and p.mo) then return end
+	if not p.ptv3 then PTV3:player(p) end
 
-	t.player.score = max(0, $-350)
+	p.lives = INFLIVES
+
+	if PTV3.pizzatime or PTV3.minusworld then PTV3:teleportPlayer(p) end
+
+	if p.ptv3.insecret then
+		local link = PTV3.secrets[p.ptv3.insecret][0]
+		PTV3:teleportPlayer(p, {x=link.x,y=link.y,z=link.z,a=p.mo.angle})
+		return
+	end
+end)
+
+addHook('MobjDamage', function(mo)
+	if not PTV3:isPTV3() then return end
+	if not mo.player then return end
+
+	local p = mo.player
+	local reduction = 50
+
+	p.score = max($-reduction, 0)
+	p.ptv3.scoreReduce.by = reduction
+	p.ptv3.scoreReduce.time = leveltime
 end, MT_PLAYER)
 
 addHook("PlayerCmd", function(p, cmd)

@@ -280,6 +280,7 @@ local function spawnAIpizza(s)
 	return P_SpawnMobj(s.x, s.y, s.z, MT_PTV3_PIZZAFACE)
 end
 
+-- Spawns Pizzaface.
 function PTV3:pizzafaceSpawn()
 	if not self.pizzaface then
 		local position = {}

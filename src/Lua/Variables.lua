@@ -212,8 +212,12 @@ function PTV3:player(player)
 
 	player.ptv3 = {
 		["buttons"] = player.cmd.buttons,
+
 		['specforce'] = false,
+
 		['extreme'] = false,
+
+		['transitionfade'] = { time = TICRATE/4, fadetime = TICRATE/2 },
 		['fake_exit'] = false,
 
 		['insecret'] = 0,
@@ -243,7 +247,8 @@ function PTV3:player(player)
 		['exitShield'] = SH_NONE,
 		['pvpCooldown'] = 0,
 		
-		['savedData'] = {},
+		['movementData'] = {},
+		['currentTeleportDest'] = {},
 		
 		['rank'] = 1,
 		['rank_changetime'] = -1,
@@ -351,11 +356,12 @@ addHook('MapLoad', function()
 		p.ptv3 = nil
 	end
 
-	if not PTV3:isPTV3() then 
+	if PTV3:isPTV3() then 
+		hud.disable('lives')
+	else
 		hud.enable('lives')
 		return
 	end
-	hud.disable('lives')
 
 	for thing in mapthings.iterate do
 		spawnSector(thing)

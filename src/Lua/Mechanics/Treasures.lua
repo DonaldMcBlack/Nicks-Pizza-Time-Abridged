@@ -1,5 +1,6 @@
 freeslot("SPR_STRE", "sfx_tfind", "S_PTV3_TREASURE", "S_PTV3_TREASURE_GOT", "MT_PTV3_TREASURE")
 sfxinfo[sfx_tfind].caption = "Treasure jingle!"
+
 mobjinfo[MT_PTV3_TREASURE] = {
 	doomednum = -1,
 	spawnstate = S_PTV3_TREASURE,
@@ -45,8 +46,7 @@ addHook("MobjSpawn", function(mo)
 end, MT_PTV3_TREASURE)
 
 addHook("MobjRemoved", function(mo)
-	if (mo.treasureEffect
-	and mo.treasureEffect.valid) then
+	if (mo.treasureEffect and mo.treasureEffect.valid) then
 		P_RemoveMobj(mo.treasureEffect)
 	end
 end, MT_PTV3_TREASURE)
@@ -78,7 +78,8 @@ addHook("TouchSpecial", function(mo, pmo)
 	and pmo.player.ptv3
 	and not pmo.player.ptv3.swapModeFollower) then return true end
 
-	P_AddPlayerScore(pmo.player, 800)
+	P_AddPlayerScore(pmo.player, 3000)
+
 	if pmo.player.ptv3.combo then
 		pmo.player.ptv3.combo_pos = PTV3.MAX_COMBO_TIME
 	end

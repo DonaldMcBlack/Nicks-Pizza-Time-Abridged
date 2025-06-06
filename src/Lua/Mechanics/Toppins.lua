@@ -110,9 +110,9 @@ local function __think(tpn)
 
 		local p = trgt.player
 
-		if not p.ptv3.savedData then return end
+		if not p.ptv3.movementData then return end
 
-		local sData = p.ptv3.savedData
+		local sData = p.ptv3.movementData
 		local data = sData[min(#sData, tpn.chaseOffset*(5-(tpn.collectOffset-1)))]
 
 		local angle = R_PointToAngle2(0,0, data.momx, data.momy)
@@ -125,7 +125,7 @@ local function __think(tpn)
 
 		if (data.x == tpn.setx and data.y == tpn.sety)
 		and (abs(tpn.t_offx-tpn.offx) < FU and abs(tpn.t_offy-tpn.offy) < FU) then
-			if not PTV3.pizzatime or not PTV3.minusworld then
+			if not (PTV3.pizzatime or PTV3.minusworld) then
 				changeToppinState(tpn, "idle")
 			else
 				changeToppinState(tpn, "panic")

@@ -61,7 +61,13 @@ return function(v)
 	scale = $*3/2
 	
 	local x = (160*FU)-(b.width*(scale/2))
-	local y = ease.linear(time, 220*FU, 180*FU)
+	local y
+
+	if PTV3.time then
+		y = ease.linear(time, 220*FU, 180*FU)
+	else
+		y = ease.linear(time, 180*FU, 220*FU)
+	end
 	
 	local o = 5*scale
 	local of = 5*FU
@@ -75,7 +81,8 @@ return function(v)
 
 	if time <= 5*TICRATE
 	and not PTV3.overtime
-	and not (PTV3.game_over > -1) then
+	and not (PTV3.game_over > -1)
+	and multiplayer then
 		local maxTime = min(maxtime, 5*TICRATE)
 		local shakePerc = FixedDiv(maxTime-time, maxTime)*6
 
@@ -108,6 +115,13 @@ return function(v)
 		align = "center",
 		flags = V_SNAPTOBOTTOM}
 	)
+
+	if not multiplayer then
+		frame = leveltime % 17
+		local p = v.cachePatch("PFCES"..frame)
+
+		v.drawScaled(x+(bwidth-10*FU), y-(15*FU), scale, p, V_SNAPTOBOTTOM)
+	end
 
 	--PTV3.drawText(v, x+(bwidth/2), y-(16*FU), "WILL ADD SMTH HERE LATER")
 end
