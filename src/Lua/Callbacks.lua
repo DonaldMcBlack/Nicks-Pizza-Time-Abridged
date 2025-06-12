@@ -8,7 +8,7 @@ PTV3.callbacks = {
 	-- p - Player.
 
 	['TeleportPlayer'] = {},
-	-- Usually used to teleport the player to a secret, or the end.
+	-- Usually used to teleport the player.
 	-- Arguments:
 	-- p - Teleported player.
 

@@ -1,4 +1,14 @@
 freeslot("MT_PTV3_EFFECT")
+freeslot("SKINCOLOR_PURERED")
+
+skincolors[SKINCOLOR_PURERED] = {
+    name = "Pure Red",
+    ramp = {35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35},
+    invcolor = SKINCOLOR_WHITE,
+    invshade = 0,
+    chatcolor = V_SKYMAP,
+    accessible = false
+}
 
 mobjinfo[MT_PTV3_EFFECT] = {
 	doomednum = -1,
@@ -35,7 +45,10 @@ function PTV3:doEffect(mo, effect)
 		mobj.color = effect.color
 		mobj.colorized = true
 		mobj.target = mo
-		mobj.frame = FF_MODULATE
+		
+		if effect.flags then
+			mobj.frame = effect.flags
+		end
 
 		if effect.follow then
 			mobj.follow = true

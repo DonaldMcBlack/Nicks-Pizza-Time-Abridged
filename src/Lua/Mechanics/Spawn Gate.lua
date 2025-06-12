@@ -43,7 +43,7 @@ addHook("MobjThinker", function(gate)
 		p.mo.flags2 = $|MF2_DONTDRAW
 	end
 	for p,_ in pairs(gate.lappers) do
-		if not (p and p.ptv3 and p.mo and not p.ptv3.specforce) then continue end
+		if not (p and p.ptv3 and p.mo and not p.spectator) then continue end
 		PTV3:newLap(p, 1)
 	end
 	gate.lappers = {}

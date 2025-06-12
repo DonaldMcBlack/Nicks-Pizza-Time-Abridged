@@ -1,5 +1,6 @@
 sfxinfo[freeslot("sfx_winer")].caption = "You won!"
-
+freeslot("sfx_spnsd0", "sfx_spnsd1", "sfx_spnsd3", "sfx_spnsd4", "sfx_spnsd5", "sfx_spnsd6", "sfx_spnsd7")
+freeslot("sfx_snsed0", "sfx_snsed1", "sfx_snsed2")
 local cutsceneTime = PTV3.maxTitlecardTime+(2*TICRATE)
 
 local function FakeExit(p)
@@ -127,20 +128,36 @@ local function normalThinker(p)
 			p.score = max(0, $-reduceBy)
 			p.ptv3.scoreReduce.by = reduceBy
 			p.ptv3.scoreReduce.time = leveltime
-		elseif p.ptv3.overtime then p.score = max(0, $-1) end
+		elseif p.ptv3.overtime and not p.ptv3.fake_exit and p.score > 0 then p.score = max(0, $-1) end
 	end
 
 	PTV3.callbacks("PlayerThink", p)
 
 	FakeExit(p)
 
+	if p.ptv3.ragdoll.lands then
+		p.mo.state = S_PLAY_PAIN
+	end
+
+	if p.ptv3.ragdoll.getuptimer then
+		p.pflags = $|PF_FULLSTASIS
+	end
+
+	if p.ptv3.curItem
+	and p.cmd.buttons & BT_CUSTOM1
+	and not p.ptv3.ragdoll.getuptimer then
+		PTV3:useItem(p)
+	end
+
 	if p.ptv3.isSwap
 	and p.ptv3.isSwap.valid then
 		local p2 = p.ptv3.isSwap
-		
-		p2.ptv3.banana = p.ptv3.banana
-		p2.ptv3.banana_angle = p.ptv3.banana_angle
-		p2.ptv3.banana_speed = p.ptv3.banana_speed
+
+		if p.ptv3.ragdoll.active then
+			p2.ptv3.ragdoll.active = p.ptv3.ragdoll.active
+			p2.mo.angle = p.mo.angle
+			p2.speed = p.speed
+		end
 
 		if p2.ptv3
 		and p2.ptv3.swapModeFollower ~= p.mo then
@@ -200,18 +217,16 @@ local function cAngle(p)
 end
 
 addHook("ShouldDamage", function(t,i,s)
-	if not (t and t.player and t.player.ptv3 and t.player.ptv3.pizzaface) then return true end
-
-	return false
+	if t and t.valid then
+		if t.player and t.player.ptv3 and t.player.ptv3.pizzaface then return false end
+	end
 end)
 
 addHook('PlayerThink', function(p)
 	if not PTV3:isPTV3() then return end
 	if not p.ptv3 then PTV3:player(p) end
 
-	p.spectator = p.ptv3.specforce
-
-	if p.ptv3.specforce then
+	if p.spectator then
 		return
 	end
 
@@ -333,28 +348,6 @@ addHook('PlayerThink', function(p)
 			p.ptv3.pfcamper_sectors = {}
 			p.ptv3.pfcamper = false
 		end
-	elseif (PTV3.pizzatime or PTV3.minusworld)
-	and not PTV3.panicSpriteBlacklist[p.mo.skin] then
-		local speed = FixedHypot(p.rmomx, p.rmomy)
-
-		if speed == 0
-		and P_IsObjectOnGround(p.mo) 
-		and not (p.pflags & (PF_SPINNING|PF_STARTDASH))then
-			if p.mo.state == S_PLAY_STND then
-				p.mo.state = S_PTV3_PANIC
-			end
-		elseif p.mo.state == S_PTV3_PANIC then
-			if speed >= 0
-			and P_IsObjectOnGround(p.mo) then
-				p.mo.state = S_PLAY_WALK
-			end
-			if p.pflags & PF_STARTDASH then
-				p.mo.state = S_PLAY_SPINDASH
-			end
-			if p.pflags & PF_SPINNING then
-				p.mo.state = S_PLAY_ROLL
-			end
-		end
 	end
 
 	if (p.ptv3.swapModeFollower
@@ -374,26 +367,42 @@ addHook('ThinkFrame', function()
 
 	for p in players.iterate do
 		if not p.mo and not p.ptv3 then continue end
-		if p.ptv3.specforce then continue end
+		if p.spectator then continue end
 		if p.ptv3.swapModeFollower
 		and p.ptv3.swapModeFollower.valid then continue end
 
 		-- if PTV3.minusworld then P_FlashPal(p, 5, 8) end
 
-		if p.ptv3.banana
-		and P_IsObjectOnGround(p.mo) then
-			p.ptv3.banana = $-1
-			p.mo.momz = 8*(FU*P_MobjFlip(p.mo))
+		if P_IsObjectOnGround(p.mo) and p.ptv3.ragdoll.lands then
+			if p.ptv3.ragdoll.lands > 1 then
+				p.mo.momz = 8*(FU*P_MobjFlip(p.mo))
+				p.ptv3.ragdoll.lands = $-1
+			end
+
+			if not p.ptv3.ragdoll.getuptimer then
+				if p.ptv3.ragdoll.lands == 1 then
+					p.ptv3.ragdoll.lands = 0
+					p.ptv3.ragdoll.getuptimer = TICRATE
+					S_StartSound(p.mo, P_RandomRange(sfx_snsed0,sfx_snsed2))
+				end
+			else
+				p.mo.frame = A
+				p.mo.sprite2 = SPR2_DEAD
+				p.ptv3.ragdoll.getuptimer = $-1
+				if p.ptv3.ragdoll.getuptimer == 1 then
+					P_DoJump(p, true)
+					p.ptv3.ragdoll.getuptimer = 0
+				end
+			end
+		elseif p.ptv3.ragdoll.lands then
+			p.ptv3.ragdoll.getuptimer = min($+1, TICRATE)
 		end
 	end
 end)
 
 addHook("ShouldDamage", function(mobj)
-	if not (mobj
-	and mobj.valid
-	and mobj.player
-	and mobj.player.ptv3
-	and mobj.player.ptv3.swapModeFollower) then
+	if not (mobj and mobj.valid and mobj.player
+	and mobj.player.ptv3 and mobj.player.ptv3.swapModeFollower) then
 		return
 	end
 
@@ -421,10 +430,23 @@ addHook("PlayerCmd", function(p, cmd)
 	cmd.sidemove = 0
 end)
 
+addHook("MobjMoveBlocked", function(pmo, thing, line)
+	if (pmo and pmo.valid) and pmo.player and pmo.player.ptv3 then
+		local p = pmo.player
+
+		if p.ptv3.ragdoll.active and p.playerstate ~= PST_DEAD then
+			P_BounceMove(pmo)
+			S_StartSound(pmo,P_RandomRange(sfx_spnsd0,sfx_spnsd7))
+			pmo.momx = 3*$/2
+			pmo.momy = 3*$/2
+		end
+	end
+end, MT_PLAYER)
+
 -- Kill stuff while running
-addHook("PlayerCanDamage", function(p, mobj)
-	if p.speed >= skins[p.mo.skin].runspeed and not mobj.player then return true end
-end)
+-- addHook("PlayerCanDamage", function(p, mobj)
+-- 	if p.speed >= skins[p.mo.skin].runspeed and not mobj.player then return true end
+-- end)
 
 sfxinfo[freeslot "sfx_doorsh"].caption = "SLAM!"
 
@@ -463,11 +485,22 @@ addHook('PostThinkFrame', function()
 
 			local p = tps.mo.player
 			P_SetOrigin(tps.mo, tps.coords.x, tps.coords.y, tps.coords.z)
-			tps.mo.angle = tps.coords.a
+			p.mo.angle = tps.coords.a
 
-			if tps.relative then tps.mo.momx, tps.mo.momy, tps.mo.momz = 0,0,0 end
+			if tps.relative then
+				P_InstaThrust(p.mo, tps.coords.a, p.speed)
+			else
+				tps.mo.momx, tps.mo.momy, tps.mo.momz = 0,0,0
+			end
 
 			if p.ptv3.lap_in then p.ptv3.lap_in = false end
+
+			if (PTV3.pizzaface and PTV3.pizzaface.valid) and PTV3.pizzaface.target == (p and p.mo) then
+				local pizza = PTV3.pizzaface
+				P_SetOrigin(pizza, tps.coords.x, tps.coords.y, tps.coords.z)
+				pizza.momx, pizza.momy, pizza.momz = 0, 0, 0
+				pizza.cooldown = 3*TICRATE
+			end
 			
 			table.insert(p.ptv3.currentTeleportDest, {
 				x = p.mo.x,
@@ -484,17 +517,37 @@ addHook('PostThinkFrame', function()
 	end
 
 	for p in players.iterate do
-		if not multiplayer then
-			if ((p.pflags & PF_FINISHED) or p.exiting)
-			and p.mo.subsector.sector.special == 8192 then
+		if p.ptv3 then
+			if ((p.pflags & PF_FINISHED) or p.exiting) then
 				p.exiting = 0
 				p.pflags = $ & ~(PF_FINISHED | PF_FULLSTASIS)
 			end
-		end
-		if p.ptv3 then
+			-- Enter Panic State
+			if (PTV3.pizzatime or PTV3.minusworld) and not PTV3.panicSpriteBlacklist[p.mo.skin] and not p.ptv3.pizzaface then
+				local speed = FixedHypot(p.rmomx, p.rmomy)
+				if speed == 0 and P_IsObjectOnGround(p.mo) and not (p.pflags & (PF_SPINNING|PF_STARTDASH)) then
+					if p.mo.state == S_PLAY_STND then
+						p.mo.state = S_PTV3_PANIC
+					end
+				elseif p.mo.state == S_PTV3_PANIC and speed >= 0 and P_IsObjectOnGround(p.mo) then
+					if p.pflags & PF_STARTDASH then
+						p.mo.state = S_PLAY_SPINDASH
+					elseif p.pflags & PF_SPINNING then
+						p.mo.state = S_PLAY_ROLL
+					else
+						p.mo.state = S_PLAY_WALK
+					end
+				end
+			end
+
 			p.ptv3.canLap = max(0, $-1)
 			PTV3:checkRank(p)
 			local percent = PTV3:returnNextRankPercent(p)
+
+			if P_IsObjectInGoop(p.mo) and p.ptv3.ragdoll.active and not p.ptv3.ragdoll.groundbounce then
+				p.mo.frame = A
+				p.mo.sprite2 = SPR2_DEAD
+			end
 		end
 	end
 
@@ -567,7 +620,7 @@ addHook('PostThinkFrame', function()
 		local canEnd = true
 
 		for p in players.iterate do
-			if not (p and p.mo and p.ptv3 and not p.ptv3.specforce) then continue end
+			if not (p and p.mo and p.ptv3 and not p.spectator) then continue end
 
 			if p.ptv3.canLap then
 				canEnd = false
@@ -624,11 +677,11 @@ addHook('PlayerSpawn', function(p)
 
 	p.lives = INFLIVES
 
-	if PTV3.pizzatime or PTV3.minusworld then PTV3:teleportPlayer(p) end
+	if PTV3.pizzatime or PTV3.minusworld then PTV3:queueTeleport(p) end
 
 	if p.ptv3.insecret then
 		local link = PTV3.secrets[p.ptv3.insecret][0]
-		PTV3:teleportPlayer(p, {x=link.x,y=link.y,z=link.z,a=p.mo.angle})
+		PTV3:queueTeleport(p, {x=link.x,y=link.y,z=link.z,a=p.mo.angle})
 		return
 	end
 end)

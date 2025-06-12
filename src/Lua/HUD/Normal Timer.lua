@@ -1,3 +1,5 @@
+local pizzaframe = 0
+
 local function drawBarFill(v, x, y, patch, flags, scale, offset, length, color)
 	local prog = -offset
 
@@ -116,12 +118,19 @@ return function(v)
 		flags = V_SNAPTOBOTTOM}
 	)
 
-	if not multiplayer then
-		frame = leveltime % 17
-		local p = v.cachePatch("PFCES"..frame)
+	-- local p
+	-- if not multiplayer then
 
-		v.drawScaled(x+(bwidth-10*FU), y-(15*FU), scale, p, V_SNAPTOBOTTOM)
-	end
+	-- 	if not PTV3.pizzaface then
+	-- 		pizzaframe = leveltime % 17
+	-- 		p = v.cachePatch("PFCES"..pizzaframe)
+	-- 	elseif pizzaframe ~= 8 then
+	-- 		pizzaframe = leveltime % 8
+	-- 		p = v.cachePatch("PFCEA"..pizzaframe)
+	-- 	end
+
+	-- 	v.drawScaled(x+(bwidth-10*FU), y-(15*FU), scale, p, V_SNAPTOBOTTOM)
+	-- end
 
 	--PTV3.drawText(v, x+(bwidth/2), y-(16*FU), "WILL ADD SMTH HERE LATER")
 end

@@ -1,4 +1,4 @@
-freeslot("MT_PTV3_LAPPORTAL", "MT_PTV3_MINUSLAPPORTAL", "S_PTV3_LAPPORTAL", "S_PTV3_MINUSLAPPORTAL", "SPR_LAPR", "SPR_LAPM")
+freeslot("MT_PTV3_LAPPORTAL", "MT_PTV3_MINUSLAPPORTAL", "S_PTV3_LAPPORTAL", "S_PTV3_MINUSLAPPORTAL", "SPR_LAPR", "SPR_LAPM", "sfx_yuck34")
 
 mobjinfo[MT_PTV3_LAPPORTAL] = {
 	--$Name "Lap Portal"
@@ -6,7 +6,7 @@ mobjinfo[MT_PTV3_LAPPORTAL] = {
     --$Category "PTV3A"
 	--$Color 14
 	--$Angled
-    doomednum = 2048,
+    doomednum = 1417,
     spawnstate = S_PTV3_LAPPORTAL,
     radius = 50*FRACUNIT,
     height = 140*FRACUNIT,
@@ -19,7 +19,7 @@ mobjinfo[MT_PTV3_MINUSLAPPORTAL] = {
     --$Category "PTV3A"
 	--$Color 9
 	--$Angled
-	doomednum = 2049,
+	doomednum = 1418,
     spawnstate = S_PTV3_MINUSLAPPORTAL,
     radius = 50*FRACUNIT,
     height = 140*FRACUNIT,
@@ -62,16 +62,22 @@ addHook("MobjThinker", function(mo)
 	end
 end, MT_PTV3_LAPPORTAL)
 
-addHook("TouchSpecial", function(mo, pmo)
-	if not PTV3.pizzatime then return true end
-	if not (mo and mo.valid) then return true end
-	if not (pmo and pmo.player and pmo.player.ptv3) then return true end
-	if pmo.player.ptv3.lap_in then return true end
-	if not (PTV3:canLap(pmo.player)) then return true end
+local function CanEnterPortal(mo, pmo)
+	if not (mo and mo.valid) then return false end
+	if not (pmo and pmo.player and pmo.player.ptv3) then return false end
+	if pmo.player.ptv3.lap_in then return false end
+	if not (PTV3:canLap(pmo.player)) then return false end
 
 	pmo.player.ptv3.lap_in = true
+	S_StartSound(nil, sfx_yuck34, pmo.player)
+	return true
+end
+
+addHook("TouchSpecial", function(mo, pmo)
+	if not PTV3.pizzatime then return true end
+	if not CanEnterPortal(mo, pmo) then return true end
+	
 	PTV3:newLap(pmo.player, 1)
-	-- print "Lapped."
 	return true
 end, MT_PTV3_LAPPORTAL)
 
@@ -81,18 +87,13 @@ end, MT_PTV3_MINUSLAPPORTAL)
 
 addHook("TouchSpecial", function(mo, pmo)
 	if PTV3.pizzatime and not PTV3.minusworld then return true end
-	if not (mo and mo.valid) then return true end
-	if not (pmo and pmo.player and pmo.player.ptv3) then return true end
-	if pmo.player.ptv3.lap_in then return true end
-	if not (PTV3:canLap(pmo.player)) then return true end
+	if not CanEnterPortal(mo, pmo) then return true end
 
-	pmo.player.ptv3.lap_in = true
-	if not PTV3.pizzatime and not PTV3.minusworld then 
+	if not PTV3.pizzatime and not PTV3.minusworld then
 		PTV3:startMinusWorld(pmo.player)
 		return true
 	end
 
 	PTV3:newLap(pmo.player, -1)
-	-- print "Lapped?"
 	return true
 end, MT_PTV3_MINUSLAPPORTAL)

@@ -239,7 +239,7 @@ function PTV3:playerCount()
 		end
 		if p.mo
 		and p.mo.valid
-		and not p.ptv3.specforce
+		and not p.spectator
 		and not p.ptv3.swapModeFollower then
 			table.insert(alive, p)
 			if p.mo.health then
@@ -311,21 +311,21 @@ function PTV3:canLap(p)
 	end
 
 	if not self.overtime then
-		if p.ptv3.laps <= self.max_laps then
-			return 1
-		end
-		if p.ptv3.extreme and p.ptv3.laps < self.max_laps+self.max_elaps then
-			return 1
-		end
-		if not p.ptv3.extreme
-		and self.max_elaps
-		and p.ptv3.laps > self.max_laps then
-			return 2
+		if p.ptv3.extreme then
+			if p.ptv3.laps < self.max_laps+self.max_elaps then return 1 end
+		else
+			if self.max_elaps and p.ptv3.laps > self.max_laps then
+				return 2
+			end
+
+			if p.ptv3.laps <= self.max_laps then
+				return 1
+			end
 		end
 	end
 
-	for i = 1, (#PTV3.tplist) do
-		if PTV3.tplist[i].mo == p.mo then return 0 end
+	for i = 1, (#self.tplist) do
+		if self.tplist[i].mo == p.mo then return 0 end
 	end
 
 	return 0
@@ -352,7 +352,7 @@ function PTV3:canOvertime()
 	local extremeLappers = {}
 
 	for _,p in pairs(alive) do
-		if not (p and p.ptv3 and not p.ptv3.specforce) then continue end
+		if not (p and p.ptv3 and not p.spectator) then continue end
 
 		if p.ptv3.extreme then
 			extremeLappers[#extremeLappers+1] = p
@@ -416,12 +416,15 @@ function PTV3:extremeToggle(p)
 	p.ptv3.extreme = true
 	if not self.extreme then
 		self.extreme = true
-		
-		P_SetSkyboxMobj(nil,false)
+
+		P_SetSkyboxMobj(nil, false)
 		P_SetupLevelSky(34)
 		S_StartSound(nil, P_RandomRange(41,43))
 		P_FlashPal(consoleplayer, 1, 15)
-		P_SwitchWeather(5)
+
+		if globalweather ~= (1 or 5) then
+			P_SwitchWeather(5)
+		elseif globalweather == 6 then P_SwitchWeather(1) end
 	end
 end
 
@@ -438,7 +441,7 @@ function PTV3:overtimeToggle()
 
 	for _,p in pairs(ps) do
 		if p.ptv3.extreme then
-			p.ptv3.specforce = true
+			P_KillMobj(p.mo)
 		end
 	end
 
@@ -462,7 +465,7 @@ function PTV3:queueTeleport(p, coords, relative)
 	local mobjteleport = {
 		mo = p.mo,
 		coords = coords or self.endpos,
-		relative = relative
+		relative = relative,
 	}
 	
 	table.insert(PTV3.tplist, mobjteleport)
@@ -483,26 +486,11 @@ function PTV3:newLap(p, int)
 	if not int then return end
 	p.ptv3.laps = $+int
 
-	if p.ptv3.laps ~= 1 then self:queueTeleport(p, PTV3.endpos, false) end
-
 	local raw_time = leveltime - PTV3.hud_pt
 
 	if p.ptv3.lap_time >= 0 then
 		raw_time = leveltime - p.ptv3.lap_time
 	end
-	
-	-- For the quakes
-	if ((PTV3.minusworld and not PTV3.pizzatime) or PTV3.extreme) 
-	and PTV3.shakeintensity < 5 then PTV3.shakeintensity = abs(int*2) end
-
-	-- Speed up Pizzaface
-	if PTV3.pizzaface and PTV3.pizzaface.angry then 
-		PTV3.pizzaface.incremspeed = $+(FU/(PTV3.max_elaps - (PTV3.max_elaps/2)))
-		PTV3.pizzaface.incremspeedthreshold = $-1
-	end
-
-	p.powers[pw_shield] = p.ptv3.exitShield
-	p.ptv3.exitShield = SH_NONE
 
 	local time = string.format( "%02d:%02d", G_TicsToMinutes(raw_time), G_TicsToSeconds(raw_time) )
 	local event_text = p.name.." has made it to Lap "..p.ptv3.laps.." in "..time.."!"
@@ -514,12 +502,29 @@ function PTV3:newLap(p, int)
 
 	if p.ptv3.extreme then
 		event_text = $:gsub("to Lap", "to Extreme Lap")
-	end
-
-	if not p.ptv3.extreme then
+	else
 		P_AddPlayerScore(p, 3000)
 	end
 
+	if p.ptv3.laps ~= (-1 or 1) then
+		if PTV3.minusworld then
+			self:queueTeleport(p, PTV3.spawn, p.ptv3.extreme)
+		else
+			self:queueTeleport(p, PTV3.endpos, p.ptv3.extreme)
+		end
+	end
+	
+	-- For the quakes
+	if ((PTV3.minusworld and not PTV3.pizzatime) or PTV3.extreme) then PTV3.shakeintensity = min(p.ptv3.laps, 5) end
+
+	-- Speed up Pizzaface
+	if PTV3.pizzaface and PTV3.pizzaface.angry then
+		PTV3.pizzaface.incremspeed = $+(FU/(PTV3.max_elaps - (PTV3.max_elaps/2)))
+		PTV3.pizzaface.incremspeedthreshold = $-1
+	end
+
+	p.powers[pw_shield] = p.ptv3.exitShield
+	p.ptv3.exitShield = SH_NONE
 	p.ptv3.lap_time = leveltime
 
 	if p == displayplayer then
@@ -540,16 +545,19 @@ function PTV3:newLap(p, int)
 	end
 
 	-- Spawn chasers
-	if (p.ptv3.laps <= -3 or p.ptv3.laps >= 3) and not PTV3.pizzaface then
+	if (abs(p.ptv3.laps) >= 3) and not (self.pizzaface and self.pizzaface.valid) then
 		self.pftime = 0
 		self:pizzafaceSpawn()
 	end -- Pizzaface
 
-	if p.ptv3.laps <= -4 and not (self.snick and self.snick.valid)
-	or p.ptv3.laps >= 4 and not (self.snick and self.snick.valid) then self:snickSpawn() end -- Snick
+	-- Snick
+	if abs(p.ptv3.laps) >= 4 and not (self.snick and self.snick.valid) then
+		self:snickSpawn()
+	end
 
-	if p.ptv3.laps <= -5 and not (self.john and self.john.valid)
-	or p.ptv3.laps >= 5 and not (self.john and self.john.valid) then self:johnSpawn() end -- John Ghost
+	if abs(p.ptv3.laps) >= 5 and not (self.john and self.john.valid) then
+		self:johnSpawn()
+	end -- John Ghost
 	
 	PTV3:logEvent(event_text, 2)
 	PTV3.callbacks('NewLap', p)
@@ -597,6 +605,8 @@ function PTV3:startMinusWorld(p)
 	self.shakeintensity = 2
 
 	S_StartSound(nil, sfx_s3k9f)
+	P_SetOrigin(PTV3.spawnGate, PTV3.endpos.x, PTV3.endpos.y, PTV3.endpos.z)
+	PTV3.spawnGate.angle = PTV3.endpos.a
 
 	for player in players.iterate do
 		if not player.mo and not player.ptv3 then continue end
@@ -606,7 +616,7 @@ function PTV3:startMinusWorld(p)
 		if (player.ptv3.insecret) then
 			player.ptv3.secret_tptoend = true
 		else
-			self:queueTeleport(player, self.endpos)
+			self:queueTeleport(player, self.spawn)
 		end
 		if player.ptv3.combo then
 			player.ptv3.combo_pos = PTV3.MAX_COMBO_TIME
@@ -708,8 +718,6 @@ function PTV3:ResetAll()
 	PTV3.minusworld = false
 
 	for p in players.iterate do
-		if not p.ptv3 and not p.valid then continue end
-
-		if p.ptv3.specforce then p.ptv3.specforce = not p.ptv3.specforce end
+		if not p.ptv3 or not p.valid then continue end
 	end
 end

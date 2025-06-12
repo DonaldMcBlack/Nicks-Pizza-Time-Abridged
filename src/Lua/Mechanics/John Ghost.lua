@@ -136,18 +136,8 @@ local function JohnTouchSpecial(john, pmo)
 
     local p = pmo.player
 	
-	if p.powers[pw_flashing] or p.powers[pw_invulnerability]
-	or p.ptv3.fake_exit then
-		return
-	end
-
+	if p.ptv3.fake_exit then return end
     PTV3:queueTeleport(p, PTV3.endpos, false)
-
-	if pmo.player.ptv3
-	and multiplayer
-	and not (pmo.health) then
-		pmo.player.ptv3.specforce = true
-	end
 end
 
 addHook('TouchSpecial', function(john, pmo)
@@ -163,6 +153,8 @@ function PTV3:johnSpawn()
 	if not self.john then
 		local position = {}
 		local clonething = self.endpos
+
+		if PTV3.minusworld then clonething = self.spawn end
 
 		for _,i in pairs(clonething) do
 			position[_] = i

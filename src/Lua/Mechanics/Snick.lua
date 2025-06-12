@@ -138,28 +138,17 @@ end, MT_PTV3_SNICK)
 local function SnickTouchSpecial(snick, pmo)
 	if snick.tracer == pmo then return end
 	if (pmo and pmo.player and pmo.player.ptv3 and pmo.player.ptv3.pizzaface) then return end
-	
-	if pmo.player.powers[pw_flashing]
-	or pmo.player.powers[pw_invulnerability]
-	or pmo.player.ptv3.fake_exit then
-		return
-	end
 
-	if pmo.player.speed >= skins[pmo.skin].runspeed or
-	(pmo.player.pflags & PF_JUMPED or pmo.player.pflags & PF_SPINNING or pmo.player.pflags & PF_STARTDASH) then
+	if (pmo.player.pflags & PF_JUMPED or pmo.player.pflags & PF_SPINNING or pmo.player.pflags & PF_STARTDASH) or pmo.player.powers[pw_invulnerability] then
 		P_KillMobj(snick, pmo, pmo)
 		PTV3.snick = nil
 		PTV3:snickSpawn()
 		return
+	elseif (pmo.player.powers[pw_flashing] and pmo.player.panim == PA_PAIN) or pmo.player.ptv3.fake_exit then
+		return
 	end
 	
 	P_DamageMobj(pmo, snick, snick)
-
-	if pmo.player.ptv3
-	and multiplayer
-	and not (pmo.health) then
-		pmo.player.ptv3.specforce = true
-	end
 end
 
 addHook('TouchSpecial', function(snick, pmo)
@@ -175,6 +164,10 @@ function PTV3:snickSpawn()
 	if not self.snick then
 		local position = {}
 		local clonething = self.endpos
+
+		if PTV3.minusworld then
+			clonething = self.spawn
+		end
 
 		for _,i in pairs(clonething) do
 			position[_] = i

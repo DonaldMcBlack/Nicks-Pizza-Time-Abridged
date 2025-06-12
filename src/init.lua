@@ -88,6 +88,7 @@ dofile "Titlecards Data"
 dofile "Functions"
 dofile "Effects/Main"
 dofile "Mechanics/Main"
+dofile "Items/Main"
 
 PTV3.maxTitlecardTime = 3*TICRATE
 PTV3.panicSpriteBlacklist = {}

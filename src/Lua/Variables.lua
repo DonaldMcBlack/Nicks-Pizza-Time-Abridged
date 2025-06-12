@@ -58,19 +58,23 @@ local function findPlayer(name)
 	return player
 end
 
+COM_AddCommand('PTV3_giveitem', function(p, item)
+	PTV3:givePlayerItem(p, item)
+end, COM_ADMIN)
+
 COM_AddCommand('PTV3_pizzatimenow', function(p)
 	if not PTV3:isPTV3() then return end
 	if not (IsPlayerAdmin(p) or p == server) then return end
 	
 	PTV3:startPizzaTime(p)
-end)
+end, COM_ADMIN)
 
 COM_AddCommand('PTV3_breakreality', function(p)
 	if not PTV3:isPTV3() then return end
 	if not (IsPlayerAdmin(p) or p == server) then return end
 
 	PTV3:startMinusWorld(p)
-end)
+end, COM_ADMIN)
 
 COM_AddCommand('PTV3_forceovertime', function(p)
 	if not PTV3:isPTV3() then return end
@@ -93,11 +97,12 @@ COM_AddCommand('PTV3_addlaps', function(p, num)
 	PTV3:newLap(p, num)
 end, COM_ADMIN)
 
-COM_AddCommand('PTV3_spawnaipizzaface', function(p)
+COM_AddCommand('PTV3_spawnaipizzaface', function(p, name)
 	if not PTV3:isPTV3() then return end
 	if not (IsPlayerAdmin(p) or p == server) then return end
 
 	PTV3:pizzafaceSpawn()
+	P_SetOrigin(PTV3.pizzaface, p.mo.x, p.mo.y, p.mo.z)
 end, COM_ADMIN)
 
 COM_AddCommand('PTV3_spawnsnick', function(p)
@@ -142,10 +147,11 @@ local synced_variables = {
  	['game_over'] = -1,
 	['hud_pt'] = -1,
 	['matchLog'] = {},
+	['maxrankrequirement'] = 1400,
 
 	-- not net
 	['hud_lap'] = -1,
-	['hud_secret'] = -1
+	['hud_secret'] = -1,
 }
 
 -- functions
@@ -213,7 +219,8 @@ function PTV3:player(player)
 	player.ptv3 = {
 		["buttons"] = player.cmd.buttons,
 
-		['specforce'] = false,
+		['ghost'] = false,
+		['ragdoll'] = { lands = 0, getuptimer = 0},
 
 		['extreme'] = false,
 
@@ -240,9 +247,9 @@ function PTV3:player(player)
 
 		['toppins'] = {},
 
-		['banana'] = 0,
-		['banana_angle'] = 0,
-		['banana_speed'] = 0,
+		['curItem'] = false,
+		['invItems'] = {},
+		['ringBank'] = 0,
 
 		['exitShield'] = SH_NONE,
 		['pvpCooldown'] = 0,
@@ -268,10 +275,7 @@ function PTV3:player(player)
 		['pfcamper_sectors'] = {},
 		['pfcamper'] = false,
 	}
-	
-	if self.pizzatime or self.minusworld then
-		player.ptv3.specforce = true
-	end
+
 	player.score = 0
 	player.ptv3.swapModeFollower = swapModeFollower
 	player.ptv3.isSwap = isSwap
@@ -332,6 +336,7 @@ addHook('NetVars', function(n)
 		"game_over",
 		"hud_pt",
 		"matchLog",
+		'maxrankrequirement',
 
 		"max_laps",
 		"max_elaps",

@@ -11,7 +11,7 @@ return function(v,p)
 		patchstr[i] = v.cachePatch("STTNUM"+numstr:sub(i, i))
 	end
 
-	local x = ease.linear(tweenTime, 105*FU, 125*FU)
+	local x = ease.linear(tweenTime, 115*FU, 135*FU)
 	local alphaTween = ease.linear(min(tweenTime*3/2, FU), 0, 10)
 	local flags = V_SNAPTOLEFT|V_SNAPTOTOP|(V_10TRANS*alphaTween)
 

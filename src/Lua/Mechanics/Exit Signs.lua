@@ -1,25 +1,37 @@
 freeslot("MT_PIZZATOWER_EXITSIGN_SPAWN")
+freeslot("MT_PIZZATOWER_EXITSIGN")
 freeslot("SPR_GSSE")
 freeslot("S_EXITSPAWN_PLACEHOLDER")
+
+mobjinfo[MT_PIZZATOWER_EXITSIGN_SPAWN] = {
+	--$Name "Exit Sign Spawn"
+    --$Category "PTV3A"
+	--$Sprite GSSEA0
+	--$Color 17
+	--$Angled
+	doomednum = 1263, //1-26-[202]3
+	spawnstate = S_EXITSPAWN_PLACEHOLDER,
+	spawnhealth = 1000,
+	radius = 14*FU,
+	height = 26*FU,
+	flags = MF_NOCLIPTHING
+}
+
+mobjinfo[MT_PIZZATOWER_EXITSIGN] = {
+	doomednum = -1,
+	spawnstate = S_EXITSPAWN_PLACEHOLDER,
+	spawnhealth = 1000,
+	radius = 14*FU,
+	height = 26*FU,
+	flags = MF_NOCLIPTHING
+}
 
 states[S_EXITSPAWN_PLACEHOLDER] = {
 	sprite = SPR_GSSE,
 	frame = A,
 	tics = -1,
 }
-mobjinfo[MT_PIZZATOWER_EXITSIGN_SPAWN] = {
-	--$Name "Exit Sign Spawn"
-    --$Category "PTV3A"
-	--$Angled
-	doomednum = 1263, //1-26-[202]3
-	spawnstate = S_EXITSPAWN_PLACEHOLDER,
-	spawnhealth = 1000, //gus cannot die lol
-	radius = 14*FU,
-	height = 26*FU,
-	flags = MF_NOCLIPTHING
-}
 
-freeslot("MT_GUSTAVO_EXITSIGN")
 freeslot("S_GUSTAVO_EXIT_WAIT")
 freeslot("S_GUSTAVO_EXIT_FALL")
 freeslot("SPR_GESF")
@@ -80,16 +92,6 @@ states[S_GUSTAVO_RAT_RALLY] = {
 	tics = -1,
 }
 
-mobjinfo[MT_GUSTAVO_EXITSIGN] = {
-	doomednum = -1,
-	spawnstate = S_GUSTAVO_EXIT_WAIT,
-	spawnhealth = 1000, //gus cannot die lol
-	radius = 14*FU,
-	height = 26*FU,
-	flags = MF_NOCLIPTHING
-}
-
-freeslot("MT_STICK_EXITSIGN")
 freeslot("S_STICK_EXIT_WAIT")
 freeslot("S_STICK_EXIT_FALL")
 freeslot("SPR_SESF")
@@ -116,21 +118,34 @@ states[S_STICK_EXIT_RALLY] = {
 	tics = -1,
 }
 
-mobjinfo[MT_STICK_EXITSIGN] = {
-	doomednum = -1,
-	spawnstate = S_STICK_EXIT_WAIT,
-	spawnhealth = 1000, //gus cannot die lol
-	radius = 10*FU,
-	height = 32*FU,
-	flags = MF_NOCLIPTHING
-}
-
-//LUIG BUD!!!
 local isIcy = false
 local dist = 1500
 
+-- Insert skins here. (CURRENTLY BETA)
+PTV3.exitSigns = {
+	{
+		name = 'Gustavo',
+		radius = 14*FU,
+		height = 26*FU,
+		skins = {
+			['Default'] = { waitstate = S_GUSTAVO_EXIT_WAIT, fallstate = S_GUSTAVO_EXIT_FALL, rallystate = S_GUSTAVO_EXIT_RALLY },
+			['Freezy'] = { waitstate = S_GUSTAVO_EXIT_WAIT, fallstate = S_GUSTAVO_ICE_RALLY, rallystate = S_GUSTAVO_ICE_RALLY },
+			['Hardoween'] = { waitstate = S_GUSTAVO_EXIT_WAIT, fallstate = S_GUSTAVO_RAT_FALL, rallystate = S_GUSTAVO_RAT_RALLY }
+		}
+	},
+	{
+		name = "Mr Stick",
+		radius = 10*FU,
+		height = 32*FU,
+		skins = {
+			['Default'] = { waitstate = S_STICK_EXIT_WAIT, fallstate = S_STICK_EXIT_FALL, rallystate = S_STICK_EXIT_RALLY }
+		}
+	}
+}
+
 addHook("NetVars",function(n)
 	isIcy = n($)
+	PTV3.exitSigns = n($)
 end)
 
 local function isIcyF(map)
@@ -191,6 +206,12 @@ local function isIcyF(map)
 
 end
 
+-- Change states without the change overlapping the state being used.
+local function SwitchState(mo, oldstate, newstate)
+	if oldstate == newstate then return end
+	mo.state = newstate
+end
+
 addHook("MapLoad",function(mapid)
 	isIcy = isIcyF(mapid)
 end)
@@ -198,110 +219,60 @@ addHook("MapThingSpawn",function(mo,mt)
 	//we dont wanna see EXIT pop up from no where
 	//looks like an ERROR in a source game!
 	mo.flags2 = $|MF2_DONTDRAW
+
+	-- local sector = mo.subsector.sector
+	-- local fof = mo.ceilingrover
+
+	-- if fof then
+	-- 	for s in sector.ffloors() do
+	-- 		if s.bottomheight > mo.floorz then 
+	-- 			sector = s.sector
+
+	-- 			break
+	-- 		end
+	-- 	end
+	-- else
+
+	-- end
 	
 	if PTV3:isPTV3() then
 		local mul = 14
-		if isIcy then
-			local gus = P_SpawnMobjFromMobj(mo,0,0,(mo.height*mul),MT_GUSTAVO_EXITSIGN)
-			gus.state = S_GUSTAVO_EXIT_WAIT
-			gus.icygus = true
-			gus.angle = mo.angle
-			gus.tracer = mo
-			return true
-		elseif gamemap == A5 then
-			local gus = P_SpawnMobjFromMobj(mo,0,0,(mo.height*mul),MT_GUSTAVO_EXITSIGN)
-			gus.state = S_GUSTAVO_EXIT_WAIT
-			gus.rattygus = true
-			gus.angle = mo.angle
-			gus.tracer = mo
-			return true
-		else
-			if (P_RandomChance(FU/2)) then
-				local gus = P_SpawnMobjFromMobj(mo,0,0,(mo.height*mul),MT_GUSTAVO_EXITSIGN)
-				gus.state = S_GUSTAVO_EXIT_WAIT
-				gus.angle = mo.angle
-				gus.tracer = mo
-				return true
+		
+		local exitsign = PTV3.exitSigns[P_RandomRange(1, #PTV3.exitSigns)]
+
+		if exitsign and exitsign.name ~= nil then
+			local sign = P_SpawnMobjFromMobj(mo,0,0,(mo.height*mul), MT_PIZZATOWER_EXITSIGN)
+			if isIcy and exitsign.skins['Freezy'] then
+				sign.costume = exitsign.skins['Freezy']
+			elseif gamemap == A5 and exitsign.skins['Hardoween'] then
+				sign.costume = exitsign.skins['Hardoween']
 			else
-				local stick = P_SpawnMobjFromMobj(mo,0,0,(mo.height*mul),MT_STICK_EXITSIGN)
-				stick.state = S_STICK_EXIT_WAIT
-				stick.angle = mo.angle
-				stick.tracer = mo
-				return true
+				sign.costume = exitsign.skins['Default']
 			end
+
+			sign.radius = exitsign.radius
+			sign.height = exitsign.height
+			sign.state = sign.costume.waitstate
+			sign.angle = mo.angle
+			sign.tracer = mo
+			return true
 		end
 	end
 	return true
-end,MT_PIZZATOWER_EXITSIGN_SPAWN)
+end, MT_PIZZATOWER_EXITSIGN_SPAWN)
 
-addHook("MobjThinker",function(mo)
+local function ExitSignThinker(mo)
 	if not mo or not mo.valid then return end
 	if not PTV3 then return end
-	
+
 	local grounded = P_IsObjectOnGround(mo)
-	
 	mo.angle = mo.tracer.angle
-	
-	if mo.state == S_GUSTAVO_EXIT_WAIT
+
+	if mo.state == mo.costume.waitstate
 	and not mo.alreadyfell then
 		mo.flags2 = $|MF2_DONTDRAW
 		mo.flags = $|MF_NOGRAVITY
-		if PTV3.pizzatime or PTV3.minusworld then
-			
-			local px = mo.x
-			local py = mo.y
-			local br = dist*mo.scale
 
-			searchBlockmap("objects", function(mo, found)
-				if found and found.valid
-				and found.health
-				and found.player
-				and (P_CheckSight(mo,found)) then
-					if mo.icygus then
-						mo.state = S_GUSTAVO_ICE_RALLY
-					elseif mo.rattygus then
-						mo.state = S_GUSTAVO_RAT_FALL
-					else
-						mo.state = S_GUSTAVO_EXIT_FALL
-					end
-					mo.alreadyfell = true
-				end
-			end, mo, px-br, px+br, py-br, py+br)
-		end
-	else
-		mo.flags2 = $ &~MF2_DONTDRAW
-		mo.flags = $ &~MF_NOGRAVITY
-		if grounded then
-			if mo.rattygus then
-				if mo.state ~= S_GUSTAVO_RAT_RALLY then
-					mo.state = S_GUSTAVO_RAT_RALLY
-				end
-			elseif not (mo.icygus) then
-				if mo.state ~= S_GUSTAVO_EXIT_RALLY then
-					mo.state = S_GUSTAVO_EXIT_RALLY
-				end
-			end
-		else
-			if mo.rattygus then
-				mo.state = S_GUSTAVO_RAT_FALL
-			elseif not (mo.icygus) then
-				mo.state = S_GUSTAVO_EXIT_FALL
-			end			
-		end
-	end
-end,MT_GUSTAVO_EXITSIGN)
-
-addHook("MobjThinker", function(mo)
-	if not mo or not mo.valid then return end
-
-	local grounded = P_IsObjectOnGround(mo)
-	
-	mo.angle = mo.tracer.angle
-
-	if mo.state == S_STICK_EXIT_WAIT
-	and not mo.alreadyfell then
-		mo.flags2 = $|MF2_DONTDRAW
-		mo.flags = $|MF_NOGRAVITY
 		if PTV3.pizzatime or PTV3.minusworld then
 			local px = mo.x
 			local py = mo.y
@@ -312,7 +283,7 @@ addHook("MobjThinker", function(mo)
 				and found.health
 				and found.player
 				and (P_CheckSight(mo,found)) then
-					mo.state = S_STICK_EXIT_FALL
+					mo.state = mo.costume.fallstate
 					mo.alreadyfell = true
 				end
 			end, mo, px-br, px+br, py-br, py+br)
@@ -321,11 +292,11 @@ addHook("MobjThinker", function(mo)
 		mo.flags2 = $ &~MF2_DONTDRAW
 		mo.flags = $ &~MF_NOGRAVITY
 		if grounded then
-			if mo.state ~= S_STICK_EXIT_RALLY then
-				mo.state = S_STICK_EXIT_RALLY
-			end
+			SwitchState(mo, mo.state, mo.costume.rallystate)
 		else
-			mo.state = S_STICK_EXIT_FALL
+			SwitchState(mo, mo.state, mo.costume.fallstate)
 		end
 	end
-end,MT_STICK_EXITSIGN)
+end
+
+addHook("MobjThinker", ExitSignThinker, MT_PIZZATOWER_EXITSIGN)

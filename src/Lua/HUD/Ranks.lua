@@ -3,7 +3,7 @@ return function(v,p)
 	local rank = PTV3.ranks[p.ptv3.rank]
 	local rank_patch = v.cachePatch(rank.rank.."RANK")
 
-	local x = 16*FU
+	local x = 48*FU
 	local y = (42+16+10)*FU
 	local s = FU/3
 	
@@ -27,6 +27,8 @@ return function(v,p)
 		local y = y+(rank_patch.height*s)-(rank_patch.height*FixedMul(percent, s))
 		local croph = FixedMul(rank_patch.height*FU, max(0,percent))
 		local cropy = (rank_patch.height*FU)-croph
+
+		if cropy < 0 then cropy = FU end
 
 		v.drawCropped(
 			x, y,
