@@ -2,6 +2,7 @@
 luac.out
 
 # Zone Builder files
+*.bak
 *.backup1
 *.backup2
 *.backup3
