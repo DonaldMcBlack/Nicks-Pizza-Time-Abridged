@@ -29,10 +29,10 @@ return function(v)
 	local shakeY = v.RandomRange(-intensity, intensity)
 
 	local dec = L_FixedDecimal(PTV3.pizzaface.incremspeed, 2)
-    local patch = "Pizzaface's Rage: "..dec
+    local patch = "Pizza Rage: "..dec
 
     customhud.CustomFontString(v,
-		(160*FU)+shakeX, (24*FU)+shakeY,
+		(40*FU)+shakeX, (320*FU)+shakeY,
 		patch,
 		"PTFNT",
 		V_SNAPTOTOP,

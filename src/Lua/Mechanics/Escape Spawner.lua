@@ -162,7 +162,7 @@ addHook("MobjThinker", function(spawner)
 
 	spawner.flags2 = $1|MF2_DONTDRAW --Make him Invisible
 
-	local spawnrange = 600*FRACUNIT
+	local spawnrange = 1200*FRACUNIT
 	if mobjinfo[spawner.health].flags&MF_NOGRAVITY then spawnrange = $1+400*FRACUNIT end
 	if mobjinfo[spawner.health].flags&MF_BOSS then spawnrange = FixedMul($1,0x00018000) end
 	if spawner.target ~= nil and spawner.target.valid == true then --The Enemy is still there!

@@ -58,6 +58,16 @@ local function findPlayer(name)
 	return player
 end
 
+COM_AddCommand('PTV3_endpizzatimer', function(p)
+	PTV3.time = 1
+end, COM_ADMIN)
+
+COM_AddCommand('PTV3_becomepizza', function(p)
+	if not p.ptv3 then return end
+
+	p.ptv3.pizzaface = true
+end, COM_ADMIN)
+
 COM_AddCommand('PTV3_giveitem', function(p, item)
 	PTV3:givePlayerItem(p, item)
 end, COM_ADMIN)
@@ -302,6 +312,11 @@ function PTV3:init()
 	if PTV3.callbacks then --ahaaaa got cha now error
 		PTV3.callbacks('VariableInit')
 	end
+
+	if not multiplayer then
+		mapmusname = mapheaderinfo[gamemap].musname
+	end
+	
 	has_inited = true
 end
 

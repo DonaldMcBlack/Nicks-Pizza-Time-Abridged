@@ -216,12 +216,6 @@ local function cAngle(p)
 	return p.cmd.angleturn<<16 + R_PointToAngle2(0, 0, p.cmd.forwardmove*FRACUNIT, -p.cmd.sidemove*FRACUNIT)
 end
 
-addHook("ShouldDamage", function(t,i,s)
-	if t and t.valid then
-		if t.player and t.player.ptv3 and t.player.ptv3.pizzaface then return false end
-	end
-end)
-
 addHook('PlayerThink', function(p)
 	if not PTV3:isPTV3() then return end
 	if not p.ptv3 then PTV3:player(p) end
@@ -495,7 +489,12 @@ addHook('PostThinkFrame', function()
 
 			if p.ptv3.lap_in then p.ptv3.lap_in = false end
 
-			if (PTV3.pizzaface and PTV3.pizzaface.valid) and PTV3.pizzaface.target == (p and p.mo) then
+			p.ptv3.fake_exit = false
+			p.mo.flags2 = $ & ~MF2_DONTDRAW
+
+			if (PTV3.pizzaface and PTV3.pizzaface.valid)
+			and PTV3.pizzaface.target == (p and p.mo)
+			and tps.source ~= PTV3.john then
 				local pizza = PTV3.pizzaface
 				P_SetOrigin(pizza, tps.coords.x, tps.coords.y, tps.coords.z)
 				pizza.momx, pizza.momy, pizza.momz = 0, 0, 0

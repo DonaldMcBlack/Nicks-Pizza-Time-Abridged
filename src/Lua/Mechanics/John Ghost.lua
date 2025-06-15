@@ -137,7 +137,7 @@ local function JohnTouchSpecial(john, pmo)
     local p = pmo.player
 	
 	if p.ptv3.fake_exit then return end
-    PTV3:queueTeleport(p, PTV3.endpos, false)
+    PTV3:queueTeleport(p, PTV3.endpos, false, john)
 end
 
 addHook('TouchSpecial', function(john, pmo)

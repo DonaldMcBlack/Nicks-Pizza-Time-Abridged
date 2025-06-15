@@ -119,7 +119,7 @@ states[S_STICK_EXIT_RALLY] = {
 }
 
 local isIcy = false
-local dist = 1500
+local dist = 3000
 
 -- Insert skins here. (CURRENTLY BETA)
 PTV3.exitSigns = {
@@ -219,29 +219,13 @@ addHook("MapThingSpawn",function(mo,mt)
 	//we dont wanna see EXIT pop up from no where
 	//looks like an ERROR in a source game!
 	mo.flags2 = $|MF2_DONTDRAW
+	local spawnheight = mo.ceilingz
 
-	-- local sector = mo.subsector.sector
-	-- local fof = mo.ceilingrover
-
-	-- if fof then
-	-- 	for s in sector.ffloors() do
-	-- 		if s.bottomheight > mo.floorz then 
-	-- 			sector = s.sector
-
-	-- 			break
-	-- 		end
-	-- 	end
-	-- else
-
-	-- end
-	
 	if PTV3:isPTV3() then
-		local mul = 14
-		
 		local exitsign = PTV3.exitSigns[P_RandomRange(1, #PTV3.exitSigns)]
 
 		if exitsign and exitsign.name ~= nil then
-			local sign = P_SpawnMobjFromMobj(mo,0,0,(mo.height*mul), MT_PIZZATOWER_EXITSIGN)
+			local sign = P_SpawnMobjFromMobj(mo,0,0,spawnheight/3, MT_PIZZATOWER_EXITSIGN)
 			if isIcy and exitsign.skins['Freezy'] then
 				sign.costume = exitsign.skins['Freezy']
 			elseif gamemap == A5 and exitsign.skins['Hardoween'] then
@@ -295,6 +279,7 @@ local function ExitSignThinker(mo)
 			SwitchState(mo, mo.state, mo.costume.rallystate)
 		else
 			SwitchState(mo, mo.state, mo.costume.fallstate)
+			mo.momz = $ + P_GetMobjGravity(mo)
 		end
 	end
 end

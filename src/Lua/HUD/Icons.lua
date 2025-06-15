@@ -169,7 +169,7 @@ local function drawPlayerIcon(v,dp,p,c)
 
 	if dist > 12000*FU then return end
 
-	if not result.onScreen then 
+	if not result.onScreen then
 		local playerResult = SG_ObjectTracking(v,dp,c,dp.mo)
 
 		if not playerResult.onScreen then
@@ -219,8 +219,8 @@ local function drawChaserIcon(v,dp,c, chaser, icon)
 
 	local result = SG_ObjectTracking(v,dp,c,chaser)
 
-	local dist = R_PointToDist2(c.x, c.y, chaser.x, chaser.y)
-	if dist > 12000*FU then return end
+	local dist = R_PointToDist2(dp.mo.x, dp.mo.y, chaser.x, chaser.y)
+	if dist > 5000*FU then return end
 
 	local scale = max(FU/2, FixedMul(result.scale, FU))
 

@@ -54,7 +54,8 @@ return function(v)
 	if not (PTV3.pizzatime or PTV3.minusworld) then return end
 	if PTV3.overtime then return end
 
-	local time = PTV3.HUD_returnTime(PTV3.hud_pt, 5*FU)
+	local time = nil
+	local maxtime = CV_PTV3['time'].value*TICRATE
 
 	local f = v.cachePatch('PIZZAFILL')
 	local b = v.cachePatch('PIZZABAR')
@@ -66,16 +67,18 @@ return function(v)
 	local y
 
 	if PTV3.time then
+		time = PTV3.HUD_returnTime(PTV3.hud_pt, 5*FU)
 		y = ease.linear(time, 220*FU, 180*FU)
-	else
+	elseif not (PTV3.time and multiplayer) then
+		time = PTV3.HUD_returnTime(PTV3.hud_pt+maxtime+(2*TICRATE), 3*TICRATE, nil, true)
+		CONS_Printf(consoleplayer, time)
 		y = ease.linear(time, 180*FU, 220*FU)
 	end
 	
 	local o = 5*scale
 	local of = 5*FU
 
-	local time = PTV3.time
-	local maxtime = CV_PTV3['time'].value*TICRATE
+	time = PTV3.time
 
 	local width = (b.width*FU)-of
 	local bwidth = (b.width*scale)
@@ -118,19 +121,19 @@ return function(v)
 		flags = V_SNAPTOBOTTOM}
 	)
 
-	-- local p
-	-- if not multiplayer then
+	local p
+	if not multiplayer then
 
-	-- 	if not PTV3.pizzaface then
-	-- 		pizzaframe = leveltime % 17
-	-- 		p = v.cachePatch("PFCES"..pizzaframe)
-	-- 	elseif pizzaframe ~= 8 then
-	-- 		pizzaframe = leveltime % 8
-	-- 		p = v.cachePatch("PFCEA"..pizzaframe)
-	-- 	end
+		if not PTV3.pizzaface then
+			pizzaframe = leveltime % 17
+			p = v.cachePatch("PFCES"..pizzaframe)
+		elseif pizzaframe ~= 8 then
+			pizzaframe = leveltime % 8
+			p = v.cachePatch("PFCEA"..pizzaframe)
+		end
 
-	-- 	v.drawScaled(x+(bwidth-10*FU), y-(15*FU), scale, p, V_SNAPTOBOTTOM)
-	-- end
+		v.drawScaled(x+(bwidth-10*FU), y-(16*FU), scale/(3/2), p, V_SNAPTOBOTTOM)
+	end
 
-	--PTV3.drawText(v, x+(bwidth/2), y-(16*FU), "WILL ADD SMTH HERE LATER")
+	-- PTV3.drawText(v, x+(bwidth/2), y-(16*FU), "WILL ADD SMTH HERE LATER")
 end

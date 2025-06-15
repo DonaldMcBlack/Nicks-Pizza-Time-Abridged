@@ -80,7 +80,7 @@ setmetatable(PTV3.callbacks, {__call = function(self, name, ...)
 		if temp ~= nil then value = temp end
 	end
 
-	return temp
+	return value
 end})
 
 function PTV3:insertCallback(name, func)

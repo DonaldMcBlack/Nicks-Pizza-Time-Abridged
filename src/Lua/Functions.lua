@@ -459,13 +459,14 @@ function PTV3:overtimeToggle()
 	PTV3.callbacks("OvertimeStart")
 end
 -- Sets a teleport to a specified set of coordinates. Mainly used by Lap Portals, transitions, and John.
-function PTV3:queueTeleport(p, coords, relative)
+function PTV3:queueTeleport(p, coords, relative, src)
 	if not p or not p.mo then return end
 
 	local mobjteleport = {
 		mo = p.mo,
 		coords = coords or self.endpos,
 		relative = relative,
+		source = src
 	}
 	
 	table.insert(PTV3.tplist, mobjteleport)
@@ -506,6 +507,8 @@ function PTV3:newLap(p, int)
 		P_AddPlayerScore(p, 3000)
 	end
 
+	PTV3.spawnGate.lappers[p] = false
+
 	if p.ptv3.laps ~= (-1 or 1) then
 		if PTV3.minusworld then
 			self:queueTeleport(p, PTV3.spawn, p.ptv3.extreme)
@@ -536,9 +539,6 @@ function PTV3:newLap(p, int)
 	if p.ptv3.isSwap and p.ptv3.isSwap.valid then
 		p.ptv3.isSwap.powers[pw_invulnerability] = 5*TICRATE
 	end
-
-	p.ptv3.fake_exit = false
-	p.mo.flags2 = $ & ~MF2_DONTDRAW
 	
 	if p.ptv3.combo then
 		p.ptv3.combo_pos = self.MAX_COMBO_TIME
@@ -547,6 +547,7 @@ function PTV3:newLap(p, int)
 	-- Spawn chasers
 	if (abs(p.ptv3.laps) >= 3) and not (self.pizzaface and self.pizzaface.valid) then
 		self.pftime = 0
+		if not multiplayer then PTV3.time = 0 end
 		self:pizzafaceSpawn()
 	end -- Pizzaface
 

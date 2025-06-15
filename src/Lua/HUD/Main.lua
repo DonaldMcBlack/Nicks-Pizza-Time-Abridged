@@ -18,6 +18,7 @@ local ComboHUD = dofile "HUD/Combo"
 local IconHUD = dofile "HUD/Icons"
 local TitlecardHUD = dofile "HUD/Titlecards"
 local InversionHUD = dofile "HUD/Inversion"
+local VersionHUD = dofile "HUD/Version"
 
 function PTV3.HUD_returnTime(startTime, length, offset, useTics)
 	if offset == nil then
@@ -38,6 +39,7 @@ customhud.SetupFont("PCFNT")
 customhud.SetupFont("WARFN", 8, 40)
 customhud.SetupFont("PTLAP")
 customhud.SetupFont("PTCMB")
+customhud.SetupFont("STCFN")
 
 customhud.SetupItem("Icons", "ptv3", IconHUD, "game")
 customhud.SetupItem("Reduce Score", "ptv3", ReduceHUD, "game")
@@ -46,7 +48,7 @@ customhud.SetupItem("Laps", "ptv3", LapHUD, "game", 1)
 customhud.SetupItem("Pizza Time", "ptv3", PizzaTimeHUD, "game", 1)
 customhud.SetupItem("Minus World", "ptv3", MinusWorldHUD, "game", 1)
 customhud.SetupItem("Overtime", "ptv3", OvertimeHUD, "game", 1)
-customhud.SetupItem("Pizzaface Timer", "ptv3", PizzafaceRageHUD, "game", 1)
+customhud.SetupItem("Pizzaface Rage", "ptv3", PizzafaceRageHUD, "game", 1)
 customhud.SetupItem("Pizzaface Timer", "ptv3", PizzafaceTimerHUD, "game", 1)
 customhud.SetupItem("Timer", "ptv3", TimerHUD, "game", 1)
 customhud.SetupItem("Overtime Timer", "ptv3", WarTimerHUD, "game", 1)
@@ -58,4 +60,5 @@ customhud.SetupItem("Camper", "ptv3", CamperHud, "game", 2)
 customhud.SetupItem("Can Lap", "ptv3", CanLapHUD, "game", 2)
 customhud.SetupItem("Extreme Notif", "ptv3", ExtremeNHud, "game", 3)
 customhud.SetupItem("Titlecards", "ptv3", TitlecardHUD, "gameandscores", 4)
+customhud.SetupItem("Version", "ptv3", VersionHUD, "gameandscores", 5)
 customhud.SetupItem("Inversion", "ptv3", InversionHUD, "game", 5)

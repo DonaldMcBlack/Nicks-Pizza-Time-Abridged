@@ -1,7 +1,14 @@
 local music = {
-	minus = { "ANTIPI", "ILOAED", "LAMAER", "UNKOWN", "INSTNC" },
-	plus = { "PIZTIM", "DEAOLI", "LAP3LO", "FORTHC", "MANIAC"},
-	"POTMAC"
+	[-5] = "INSTNC",
+	[-4] = "UNKOWN",
+	[-3] = "LAMAER",
+	[-2] = "ILOAED",
+	[-1] = "ANTIPI",
+	[1] = "PIZTIM", -- 6
+	[2] = "DEAOLI",
+	[3] = "LAP3LO",
+	[4] = "FORTHC",
+	[5] = "MANIAC", -- 10
 }
 
 local function playPizzaTimeMusic()
@@ -54,12 +61,11 @@ addHook('PostThinkFrame', function()
 	if not (displayplayer and displayplayer.ptv3) then return end
 	local p = displayplayer
 
-	local song
+	local song = nil
 
-	if p.ptv3.laps < 0 then
-		song = music.minus[max(1, min(abs(p.ptv3.laps), #music.minus))]
-	else
-		song = music.plus[max(1, min(p.ptv3.laps, #music.plus))]
+	if p.ptv3.laps ~= 0 and
+	p.ptv3.laps > -6 and p.ptv3.laps < 6 and mapmusname ~= music[p.ptv3.laps] then
+		song = music[p.ptv3.laps]
 	end
 	
 	if gametype == GT_PTV3DM then
@@ -75,7 +81,7 @@ addHook('PostThinkFrame', function()
 		song = "POTMAC"
 	end
 
-	if mapmusname ~= song then
+	if song and mapmusname ~= song then
 		mapmusname = song
 		S_ChangeMusic(mapmusname, loop)
 	end
