@@ -8,11 +8,7 @@ PTV3.titlecards = {
 		m = "GF2TIL"
 	},
 	[4] = {
-		g = "GFZ1TC",
-		m = "GF1TIL"
+		g = "THZ1TC",
+		m = "TH1TIL"
 	},
-	[5] = {
-		g = "GFZ1TC",
-		m = "GF1TIL"
-	}
 }

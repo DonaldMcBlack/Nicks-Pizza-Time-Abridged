@@ -8,7 +8,7 @@ PTV3.callbacks = {
 	-- p - Player.
 
 	['TeleportPlayer'] = {},
-	-- Usually used to teleport the player.
+	-- Usually used to teleport the player to a secret, or the end.
 	-- Arguments:
 	-- p - Teleported player.
 
@@ -19,11 +19,6 @@ PTV3.callbacks = {
 	-- Triggers on Pizza Time.
 	-- Arguments:
 	-- p - Player that started Pizza Time.
-
-	['MinusWorld'] = {},
-	-- Triggers on entering the Negative Pizza Portal.
-	-- Arguments:
-	-- p - Player that started Minus World.
 	
 	['VariableInit'] = {},
 	-- Runs when all variables get initalized, except the player for reasons.
@@ -45,6 +40,17 @@ PTV3.callbacks = {
 
 	['OvertimeStart'] = {},
 	-- When Overtime starts, if it could atleast.
+
+	['TauntStart'] = {},
+	-- When the player taunts, this runs. Only works with supported characters.
+	-- Return true to override the effect ran.
+	-- Arguments:
+	-- p - Player
+
+	['TauntEnd'] = {},
+	-- When the taunt ends, this runs. Only works with supported characters.
+	-- Arguments:
+	-- p - Player
 
 	['CanPVP'] = {},
 	-- If the player passes all the "0" returns, this runs.
@@ -80,7 +86,7 @@ setmetatable(PTV3.callbacks, {__call = function(self, name, ...)
 		if temp ~= nil then value = temp end
 	end
 
-	return value
+	return temp
 end})
 
 function PTV3:insertCallback(name, func)

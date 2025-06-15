@@ -22,14 +22,13 @@ local function getPatchesFromNum(v, font, num)
 end
 
 return function(v,p)
-	if not (PTV3.pizzatime or PTV3.minusworld) then return end
+	if not PTV3.pizzatime then return end
 	if not p.ptv3 then return end
 	if p.ptv3.lap_time < 0 then return end
-	if p.ptv3.laps == (1 or -1) then return end
 	local time = ((leveltime - p.ptv3.lap_time)*(FU))/35
 	
 	if time > FU*5 then return end
-
+	
 	local lapgraph = v.cachePatch('PTLAP')
 	local patches = getPatchesFromNum(v, "PTLAP", p.ptv3.laps)
 

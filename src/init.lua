@@ -1,29 +1,55 @@
-freeslot("TOL_PTV3")
 rawset(_G, "PTV3", {})
 rawset(_G, "CV_PTV3", {})
 rawset(_G, "PTV3_2D", {__map = 507})
+
+// TODO:
+// add custom music support (done)
+// add multiple chasers
+// plan: snick (done), ghost john, fake peppino, sonic with a shotgun, etc
+// make lobby background
+// (john gutter background)
+// give pizzaface ana bility
+// planned: chasedown, teleport (done, needs polish)
+// give snick an ability
+// planned: sonic playstyle, ringslinger
+// add more ways for players to mock pizzaface and other chasers
+// pizzaface skins (coneball, eggman, brody fox, summa dat) (for a separate pack)
+// make mod more moddable
+// fix and finish death mode
+// make a title screen
+// make maps for up to castle eggman
+// add a tutorial
+
+local file = io.openlocal("client/NicksPT/SongData.txt", "r")
+if not file then
+	local save = io.openlocal("client/NicksPT/SongData.txt", "w")
+	save:flush()
+	save:close()
+else
+	file:close()
+end
 
 -- this seems out of place, i know, but its for a reason
 
 G_AddGametype({
     name = "Pizza Time",
     identifier = "PTV3",
-    typeoflevel = TOL_RACE|TOL_PTV3,
-    rules = GTR_EMERALDTOKENS|GTR_FRIENDLYFIRE|GTR_SPAWNINVUL|GTR_SPAWNENEMIES|GTR_NOTITLECARD|GTR_FRIENDLY,
+    typeoflevel = TOL_RACE,
+    rules = GTR_EMERALDTOKENS|GTR_FRIENDLYFIRE|GTR_SPAWNINVUL|GTR_CAMPAIGN|GTR_SPAWNENEMIES|GTR_NOTITLECARD|GTR_DEATHPENALTY|GTR_FRIENDLY,
     intermissiontype = int_match,
-    headerleftcolor = 98,
-    headerrightcolor = 51,
+    headerleftcolor = 222,
+    headerrightcolor = 84,
     description = "Go head-to-head against your friends! Use items, kill enemies, and be the one that starts Pizza Time in the classic mode you know and love, but better!"
 })
 
 G_AddGametype({
     name = "P.T.: Death Mode",
     identifier = "PTV3DM",
-    typeoflevel = TOL_RACE|TOL_PTV3,
-    rules = GTR_EMERALDTOKENS|GTR_FRIENDLYFIRE|GTR_SPAWNINVUL|GTR_SPAWNENEMIES|GTR_NOTITLECARD|GTR_FRIENDLY,
+    typeoflevel = TOL_RACE,
+    rules = GTR_EMERALDTOKENS|GTR_FRIENDLYFIRE|GTR_SPAWNINVUL|GTR_CAMPAIGN|GTR_SPAWNENEMIES|GTR_NOTITLECARD|GTR_DEATHPENALTY|GTR_FRIENDLY,
     intermissiontype = int_match,
-    headerleftcolor = 163,
-    headerrightcolor = 35,
+    headerleftcolor = 222,
+    headerrightcolor = 84,
     description = "Pizzaface and Snick just won't give you a break, won't they? Maneuver your way over the two, raise the time and be the last one standing in this high-stake version of Pizza Time!"
 })
 
@@ -89,12 +115,12 @@ dofile "Titlecards Data"
 dofile "Functions"
 dofile "Effects/Main"
 dofile "Mechanics/Main"
-dofile "Items/Main"
+dofile "Config"
 
 PTV3.maxTitlecardTime = 3*TICRATE
-PTV3.panicSpriteBlacklist = {}
 
 dofile "Main"
+dofile "Players/Main"
 dofile "Music"
 dofile "HUD/Main"
 dofile "Intermission/Main"

@@ -183,7 +183,7 @@ function customhud.enable(itemName)
 		return false;
 	end
 
-	x.enabled = true;
+	item.enabled = true;
 
 	if (item.isDefaultItem == true) then
 		if (item.type == "vanilla") then

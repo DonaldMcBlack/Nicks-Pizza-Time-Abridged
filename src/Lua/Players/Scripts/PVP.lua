@@ -9,13 +9,6 @@ local function canPVP(pmo, pmo2)
 		return 0
 	end
 	
-	if (pmo.player.ptv3
-	and pmo.player.ptv3.swapModeFollower)
-	or (pmo2.player.ptv3
-	and pmo2.player.ptv3.swapModeFollower) then
-		return 0
-	end
-	
 	-- Return values:
 	-- 0 = None
 	-- 1 = Normal pain animation
@@ -74,6 +67,12 @@ local function choose(...)
 	local choice = P_RandomRange(1,#args)
 	return args[choice]
 end
+
+addHook("PlayerThink", function(p)
+	if not (p and p.ptv3) then return end
+
+	p.ptv3.pvpCooldown = max(0, $-1)
+end)
 
 addHook('MobjMoveCollide', function(pmo, mo2)
 	if mo2.type ~= MT_PLAYER then return end

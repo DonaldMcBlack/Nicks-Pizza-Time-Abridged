@@ -38,33 +38,43 @@ addHook("MobjThinker", function(gate)
 
 	for p in players.iterate do
 		if not (p and p.mo and p.ptv3.fake_exit) then continue end
-		if not gate.lappers[p] then continue end
 
-		if PTV3:forceLap(p) then
-			PTV3:newLap(p, 1)
-			gate.lappers[p] = false
-		else
-			P_SetOrigin(p.mo, gate.x, gate.y, gate.z+(gate.height/2)-(p.mo.height/2))
-			p.mo.flags2 = $|MF2_DONTDRAW
-		end
+		P_SetOrigin(p.mo, gate.x, gate.y, gate.z+(gate.height/2)-(p.mo.height/2))
+		p.mo.momx,p.mo.momy,p.mo.momz = 0,0,0
+		p.mo.flags2 = $|MF2_DONTDRAW
 	end
+	for p,_ in pairs(gate.lappers) do
+		if not (p and p.ptv3 and p.mo and not p.ptv3.specforce) then continue end
+		PTV3:newLap(p)
+	end
+	gate.lappers = {}
 end, MT_PTV3_SPAWNGATE)
 
 addHook("TouchSpecial", function(gate, pmo)
-	if not (gate and gate.valid
-	and pmo and pmo.valid and pmo.player and pmo.player.ptv3) then
-		return true
-	end
-	if not (PTV3.pizzatime or PTV3.minusworld) then return true end
+	if not (gate
+		and gate.valid
+		and pmo
+		and pmo.valid
+		and pmo.player
+		and pmo.player.ptv3) then return true end
+
+	if not PTV3.pizzatime then return true end
 
 	local p = pmo.player
-	
-	if p.ptv3.fake_exit then return true end
-	if gate.lappers[p] == true then return true end
 
-	gate.lappers[p] = true
-	if not PTV3:canExit(p) then return true end
+	if gametype == GT_PTV3DM then
+		gate.lappers[p] = true
+	else
+		if p.ptv3.fake_exit then return true end
+		if not PTV3:canExit(p) then return true end
 
-	PTV3:doPlayerExit(p)
+		if PTV3:forceLap(p) then
+			gate.lappers[p] = true
+			return true
+		end
+
+		PTV3:doPlayerExit(p)
+	end
+
 	return true
 end, MT_PTV3_SPAWNGATE)

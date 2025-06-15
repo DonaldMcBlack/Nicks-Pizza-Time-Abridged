@@ -8,19 +8,7 @@ CV_PTV3['time'] = CV_RegisterVar({
 })
 CV_PTV3['max_laps'] = CV_RegisterVar({
 	name = "PTV3_laps",
-	defaultvalue = 5,
-	flags = CV_NETVAR,
-	PossibleValue = CV_Unsigned
-})
-CV_PTV3['max_elaps'] = CV_RegisterVar({
-	name = "PTV3_extreme_laps",
-	defaultvalue = 7,
-	flags = CV_NETVAR,
-	PossibleValue = CV_Unsigned
-})
-CV_PTV3['max_erings'] = CV_RegisterVar({
-	name = "PTV3_max_erings",
-	defaultvalue = 60,
+	defaultvalue = 4,
 	flags = CV_NETVAR,
 	PossibleValue = CV_Unsigned
 })
@@ -58,96 +46,38 @@ local function findPlayer(name)
 	return player
 end
 
-COM_AddCommand('PTV3_endpizzatimer', function(p)
-	PTV3.time = 1
-end, COM_ADMIN)
-
-COM_AddCommand('PTV3_becomepizza', function(p)
-	if not p.ptv3 then return end
-
-	p.ptv3.pizzaface = true
-end, COM_ADMIN)
-
-COM_AddCommand('PTV3_giveitem', function(p, item)
-	PTV3:givePlayerItem(p, item)
-end, COM_ADMIN)
-
 COM_AddCommand('PTV3_pizzatimenow', function(p)
 	if not PTV3:isPTV3() then return end
 	if not (IsPlayerAdmin(p) or p == server) then return end
 	
 	PTV3:startPizzaTime(p)
-end, COM_ADMIN)
-
-COM_AddCommand('PTV3_breakreality', function(p)
-	if not PTV3:isPTV3() then return end
-	if not (IsPlayerAdmin(p) or p == server) then return end
-
-	PTV3:startMinusWorld(p)
-end, COM_ADMIN)
-
-COM_AddCommand('PTV3_forceovertime', function(p)
-	if not PTV3:isPTV3() then return end
-	if not (IsPlayerAdmin(p) or p == server) then return end
-
-	PTV3:overtimeToggle()
 end)
-
 COM_AddCommand('PTV3_endgame', function(p)
 	if not PTV3:isPTV3() then return end
 
 	PTV3:endGame()
 end, COM_ADMIN)
 
-COM_AddCommand('PTV3_addlaps', function(p, num)
-	if not PTV3:isPTV3() then return end
-	if not (IsPlayerAdmin(p) or p == server) then return end
-
-	num = tonumber(num)
-	PTV3:newLap(p, num)
-end, COM_ADMIN)
-
-COM_AddCommand('PTV3_spawnaipizzaface', function(p, name)
-	if not PTV3:isPTV3() then return end
-	if not (IsPlayerAdmin(p) or p == server) then return end
-
-	PTV3:pizzafaceSpawn()
-	P_SetOrigin(PTV3.pizzaface, p.mo.x, p.mo.y, p.mo.z)
-end, COM_ADMIN)
-
-COM_AddCommand('PTV3_spawnsnick', function(p)
-	if not PTV3:isPTV3() then return end
-	if not (IsPlayerAdmin(p) or p == server) then return end
-
-	PTV3:snickSpawn()
-end, COM_ADMIN)
-
-COM_AddCommand('PTV3_spawnjohnghost', function(p)
-	if not PTV3:isPTV3() then return end
-	if not (IsPlayerAdmin(p) or p == server) then return end
-
-	PTV3:johnSpawn()
-end, COM_ADMIN)
-
 -- vars
 local synced_variables = {
 	['pizzatime'] = false,
-	['minusworld'] = false,
 	['total_laps'] = 1,
 	['spawn'] = {x=0,y=0,z=0},
 	['endpos'] = {x=0,y=0,z=0,a=0},
-	['tplist'] = {mobjteleport = {mo=nil, coords=nil,relative=false}},
 	['endsec'] = false,
+	['lapPortal'] = false,
+	['pillarJohn'] = false,
 	['spawnsector'] = false,
 	['game_ended'] = false,
 	['extreme'] = false,
 	['skybox'] = false,
 	['pizzaface'] = false,
 	['snick'] = false,
-	['john'] = false,
 	['overtime'] = false,
 	['overtimeStart'] = 0,
+	['pizzafacetps'] = {},
 	['time'] = 600*TICRATE,
+	['maxtime'] = 600*TICRATE,
 	['pftime'] = 30*TICRATE,
 	['spawnGate'] = false,
 	['__fadedmus'] = false,
@@ -157,11 +87,10 @@ local synced_variables = {
  	['game_over'] = -1,
 	['hud_pt'] = -1,
 	['matchLog'] = {},
-	['maxrankrequirement'] = 1400,
 
 	-- not net
 	['hud_lap'] = -1,
-	['hud_secret'] = -1,
+	['hud_secret'] = -1
 }
 
 -- functions
@@ -180,8 +109,10 @@ local function spawnSector(t)
 
 	local a = PTV3.spawn.a
 
-	PTV3.spawnGate = P_SpawnMobj(PTV3.spawn.x+(-230*cos(a)), PTV3.spawn.y+(-230*sin(a)), PTV3.spawn.z, MT_PTV3_SPAWNGATE)
-	PTV3.spawnGate.angle = a
+	if PTV3.titlecards[gamemap] then
+		PTV3.spawnGate = P_SpawnMobj(PTV3.spawn.x+(-230*cos(a)), PTV3.spawn.y+(-230*sin(a)), PTV3.spawn.z, MT_PTV3_SPAWNGATE)
+		PTV3.spawnGate.angle = a
+	end
 
 	PTV3.spawnsector = sec
 end
@@ -228,64 +159,84 @@ function PTV3:player(player)
 
 	player.ptv3 = {
 		["buttons"] = player.cmd.buttons,
+		['laps'] = 1,
 
-		['ghost'] = false,
-		['ragdoll'] = { lands = 0, getuptimer = 0},
+		['chaser'] = false,
+		['chasertype'] = "pizzaface",
 
+		['chasermovetime'] = 0,
+		['chaservertmovetime'] = 0,
+
+		['pizzaface_chasedown'] = 0,
+		['pizzaface_chasedowncool'] = 0,
+
+		['pizzaface_teleporting'] = false,
+		
+		['pizzaface_tpsidemove'] = 0,
+		['pizzaface_tpselection'] = 1,
+		
+		['pizzaface_teleportingcool'] = 0,
+
+		['snick_sonicmode'] = 0,
+		['snick_sonicmodecool'] = 0,
+
+		['specforce'] = false,
 		['extreme'] = false,
-
-		['transitionfade'] = { time = TICRATE/4, fadetime = TICRATE/2 },
 		['fake_exit'] = false,
-
 		['insecret'] = 0,
 		['secretsfound'] = 0,
 		['secret_tptoend'] = false,
-		
 		['combo'] = 0,
 		['combo_pos'] = 0,
 		['combo_display'] = 0,
 		['combo_start_time'] = 0,
 		['started_combo'] = false,
 		['combo_offtime'] = false,
-		['combo_rank'] = { rank = nil, rankn = 0, very = false, time = 5*TICRATE},
-
-		['laps'] = 0,
+		['combo_rank'] = false,
 		['lap_time'] = -1,
 		['canLap'] = 0,
-		['lap_in'] = false,
-		['lap_out'] = false,
 
 		['toppins'] = {},
 
-		['curItem'] = false,
-		['invItems'] = {},
-		['ringBank'] = 0,
-
+		['banana'] = 0,
+		['banana_angle'] = 0,
+		['banana_speed'] = 0,
 		['exitShield'] = SH_NONE,
 		['pvpCooldown'] = 0,
 		
-		['movementData'] = {},
-		['currentTeleportDest'] = {},
+		['savedData'] = {},
 		
 		['rank'] = 1,
 		['rank_changetime'] = -1,
 		['extremeNotif'] = 0,
 
-		['scoreReduce'] = {time = false, by = 0},
+		['scoreReduce'] = false,
 
-		['pizzaface'] = false,
 		['pizzaMobj'] = false,
-		['pizzaStun'] = 0,
 		
 		['pfBoost'] = 0,
 		['maxPfBoost'] = 2*TICRATE,
 		
-		['pfcamper_time'] = 2*TICRATE,
-		['pfcamper_movetime'] = 0,
-		['pfcamper_sectors'] = {},
-		['pfcamper'] = false,
-	}
+		['isTaunting'] = false,
+		['tauntTime'] = 0,
+		['tauntmomx'] = 0,
+		['tauntmomy'] = 0,
+		['tauntmomz'] = 0,
+		['tauntlaststate'] = S_PLAY_STND,
+		['tauntsprite'] = SPR2_STND,
+		['tauntframe'] = A,
 
+		['stun'] = 0,
+		['camper'] = false,
+
+		['camper_area'] = {x=0, y=0},
+		['camper_radius'] = (40*24)*FU,
+		['camper_time'] = 0
+	}
+	
+	if self.pizzatime then
+		player.ptv3.specforce = true
+	end
 	player.score = 0
 	player.ptv3.swapModeFollower = swapModeFollower
 	player.ptv3.isSwap = isSwap
@@ -312,11 +263,6 @@ function PTV3:init()
 	if PTV3.callbacks then --ahaaaa got cha now error
 		PTV3.callbacks('VariableInit')
 	end
-
-	if not multiplayer then
-		mapmusname = mapheaderinfo[gamemap].musname
-	end
-	
 	has_inited = true
 end
 
@@ -327,32 +273,33 @@ PTV3:init()
 addHook('NetVars', function(n)
 	local net = {
 		"pizzatime",
-		"minusworld",
 		"total_laps",
 		"spawn",
 		"endpos",
-		"tplist",
 		"endsec",
 		"spawnsector",
 		"game_ended",
 		"extreme",
 		"skybox",
 		"pizzaface",
+		"lapPortal",
+		"pillarJohn",
 		"snick",
 		"overtime",
 		"overtimeStart",
 		"time",
+		"maxtime",
 		"pftime",
+		"maxpftime",
 		"spawnGate",
 		"__fadedmus",
 		"overtime_time",
 		"maxotTime",
 		"secrets",
+		"pizzafacetps",
 		"game_over",
 		"hud_pt",
 		"matchLog",
-		'maxrankrequirement',
-
 		"max_laps",
 		"max_elaps",
 		"max_erings",
@@ -376,29 +323,25 @@ addHook('MapLoad', function()
 		p.ptv3 = nil
 	end
 
-	if PTV3:isPTV3() then 
-		hud.disable('lives')
-	else
+	if not PTV3:isPTV3() then 
 		hud.enable('lives')
 		return
 	end
+	hud.disable('lives')
 
 	for thing in mapthings.iterate do
 		spawnSector(thing)
 		endSector(thing)
 	end
 
-	-- I don't care if it's not there in the actual gametype, I want it gone.
-	for mobj in mobjs.iterate() do
-		if mobj.type == MT_SIGN and mobj.valid then P_RemoveMobj(mobj) end
-	end
-
 	local alive, pizzafaces, total = PTV3.playerCount and PTV3:playerCount()
 	PTV3.time = CV_PTV3['time'].value*TICRATE
+	PTV3.maxtime = PTV3.time
 	PTV3.pftime = 30*TICRATE
 	PTV3.maxpftime = PTV3.pftime
 	
-	if gametype == GT_PTV3DM and not PTV3.titlecards[gamemap] then
+	if gametype == GT_PTV3DM
+	and not PTV3.titlecards[gamemap] then
 		PTV3:pizzafaceSpawn()
 		PTV3:snickSpawn()
 	end

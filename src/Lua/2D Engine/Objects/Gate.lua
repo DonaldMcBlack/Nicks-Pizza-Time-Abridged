@@ -19,11 +19,18 @@ function gate:spawn(x, y)
 	self.map = 0
 
 	local mapsChosen = {}
-	local hasChosenMap = false
 	local foundMaps = {}
+	local hasChosenMap = false
 
-	for i,_ in pairs(PTV3.titlecards) do
-		table.insert(foundMaps, i)
+
+	for map = 1,1035 do
+		local data = mapheaderinfo[map]
+	
+		if data
+		and data.typeoflevel & TOL_COOP
+		and data.bonustype <= 0 then
+			table.insert(foundMaps, map)
+		end
 	end
 
 	for _,gate in pairs(PTV3_2D.gates) do

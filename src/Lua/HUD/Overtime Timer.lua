@@ -1,6 +1,6 @@
 return function(v)
 	if not PTV3:isPTV3() then return end
-	if not (PTV3.pizzatime or PTV3.minusworld) then return end
+	if not PTV3.pizzatime then return end
 	if not PTV3.overtime then return end
 
 	-- explosion

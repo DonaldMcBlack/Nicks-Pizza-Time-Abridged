@@ -1,5 +1,5 @@
 return function(v)
-	if not (PTV3.pizzatime) and PTV3.minusworld then return end
+	if not PTV3.pizzatime then return end
 	if PTV3.hud_pt < 0 then return end
 	local time = PTV3.HUD_returnTime(PTV3.hud_pt, 3*FU)
 	

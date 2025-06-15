@@ -1,20 +1,9 @@
 freeslot("MT_PTV3_PIZZAFACE",
 	"SPR_PZAT",
-	"SPR_PZTL",
-	"SPR_PZAR",
 	"S_PTV3_PIZZAFACE",
-	"S_PTV3_PIZZAMAD",
-	"S_PTV3_PIZZATROLL",
-	"sfx_pflgh",
-	"sfx_fplgh",
-	"sfx_pizmov"
+	"sfx_pflgh"
 )
-sfxinfo[sfx_pflgh].caption = "Pizzaface is coming..."
-sfxinfo[sfx_fplgh].caption = "Is that the...Pizzaface?"
-sfxinfo[sfx_pizmov] = {
-	flags = SF_X2AWAYSOUND|SF_NOMULTIPLESOUND,
-	caption = "Pizzaface is near..."
-}
+sfxinfo[sfx_pflgh].caption = "Hahahahahaaa!"
 
 mobjinfo[MT_PTV3_PIZZAFACE] = {
 	doomednum = -1,
@@ -31,27 +20,9 @@ states[S_PTV3_PIZZAFACE] = {
     frame = FF_ANIMATE|A,
     tics = -1,
     action = nil,
-    var1 = P,
-    var2 = 2,
+    var1 = 15,
+    var2 = 1,
     nextstate = S_PTV3_PIZZAFACE
-}
-
-states[S_PTV3_PIZZAMAD] = {
-	sprite = SPR_PZAR,
-	frame = FF_ANIMATE|A,
-	tics = -1,
-	action = nil,
-	var1 = 10,
-	var2 = 2,
-	nextstate = S_PTV3_PIZZAMAD
-}
-
-states[S_PTV3_PIZZATROLL] = {
-	sprite = SPR_PZTL,
-	frame = A,
-	action = nil,
-	tics = -1,
-	nextstate = S_PTV3_PIZZATROLL
 }
 
 local function followC(p)
@@ -60,13 +31,13 @@ end
 
 local function P_FlyTo(mo, fx, fy, fz, sped, addques)
 	local z = mo.z+(mo.height/2)
-    if mo.valid then
+    if mo.valid
         local flyto = P_AproxDistance(P_AproxDistance(fx - mo.x, fy - mo.y), fz - z)
-        if flyto < 1 then
+        if flyto < 1
             flyto = 1
         end
 		
-        if addques then
+        if addques
             mo.momx = $ + FixedMul(FixedDiv(fx - mo.x, flyto), sped)
             mo.momy = $ + FixedMul(FixedDiv(fy - mo.y, flyto), sped)
             mo.momz = $ + FixedMul(FixedDiv(fz - z, flyto), sped)
@@ -74,8 +45,8 @@ local function P_FlyTo(mo, fx, fy, fz, sped, addques)
             mo.momx = FixedMul(FixedDiv(fx - mo.x, flyto), sped)
             mo.momy = FixedMul(FixedDiv(fy - mo.y, flyto), sped)
             mo.momz = FixedMul(FixedDiv(fz - z, flyto), sped)
-        end
-    end
+        end    
+    end    
 end
 
 local function getNearestPlayer(pos, conditions)
@@ -106,23 +77,28 @@ local function getNearestPlayer(pos, conditions)
 end
 
 addHook('MobjSpawn', function(pf)
-	pf.speed = 23
-	pf.incremspeed = FU
-	pf.incremspeedthreshold = 16
+	pf.flyspeed = 23*FU
 	pf.destscale = (FU/2)*5/4
 	pf.scale = (FU/2)*5/4
-	pf.spritexscale = $*2
-	pf.spriteyscale = $*2
-	pf.shadowscale = pf.scale*3
+	S_StartSound(nil, sfx_pflgh)
 
-	if PTV3.minusworld then S_StartSound(nil, sfx_fplgh)
-	else S_StartSound(nil, sfx_pflgh) end
-
-	pf.cooldown = 3*TICRATE
+	local player = getNearestPlayer(pf, followC)
+	pf.cooldown = 5*TICRATE
+	if not player then return end
+	pf.target = player.mo
 end, MT_PTV3_PIZZAFACE)
 
 addHook('ShouldDamage', function(t,i,s)
 	return false
+end, MT_PTV3_PIZZAFACE)
+addHook('MobjDamage', function(t,i,s)
+	return true
+end, MT_PTV3_PIZZAFACE)
+addHook('MobjRemoved', function(t,i,s)
+	return true
+end, MT_PTV3_PIZZAFACE)
+addHook('MobjDeath', function(t,i,s)
+	return true
 end, MT_PTV3_PIZZAFACE)
 
 rawset(_G,'L_DoBrakes', function(mo,factor)
@@ -136,8 +112,8 @@ rawset(_G, "L_SpeedCap", function(mo,limit,factor)
 	local spd, ang =
 		R_PointToDist2(0,0,spd_xy,mo.momz),
 		R_PointToAngle2(0,0,mo.momx,mo.momy)
-	if spd > limit then
-		if factor == nil then
+	if spd > limit
+		if factor == nil
 			factor = FixedDiv(limit,spd)
 		end
 		L_DoBrakes(mo,factor)
@@ -148,45 +124,39 @@ end)
 addHook('MobjThinker', function(pf)
 	local runCode = true
 
-	if pf.cooldown then
+	if pf.cooldown then 
 		pf.cooldown = $-1
-		pf.frame = ($ & ~FF_TRANSMASK)|((pf.cooldown)/16<<FF_TRANSSHIFT)
 		runCode = false
 	end
 
 	if pf.tracer
-	and pf.tracer.valid then
+	and pf.tracer.valid then 
 		local t = pf.tracer
-		P_SetOrigin(pf,
-			t.x-t.momx,
-			t.y-t.momy,
-			t.z-t.momz)
+
 		pf.momx,pf.momy,pf.momz = t.momx,t.momy,t.momz
 		runCode = false
+	elseif not (PTV3.pizzaface and PTV3.pizzaface.valid) then
+		PTV3.pizzaface = pf
 	end
 
-	if not (leveltime % 8) then
-		if (pf.momx ~= 0 or pf.momy ~= 0 or pf.momz ~= 0) then PTV3:doEffect(pf, "PF Afterimage") end
-		S_StartSound(pf, sfx_pizmov)
+	if not (leveltime % 8)
+	and (pf.momx ~= 0 or pf.momy ~= 0 or pf.momz ~= 0)
+	and not (pf.tracer and pf.tracer.player and pf.tracer.player == displayplayer) then
+		PTV3:doEffect(pf, "PF Afterimage")
 	end
 
-	if (PTV3.extreme or PTV3.overtime) and not PTV3.minusworld then pf.angry = true
-	else pf.angry = false end
-
-	if not runCode then
-		pf.target = nil
-		return
-	end
+	if not runCode then return end
 
 	local player = getNearestPlayer(pf, followC)
 	pf.target = player and player.mo
-
+	if not pf.target then
+		pf.momx,pf.momy,pf.momz = 0,0,0
+	end
 	if pf.target then
-		local gap = P_AproxDistance(pf.x - pf.target.x, pf.y - pf.target.y)
 		pf.angle = R_PointToAngle2(pf.x, pf.y, pf.target.x, pf.target.y)
 		if gametype == GT_PTV3DM then
 			-- a bit of yoink from FlyTo
-			local sped = 3*pf.speed/2
+			local sped = 3*pf.flyspeed/2
 			local flyto = P_AproxDistance(P_AproxDistance(pf.target.x - pf.x, pf.target.y - pf.y), pf.target.z - pf.z)
 			if flyto < 1 then
 				flyto = 1
@@ -195,7 +165,7 @@ addHook('MobjThinker', function(pf)
             local tmomy = FixedMul(FixedDiv(pf.target.y - pf.y, flyto), sped)
             local tmomz = FixedMul(FixedDiv(pf.target.z - pf.z, flyto), sped)
 			-- and again
-			local sped2 = pf.speed/15
+			local sped2 = pf.flyspeed/15
 			local flyto2 = P_AproxDistance(P_AproxDistance(tmomx - pf.momx, tmomy - pf.momy), tmomz - pf.momz)
 			if flyto2 < 1 then
 				flyto2 = 1
@@ -205,39 +175,7 @@ addHook('MobjThinker', function(pf)
             pf.momz = $ + FixedMul(FixedDiv(tmomz - pf.momz, flyto2), sped2)
 			L_SpeedCap(pf, sped)
 		else
-			-- Behaviour changes ---------------------
-			if pf.angry then -- Enraged Pizzaface
-				if pf.state ~= S_PTV3_PIZZAMAD then pf.state = S_PTV3_PIZZAMAD end
-				if gap > FU*2000 then
-					pf.speed = max(FixedMul(FU/pf.incremspeedthreshold, gap-(FU*500)), 23*pf.incremspeed)
-				else
-					pf.speed = ease.linear(FU/pf.incremspeedthreshold, pf.speed, 23*pf.incremspeed)
-				end
-
-				if pf.eflags & MFE_UNDERWATER then
-					pf.speed = FixedDiv($, 2*FU)
-				end
-				P_FlyTo(pf, pf.target.x, pf.target.y, pf.target.z, pf.speed)
-				
-			else -- Normal Pizzaface
-				if PTV3.minusworld and not PTV3.pizzatime then
-					if gap < FU*300 and pf.state ~= S_PTV3_PIZZATROLL then pf.state = S_PTV3_PIZZATROLL
-					elseif gap > FU*300 and pf.state ~= S_PTV3_PIZZAFACE then pf.state = S_PTV3_PIZZAFACE end
-
-					pf.speed = max(FixedMul(FU/8, gap-(FU*250)), 23*FU)
-				else
-					pf.speed = 23*FU
-				end
-
-				if pf.eflags & MFE_UNDERWATER then
-					pf.speed = FixedDiv($, 2*FU)
-				end
-				P_FlyTo(pf, pf.target.x, pf.target.y, pf.target.z, pf.speed)
-			end
-		end
-	else
-		if not pf.target then
-			pf.momx, pf.momy, pf.momz = 0, 0, 0
+			P_FlyTo(pf, pf.target.x, pf.target.y, pf.target.z, pf.flyspeed)
 		end
 	end
 end, MT_PTV3_PIZZAFACE)
@@ -251,8 +189,10 @@ local function PFTouchSpecial(pf, pmo)
 		src = pf.tracer
 	end
 	
-	if pmo.player.powers[pw_invulnerability]
-	or (pmo.player.ptv3 and pmo.player.ptv3.fake_exit) then
+	if pmo.player.powers[pw_invulnerability] 
+	or (pmo.player.ptv3
+	and (pmo.player.ptv3.fake_exit
+	or pmo.player.ptv3.chaser)) then
 		return
 	end
 	
@@ -260,7 +200,7 @@ local function PFTouchSpecial(pf, pmo)
 	and pf.tracer.valid then
 		local p = pf.tracer.player
 		if p.ptv3
-		and p.ptv3.pfcamper then
+		and (p.ptv3.camper or p.ptv3.pizzaface_teleporting or p.ptv3.stun) then
 			return
 		end
 	end
@@ -271,6 +211,12 @@ local function PFTouchSpecial(pf, pmo)
 	end
 	
 	P_DamageMobj(pmo, src, src, 999, DMG_INSTAKILL)
+
+	if pmo.player.ptv3
+	and multiplayer
+	and not (pmo.health) then
+		pmo.player.ptv3.specforce = true
+	end
 end
 
 addHook('TouchSpecial', function(pf, pmo)
@@ -282,24 +228,35 @@ local function spawnAIpizza(s)
 	return P_SpawnMobj(s.x, s.y, s.z, MT_PTV3_PIZZAFACE)
 end
 
--- Spawns Pizzaface.
 function PTV3:pizzafaceSpawn()
-	if not self.pizzaface then
+	local canSpawnAI = not (PTV3.pizzaface
+	and PTV3.pizzaface.ptv3)
+
+	if canSpawnAI then
+		if PTV3.pizzaface
+		and PTV3.pizzaface.valid then return end
+
 		local position = {}
-		local clonething = nil
-		
-		if gametype == GT_PTV3DM or PTV3.minusworld then
+		local clonething = self.endpos
+
+		if gametype == GT_PTV3DM then
 			clonething = self.spawn
-		else
-			clonething = self.endpos
 		end
 
 		for _,i in pairs(clonething) do
 			position[_] = i
 		end
 
-		self.pizzaface = spawnAIpizza(clonething)
-		self.pizzaface.angry = false
-		self.pizzaface.displayname = "PIZZAFACE"
+		PTV3.pizzaface = spawnAIpizza(clonething)
+		print("DEBUG - Spawn Pizzaface AI")
+	else
+		if PTV3.pizzaface.ptv3
+		and PTV3.pizzaface.ptv3.pizzaMobj 
+		and PTV3.pizzaface.ptv3.pizzaMobj.valid then return end
+
+		local pf = spawnAIpizza(PTV3.pizzaface.mo)
+		pf.tracer = PTV3.pizzaface.mo
+		PTV3.pizzaface.ptv3.pizzaMobj = pf
+		print("DEBUG - Spawn Player Mask")
 	end
 end

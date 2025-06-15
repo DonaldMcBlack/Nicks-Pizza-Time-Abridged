@@ -2,7 +2,7 @@ local drawParallax = dofile "Intermission/Draw Parallax"
 local inttime = 0
 
 local rankTexts = {}
-rankTexts["E"] = "Yeah, you might wanna avoid that big pizza..."
+rankTexts["F"] = "Yeah, you might wanna avoid that big pizza..."
 rankTexts["D"] = "Next time, kill more badniks."
 rankTexts["C"] = "Need to try a bit harder than that!"
 rankTexts["B"] = "Not too shabby..."
@@ -27,8 +27,8 @@ addHook("MusicChange", function(old, new)
 
 		local rank = p.ptv3.rank
 		if not PTV3.ranks[rank]
-		or p.spectator then
-			return "ERANK"
+		or p.ptv3.specforce then
+			return "FRANK"
 		end
 
 		return PTV3.ranks[rank].music
@@ -72,8 +72,8 @@ addHook("HUD", function(v)
 	local screenHeight = FixedDiv(v.height()*FU, v.dupy()*FU)
 
 	local rank = PTV3.ranks[p.ptv3.rank].rank
-	if p.spectator then
-		rank = "E"
+	if p.ptv3.specforce then
+		rank = "F"
 	end
 
 	local scale = FU/3

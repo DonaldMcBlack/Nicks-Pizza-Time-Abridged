@@ -1,23 +1,3 @@
-freeslot("SKINCOLOR_FIRSTCOMBO", "SKINCOLOR_DROPPEDCOMBO")
-
-skincolors[SKINCOLOR_FIRSTCOMBO] = {
-    name = "P",
-    ramp = {96,97,98,163,166,55,58,96,96,96,96,96,96,96,96,96},
-    invcolor = SKINCOLOR_DROPPEDCOMBO,
-    invshade = 0,
-    chatcolor = V_SKYMAP,
-    accessible = false
-}
-
-skincolors[SKINCOLOR_DROPPEDCOMBO] = {
-    name = "No P",
-    ramp = {96,97,98,55,58,163,166,96,96,96,96,96,96,96,96,96},
-    invcolor = SKINCOLOR_FIRSTCOMBO,
-    invshade = 0,
-    chatcolor = V_SKYMAP,
-    accessible = false
-}
-
 local function getPatchesFromNum(v, font, num)
 	local patches = {}
 	local str = tostring(num)
@@ -37,19 +17,19 @@ return function(v,p,c)
 	if not PTV3:isPTV3() then return end
 	if not p.ptv3 then return end
 
-	local rank_x = 240*FU
-	local rank_y = 60*FU
-	local rank_scale = FU/3
+	if p.ptv3.combo_rank
+	and leveltime-p.ptv3.combo_rank.time < 5*TICRATE then
+		local x = 230*FU
+		local y = 30*FU
+		local scale = FU/3
 
-	if p.ptv3.combo_rank.rankn > 0 and leveltime-p.ptv3.combo_rank.time < 5*TICRATE then
-		-- CONS_Printf(consoleplayer, p.ptv3.combo_rank.rankn)
-		if p.ptv3.combo <= 4 then v.drawScaled(rank_x, rank_y, rank_scale, v.cachePatch('CRSTART'), V_SNAPTOTOP|V_SNAPTORIGHT) end
-		v.drawScaled(rank_x-(12*rank_scale), rank_y+(18*rank_scale), rank_scale, v.cachePatch('CR'..p.ptv3.combo_rank.rankn..'_'..leveltime % 2), V_SNAPTOTOP|V_SNAPTORIGHT)
+		v.drawScaled(x, y, scale, v.cachePatch('CRSTART'), V_SNAPTOTOP|V_SNAPTORIGHT)
+		v.drawScaled(x-(12*scale), y+(18*scale), scale, v.cachePatch('CR'..p.ptv3.combo_rank.rankn..'_'..leveltime % 2), V_SNAPTOTOP|V_SNAPTORIGHT)
 		if p.ptv3.combo_rank.very then
-			v.drawScaled(rank_x-(40*rank_scale), rank_y+(19*rank_scale), rank_scale, v.cachePatch('CRVERY'), V_SNAPTOTOP|V_SNAPTORIGHT)
+			v.drawScaled(x-(40*scale), y+(19*scale), scale, v.cachePatch('CRVERY'), V_SNAPTOTOP|V_SNAPTORIGHT)
 		end
 	end
-
+	
 	if not (p.ptv3.combo or p.ptv3.combo_offtime) then return end
 	
 	local x = 230*FU
@@ -79,10 +59,6 @@ return function(v,p,c)
 	local combopos = FixedDiv(p.ptv3.combo_display, PTV3.MAX_COMBO_TIME)
 	
 	local pos = start_point + FixedMul(end_point-start_point, combopos)
-	local color
-
-	if not p.ptv3.combo_dropped then color = v.getColormap(TC_DEFAULT, SKINCOLOR_FIRSTCOMBO)
-	else color = v.getColormap(TC_DEFAULT, SKINCOLOR_DROPPEDCOMBO) end
 	
 	local pointer = v.cachePatch('COMBOGUY'..(leveltime % 8))
 	local center = pointer.width*(scale/2)
@@ -90,8 +66,7 @@ return function(v,p,c)
 		y+(40*scale),
 		scale,
 		pointer,
-		V_SNAPTOTOP|V_SNAPTORIGHT,
-		color
+		V_SNAPTOTOP|V_SNAPTORIGHT
 	)
 
 	v.drawScaled(x, y, scale, bar, V_SNAPTORIGHT|V_SNAPTOTOP)

@@ -1,6 +1,6 @@
 return function(v,p)
 	if not PTV3:isPTV3() then return end
-	if not (p and p.ptv3 and p.ptv3.pizzaface and p.ptv3.pfcamper) then return end
+	if not (p and p.ptv3 and p.ptv3.camper) then return end
 
 	local x = 160*FU
 	local y = 170*FU
@@ -15,7 +15,7 @@ return function(v,p)
 	)
 	customhud.CustomFontString(v,
 		x, y+(10*FU),
-		"Move far away to be able to kill players again.",
+		"Move away to be able to kill players again.",
 		"PTFNT",
 		V_SNAPTOBOTTOM,
 		"center",
