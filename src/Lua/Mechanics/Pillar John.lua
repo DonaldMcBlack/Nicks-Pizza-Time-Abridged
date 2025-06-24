@@ -1,13 +1,18 @@
 freeslot(
 	"MT_PTV3_PILLARJOHN",
 	"SPR_JOHN",
-	"S_PTV3_PILLARJOHN"
+	"S_PTV3_PILLARJOHN",
+	"sfx_jpilr"
 )
+
+sfxinfo[sfx_jpilr].caption = "John collapsed!"
 
 states[S_PTV3_PILLARJOHN] = {
 	sprite = SPR_JOHN,
-	frame = A,
+	frame = A|FF_ANIMATE,
 	tics = -1,
+	var1 = 9,
+	var2 = 2,
 	nextstate = S_PTV3_PILLARJOHN
 }
 
@@ -25,16 +30,17 @@ end, MT_PTV3_PILLARJOHN)
 
 local function killJohn(john, pmo)
 	if not john.isAlive then return end
+	if PTV3.minusworld then return end
 
 	local killAngle = R_PointToAngle2(john.x, john.y, pmo.x, pmo.y)
-
-	john.angle = killAngle
 
 	john.momx = FixedMul(-16*cos(killAngle), john.scale)
 	john.momy = FixedMul(-16*sin(killAngle), john.scale)
 	john.momz = 16*john.scale
 
+	S_StartSound(nil, sfx_jpilr)
 	john.isAlive = false
+	P_StartQuake(15*FU, 5*TICRATE)
 
 	if not PTV3.pizzatime then
 		PTV3:startPizzaTime(pmo.player)
@@ -52,7 +58,7 @@ end, MT_PTV3_PILLARJOHN)
 addHook("MobjDeath", function(john, i, s)
 	if not (s and s.player and s.player.ptv3) then return end
 
-	if not PTV3.pizzatime then
+	if not PTV3.pizzatime and not PTV3.minusworld then
 		PTV3:startPizzaTime(s.player)
 	end
 end, MT_PTV3_PILLARJOHN)
@@ -60,8 +66,11 @@ end, MT_PTV3_PILLARJOHN)
 addHook("MobjThinker", function(john)
 	if not (john and john.valid) then return end
 
-	if not john.isAlive
+	if PTV3.minusworld then P_RemoveMobj(john) return end
+
+	if not john.isAlive then
 		john.flags = $|MF_NOCLIP|MF_NOCLIPHEIGHT
+		john.frame = K
 		if (john.z > john.ceilingz
 		or john.z+john.height < john.floorz) then
 			P_RemoveMobj(john)

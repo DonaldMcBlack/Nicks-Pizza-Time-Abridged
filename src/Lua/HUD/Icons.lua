@@ -34,7 +34,7 @@ end)
 
 // This version of the function was prototyped in Lua by Nev3r ... a HUGE thank you goes out to them!
 -- if only it was exposed
-local baseFov = 90*FRACUNIT
+local baseFov = CV_FindVar("fov").value
 local BASEVIDWIDTH = 320
 local BASEVIDHEIGHT = 200
 rawset(_G, "SG_ObjectTracking", function(v, p, c, point, reverse, allowspectator)
@@ -141,7 +141,7 @@ rawset(_G, "SG_ObjectTracking", function(v, p, c, point, reverse, allowspectator
 	return result
 end)
 
-local function _iconShit(v,x,y,scale,patch,color,...)
+local function _iconShit(v,x,y,scale,patch,color,namecolor,...)
 	local texts = {...}
 
 	v.drawScaled(x, y, scale, patch, nil, color)
@@ -153,7 +153,8 @@ local function _iconShit(v,x,y,scale,patch,color,...)
 			"PTFNT",
 			nil,
 			"center",
-			FixedMul(FU/3, scale))
+			FixedMul(FU/3, scale),
+		    namecolor)
 	end
 end
 
@@ -210,19 +211,36 @@ local function drawPlayerIcon(v,dp,p,c)
 	)
 end
 
-local function drawPizzaIcon(v,dp,c)
-	local pizzaface = PTV3:returnPizzaface()
-
+local function drawChaserIcon(v,dp,c, chaser, norenderdetails)
 	if (dp and dp.ptv3 and dp.ptv3.chaser) then return end
-	if not (pizzaface and pizzaface.valid) then return end
+	if not (chaser and chaser.valid) then return end
 
-	local result = SG_ObjectTracking(v,dp,c,pizzaface)
+	local result = SG_ObjectTracking(v,dp,c, chaser)
 
-	local dist = R_PointToDist2(c.x, c.y, pizzaface.x, pizzaface.y)
-	if dist > 12000*FU then return end
+	local dist = R_PointToDist2(dp.mo.x, dp.mo.y, chaser.x, chaser.y)
+	if dist > 8000*FU then return end
 
 	local scale = max(FU/2, FixedMul(result.scale, FU))
-	local p = (pizzaface.tracer and pizzaface.tracer.valid) and pizzaface.tracer.player
+
+	local p = nil
+	local color = SKINCOLOR_WHITE
+	local chaser_name = chaser.display_name
+	local icon = chaser.display_name + "ICON"
+
+	if chaser == PTV3.pizzaface then
+		p = (PTV3.pizzaface.tracer and PTV3.pizzaface.tracer.valid) and PTV3.pizzaface.tracer.player
+		if PTV3.pizzaface.angry then
+
+			if (leveltime % 8)/2 then
+				color = SKINCOLOR_KETCHUP
+			else
+				color = SKINCOLOR_CRIMSON
+			end
+			icon = $.."2"
+		end
+	else
+		p = (chaser.tracer and chaser.tracer.valid) and chaser.tracer.player
+	end
 
 	if p and p.ptv3 and p.ptv3.pizzaface_teleporting then return end
 
@@ -236,7 +254,7 @@ local function drawPizzaIcon(v,dp,c)
 		local radius = FixedMul(dp.mo.radius, dp.mo.scale)
 		local height = FixedMul(dp.mo.height, dp.mo.scale)
 
-		local angle = R_PointToAngle2(dp.mo.x, dp.mo.y, pizzaface.x, pizzaface.y) - c.angle + ANGLE_90
+		local angle = R_PointToAngle2(dp.mo.x, dp.mo.y, chaser.x, chaser.y) - c.angle + ANGLE_90
 
 		local x = playerResult.x
 		local y = playerResult.y-FixedMul(height/2, playerResult.scale)
@@ -247,36 +265,88 @@ local function drawPizzaIcon(v,dp,c)
 		x = $+momx
 		y = $-momy
 
-		_iconShit(v,
-			x,y,
-			FU/2,
-			v.cachePatch("PIZZAICON"), nil,
-			tostring(dist/FU).." FU",
-			p and "PLAYER" or "AI",
-			p and p.ptv3 and p.ptv3.camper and "CAMPER" or ""
-		)
-
+		if norenderdetails then
+			_iconShit(v,
+				x,y,
+				FU/2,
+				v.cachePatch(icon),
+				nil,
+				color,
+				"",
+				"",
+				""
+			)
+		else
+			_iconShit(v,
+				x,y,
+				FU/2,
+				v.cachePatch(icon),
+				nil,
+				color,
+				tostring(dist/FU).." FU",
+				p and p.name or chaser_name,
+				p and p.ptv3 and p.ptv3.camper and "CAMPER" or ""
+			)
+		end
 		return
 	end
 
-	result.y = $-FixedMul(pizzaface.height, result.scale)
+	result.y = $-FixedMul(chaser.height, result.scale)
 
 	_iconShit(v,
 		result.x,result.y,
 		max(result.scale, FU/2),
-		v.cachePatch("PIZZAICON"), nil,
+		v.cachePatch(icon),
+		nil,
+		color,
 		tostring(dist/FU).." FU",
-		p and "PLAYER" or "AI",
-		p and p.ptv3 and p.ptv3.camper and "CAMPER" or "")
+		p and p.name or chaser_name,
+		p and p.ptv3 and p.ptv3.pfcamper and "CAMPER" or ""
+	)
+end
+
+local function SortChasersByDistance(pmo, prevChaser, nextChaser)
+	local dist = R_PointToDist2(pmo.x, pmo.y, prevChaser.x, prevChaser.y)
+	local dist2 = R_PointToDist2(pmo.x, pmo.y, nextChaser.x, nextChaser.y)
+
+	return dist < dist2
 end
 
 return function(v,dp,c)
 	if not PTV3:isPTV3() then return end
 	if not (dp and dp.mo) then return end
 
+	local norender_details = true
+
 	for p in players.iterate do
 		if not (p and p.mo and p.mo.health) then continue end
 		drawPlayerIcon(v,dp,p,c)
 	end
-	drawPizzaIcon(v,dp,c)
+
+	for _,chaser in ipairs(PTV3.currentchasers) do
+		if not (chaser and chaser.valid) then
+			table.remove(PTV3.currentchasers, _)
+			continue
+		end
+
+		for next = _+1, #PTV3.currentchasers do
+			if PTV3.currentchasers[next] and PTV3.currentchasers[next].valid then
+				if chaser == PTV3.currentchasers[next] then table.remove(PTV3.currentchasers, next) return end
+
+				if SortChasersByDistance(dp.mo, chaser, PTV3.currentchasers[next]) then
+					PTV3.currentchasers[_], PTV3.currentchasers[next] = PTV3.currentchasers[next], PTV3.currentchasers[_]
+				else
+					PTV3.currentchasers[next], PTV3.currentchasers[_] = PTV3.currentchasers[next], PTV3.currentchasers[_]
+				end
+				chaser = PTV3.currentchasers[_]
+			else
+				continue
+			end
+		end
+
+		if _ == #PTV3.currentchasers then
+			norender_details = false
+		end
+		drawChaserIcon(v, dp, c, chaser, norender_details)
+	end
 end

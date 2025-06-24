@@ -1,3 +1,5 @@
+local pizzaframe = { sleeping = 0, awake = 0 }
+
 local function drawBarFill(v, x, y, patch, flags, scale, offset, length, color)
 	local prog = -offset
 
@@ -47,12 +49,21 @@ local function drawBarFill(v, x, y, patch, flags, scale, offset, length, color)
 	end
 end
 
+local function DelayAnimation(frame, tics, rate)
+	if leveltime % rate then
+		return frame+tics
+	else
+		return frame
+	end
+end
+
 return function(v)
 	if not PTV3:isPTV3() then return end
-	if not PTV3.pizzatime then return end
+	if not (PTV3.pizzatime or PTV3.minusworld) then return end
 	if PTV3.overtime then return end
 
-	local time = PTV3.HUD_returnTime(PTV3.hud_pt, 5*FU)
+	local time = nil
+	local maxtime = CV_PTV3['time'].value*TICRATE
 
 	local f = v.cachePatch('PIZZAFILL')
 	local b = v.cachePatch('PIZZABAR')
@@ -61,13 +72,21 @@ return function(v)
 	scale = $*3/2
 	
 	local x = (160*FU)-(b.width*(scale/2))
-	local y = ease.linear(time, 220*FU, 180*FU)
+	local y
+
+	if PTV3.time then
+		time = PTV3.HUD_returnTime(PTV3.hud_pt, 5*FU)
+		y = ease.linear(time, 220*FU, 180*FU)
+	elseif not (PTV3.time and multiplayer) then
+		time = PTV3.HUD_returnTime(PTV3.hud_pt+maxtime+(2*TICRATE), 3*TICRATE, nil, true)
+		-- CONS_Printf(consoleplayer, time)
+		y = ease.linear(time, 180*FU, 220*FU)
+	end
 	
 	local o = 5*scale
 	local of = 5*FU
 
-	local time = PTV3.time
-	local maxtime = CV_PTV3['time'].value*TICRATE
+	time = PTV3.time
 
 	local width = (b.width*FU)-of
 	local bwidth = (b.width*scale)
@@ -75,7 +94,8 @@ return function(v)
 
 	if time <= 5*TICRATE
 	and not PTV3.overtime
-	and not (PTV3.game_over > -1) then
+	and not (PTV3.game_over > -1)
+	and multiplayer then
 		local maxTime = min(maxtime, 5*TICRATE)
 		local shakePerc = FixedDiv(maxTime-time, maxTime)*6
 
@@ -109,5 +129,19 @@ return function(v)
 		flags = V_SNAPTOBOTTOM}
 	)
 
-	--PTV3.drawText(v, x+(bwidth/2), y-(16*FU), "WILL ADD SMTH HERE LATER")
+	local p
+	if not multiplayer then
+
+		if not PTV3.pizzaface then
+			pizzaframe.sleeping = leveltime % 17
+			p = v.cachePatch("PFCES"..pizzaframe.sleeping)
+		else
+			pizzaframe.awake = min(DelayAnimation(pizzaframe.awake, 1, TICRATE*(3/2)), 7)
+			p = v.cachePatch("PFCEA"..pizzaframe.awake)
+		end
+
+		v.drawScaled(x+(bwidth-10*FU), y-(16*FU), scale/(3/2), p, V_SNAPTOBOTTOM)
+	end
+
+	-- PTV3.drawText(v, x+(bwidth/2), y-(16*FU), "WILL ADD SMTH HERE LATER")
 end

@@ -3,14 +3,14 @@ PTV3.panicSpriteBlacklist = {
 }
 
 return function(p)
-	if PTV3.pizzatime
+	if (PTV3.pizzatime or PTV3.minusworld)
 	and not PTV3.panicSpriteBlacklist[p.mo.skin] then
 		local speed = FixedHypot(p.rmomx, p.rmomy)
 
 		if speed == 0
 		and P_IsObjectOnGround(p.mo) 
 		and not (p.pflags & (PF_SPINNING|PF_STARTDASH))then
-			if p.mo.state == S_PLAY_STND then
+			if p.mo.state == S_PLAY_STND or p.mo.state == S_PLAY_WAIT then
 				p.mo.state = S_PTV3_PANIC
 			end
 		elseif p.mo.state == S_PTV3_PANIC then

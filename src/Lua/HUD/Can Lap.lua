@@ -18,7 +18,8 @@ return function(v,p)
 		"PTFNT",
 		V_SNAPTOBOTTOM,
 		"center",
-		FU/3
+		FU/3,
+		SKINCOLOR_WHITE
 	)
 	customhud.CustomFontString(v,
 		x, y+(10*FU),
@@ -26,6 +27,7 @@ return function(v,p)
 		"PTFNT",
 		V_SNAPTOBOTTOM,
 		"center",
-		FU/3
+		FU/3,
+		SKINCOLOR_WHITE
 	)
 end

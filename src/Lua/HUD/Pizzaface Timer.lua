@@ -49,13 +49,14 @@ end
 
 return function(v)
 	if not PTV3:isPTV3() then return end
-	if not PTV3.pizzatime then return end
+	if not (PTV3.pizzatime or PTV3.minusworld) then return end
+	if not multiplayer then return end
 	if leveltime-PTV3.hud_pt > PTV3.maxpftime+(8*TICRATE) then return end
+
+	local time = PTV3.HUD_returnTime(PTV3.hud_pt, 5*FU)
 
 	local f = v.cachePatch('PFBARFILL')
 	local b = v.cachePatch('PFBAR')
-
-	local time = PTV3.HUD_returnTime(PTV3.hud_pt, 5*FU)
 
 	local scale = FU/4
 	scale = $*3/2
@@ -64,7 +65,7 @@ return function(v)
 	local y = ease.linear(time, 200*FU, 160*FU)
 
 	if leveltime-PTV3.hud_pt > PTV3.maxpftime+(2*TICRATE) then
-		local time = PTV3.HUD_returnTime(PTV3.hud_pt+PTV3.maxpftime+(2*TICRATE), 3*TICRATE, nil, true)
+		time = PTV3.HUD_returnTime(PTV3.hud_pt+PTV3.maxpftime+(2*TICRATE), 3*TICRATE, nil, true)
 		
 		y = ease.linear(time, 160*FU, 210*FU)
 	end

@@ -1,6 +1,6 @@
 return function(p)
-	if PTV3.pizzatime
-	and not (leveltime % TICRATE) 
+	if (PTV3.pizzatime or PTV3.minusworld)
+	and not (leveltime % TICRATE)
 	and not p.ptv3.chaser
 	and not p.ptv3.fake_exit
 	and p.score > 0 then
@@ -9,6 +9,7 @@ return function(p)
 			reduceBy = 40
 		end
 		p.score = max(0, $-reduceBy)
-		p.ptv3.scoreReduce = leveltime
+		p.ptv3.scoreReduce.by = reduceBy
+		p.ptv3.scoreReduce.time = leveltime
 	end
 end

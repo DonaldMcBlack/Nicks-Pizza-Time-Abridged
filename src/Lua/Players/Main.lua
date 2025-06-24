@@ -46,7 +46,6 @@ local function runCode(p)
 	if gameover(p) then return end
 
 	if not p.ptv3.chaser then
-		p.ptv3.canLap = max(0, $-1)
 		exithandler(p)
 		scoreremoval(p)
 		taunt(p)
@@ -62,10 +61,7 @@ local function runCode(p)
 
 	PTV3:checkRank(p)
 	PTV3:returnNextRankPercent(p)
-	p.ptv3.canLap = max(0, $-1)
-
 	PTV3.callbacks("PlayerThink", p)
-
 end
 
 addHook("PlayerThink", function(p)
@@ -75,6 +71,7 @@ addHook("PlayerThink", function(p)
 	p.spectator = p.ptv3.specforce
 
 	runCode(p)
+	p.ptv3.canLap = max(0, $-1)
 
 	if p.spectator
 	and PTV3.snick
@@ -96,7 +93,7 @@ addHook("PlayerThink", function(p)
 	end
 
 	if p.mo then
-		table.insert(p.ptv3.savedData, {
+		table.insert(p.ptv3.movementData, {
 			x = p.mo.x,
 			y = p.mo.y,
 			z = p.mo.z,
@@ -106,8 +103,8 @@ addHook("PlayerThink", function(p)
 			momz = p.mo.momz
 		})
 
-		if #p.ptv3.savedData > (3*6) then
-			table.remove(p.ptv3.savedData, 1)
+		if #p.ptv3.movementData > (3*6) then
+			table.remove(p.ptv3.movementData, 1)
 		end
 	end
 

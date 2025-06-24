@@ -156,7 +156,7 @@ function PTV3:exitSecret(p)
 	if not (p and p.ptv3 and p.ptv3.insecret) then return end
 
 	if p.ptv3.secret_tptoend then
-		PTV3:teleportPlayer(p)
+		PTV3:queueTeleport(p)
 		p.ptv3.secret_tptoend = false
 	end
 	if p == consoleplayer
@@ -185,7 +185,7 @@ addHook('ThinkFrame', do
 		end
 		if (tp[3] == 1 and not tp[1].ptv3.secret_tptoend)
 		or tp[3] ~= 1 then
-			PTV3:teleportPlayer(unpack(tp))
+			PTV3:queueTeleport(unpack(tp))
 		end
 		
 		if tp[3] == 0 then
