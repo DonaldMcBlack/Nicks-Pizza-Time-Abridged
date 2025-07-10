@@ -93,7 +93,11 @@ addHook('PostThinkFrame', function()
 	end
 
 	if PTV3.overtime then
-		song = modsongs["Overtime"] or "ACFTQ"
+		local default
+		if PTV3.overtime_time > 15*TICRATE then default = "OVRTIA"
+		else default = "OVRTIB" end
+		
+		song = modsongs["Overtime"] or default
 	end
 
 	if song and mapmusname ~= song then

@@ -77,10 +77,9 @@ return function(v)
 	if PTV3.time then
 		time = PTV3.HUD_returnTime(PTV3.hud_pt, 5*FU)
 		y = ease.linear(time, 220*FU, 180*FU)
-	elseif not (PTV3.time and multiplayer) then
-		time = PTV3.HUD_returnTime(PTV3.hud_pt+maxtime+(2*TICRATE), 3*TICRATE, nil, true)
-		-- CONS_Printf(consoleplayer, time)
-		y = ease.linear(time, 180*FU, 220*FU)
+	elseif not PTV3.time and not multiplayer then
+		time = PTV3.HUD_returnTime(PTV3.hud_pt+(PTV3.maxtime-PTV3.time)+(7*TICRATE), 3*TICRATE, nil, true)
+		y = ease.linear(time, 180*FU, 260*FU)
 	end
 	
 	local o = 5*scale
@@ -140,7 +139,7 @@ return function(v)
 			p = v.cachePatch("PFCEA"..pizzaframe.awake)
 		end
 
-		v.drawScaled(x+(bwidth-10*FU), y-(16*FU), scale/(3/2), p, V_SNAPTOBOTTOM)
+		v.drawScaled(x+(bwidth-6*FU), y-(16*FU), scale/(3/2), p, V_SNAPTOBOTTOM)
 	end
 
 	-- PTV3.drawText(v, x+(bwidth/2), y-(16*FU), "WILL ADD SMTH HERE LATER")

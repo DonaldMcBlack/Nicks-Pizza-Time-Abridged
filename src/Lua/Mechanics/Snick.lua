@@ -102,12 +102,22 @@ addHook("ShouldDamage", function(t,i,s)
 end, MT_PTV3_SNICK)
 
 addHook('MobjThinker', function(snick)
-	if snick.tracer then return end
+	local runCode = true
+	if snick.tracer then
+		local t = snick.tracer
+
+		snick.momx, snick.momy, snick.momz = t.momx, t.momy, t.momz
+		runCode = false
+	elseif not (PTV3.snick and PTV3.snick.valid) then
+		PTV3.snick = snick
+	end
 
 	if not (leveltime % 8)
 	and (snick.momx ~= 0 or snick.momy ~= 0 or snick.momz ~= 0) then
 		PTV3:doEffect(snick, "Snick Afterimage")
 	end
+
+	if not runCode then return end
 
 	local player = getNearestPlayer(PTV3.spawn, followC)
 	snick.target = player and player.mo
@@ -159,7 +169,11 @@ local function spawnAIpizza(s)
 end
 
 function PTV3:snickSpawn()
-	if not self.snick then
+	local canSpawnAI = not (self.snick and self.snick.ptv3)
+
+	if canSpawnAI then
+		if self.snick and self.snick.valid then return end
+
 		local position = {}
 		local clonething
 
@@ -176,6 +190,17 @@ function PTV3:snickSpawn()
 		position.z = $+(120*FU)
 		self.snick = spawnAIpizza(position)
 		self.snick.display_name = "SNICK"
-		table.insert(self.currentchasers, self.snick)
+
+	else
+		if self.snick.ptv3
+		and self.snick.ptv3.pizzaMobj
+		and self.snick.ptv3.pizzaMobj.valid then return end
+
+		local snick = spawnAIpizza(self.snick.mo)
+		snick.tracer = self.snick.mo
+		self.snick.ptv3.pizzaMobj = snick
+		print("DEBUG - Spawn Player Mask")
 	end
+
+	table.insert(self.currentchasers, self.snick)
 end

@@ -16,6 +16,9 @@ PTV3.tauntData = {
 	}
 }
 
+PTV3.tauntData["npeppino"] = {canTaunt = false}
+PTV3.tauntData["nthe_noise"] = {canTaunt = false}
+
 local function taunt(p)
 	if p.ptv3.isTaunting then
 		p.ptv3.tauntTime = max(0, $-1)
@@ -39,6 +42,7 @@ local function taunt(p)
 
 	if p.cmd.buttons & BT_TOSSFLAG
 	and not (p.ptv3.buttons & BT_TOSSFLAG)
+	and not (p.pflags & PF_STARTDASH or p.pflags & PF_SPINNING or p.panim == PA_PAIN)
 	and not p.ptv3.isTaunting then
 		local tauntData = PTV3.tauntData[p.mo.skin] or PTV3.tauntData["Default"]
 

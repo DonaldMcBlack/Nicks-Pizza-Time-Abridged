@@ -6,14 +6,14 @@ freeslot(
 	"SPR_JNPM",
     "sfx_jghtsp",
     "sfx_jghtct",
-	"sfx_jphmct"
+	"sfx_jphmsp"
 )
 sfxinfo[sfx_jghtsp] = {
     flags = SF_X2AWAYSOUND|SF_NOMULTIPLESOUND,
     caption = "John's ghost haunts you..."
 }
 
-sfxinfo[sfx_jphmct] = {
+sfxinfo[sfx_jphmsp] = {
 	flags = SF_X2AWAYSOUND|SF_NOMULTIPLESOUND,
 	caption = "Something is wrong with John..."
 }
@@ -123,7 +123,12 @@ addHook('MobjThinker', function(john)
 	if PTV3.minusworld and not PTV3.pizzatime then
 		if john.state ~= S_PTV3_JONATHANPHANTOM then
 			john.state = S_PTV3_JONATHANPHANTOM
-			john.ambience = sfx_jphmct
+			john.ambience = sfx_jphmsp
+		end
+	else
+		if john.state ~= S_PTV3_JOHNGHOST then
+			john.state = S_PTV3_JOHNGHOST
+			john.ambience = sfx_jghtsp
 		end
 	end
 
@@ -157,8 +162,9 @@ local function JohnTouchSpecial(john, pmo)
 	
 	if p.ptv3.fake_exit then return end
 	john.speed, john.basespeed = 0, 0
-    PTV3:queueTeleport(p, PTV3.endpos, false, john)
-	P_SetOrigin(john, PTV3.spawn.x, PTV3.spawn.y, PTV3.spawn.z)
+    PTV3:queueTeleport(p, p.ptv3.currentTeleportDest, false, john)
+	S_StartSound(nil, sfx_jghtct, p)
+	P_SetOrigin(john, PTV3.spawn.x, PTV3.spawn.y, PTV3.spawn.z+(200*FU))
 end
 
 addHook('TouchSpecial', function(john, pmo)
@@ -171,12 +177,16 @@ local function spawnAIpizza(s)
 end
 
 function PTV3:johnGhostSpawn()
-	if not self.johnGhost then
+	local canSpawnAI = not (self.johnGhost and self.johnGhost.ptv3)
+
+	if canSpawnAI then
+		if self.johnGhost and self.johnGhost.valid then return end
+
 		local position = {}
 		local clonething = self.endpos
 		local displayname = "JOHN"
 
-		if PTV3.minusworld then 
+		if PTV3.minusworld then
 			clonething = self.spawn
 			displayname = "JONATHAN"
 		end
@@ -188,6 +198,15 @@ function PTV3:johnGhostSpawn()
 		position.z = $+(120*FU)
 		self.johnGhost = spawnAIpizza(position)
 		self.johnGhost.display_name = displayname
-		table.insert(self.currentchasers, self.johnGhost)
+	else
+		if self.johnGhost.ptv3
+		and self.johnGhost.ptv3.pizzaMobj
+		and self.johnGhost.ptv3.pizzaMobj.valid then return end
+
+		local john = spawnAIpizza(self.johnGhost.mo)
+		john.tracer = self.johnGhost.mo
+		self.johnGhost.ptv3.pizzaMobj = john
 	end
+
+	table.insert(self.currentchasers, self.johnGhost)
 end

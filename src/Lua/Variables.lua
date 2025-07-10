@@ -58,11 +58,23 @@ local function findPlayer(name)
 	return player
 end
 
+COM_AddCommand('PTV3_openmenu', function(p, menuname)
+	if not PTV3:isPTV3() then return end
+
+	
+	
+	p.ptv3.menumode.inmenu = true
+	p.ptv3.menumode.menutype = string.lower(menuname)
+
+	CONS_Printf(p, "Entering: "..p.ptv3.menumode.menutype)
+end)
+
 COM_AddCommand('PTV3_pizzatimenow', function(p)
 	if not PTV3:isPTV3() then return end
 	if not (IsPlayerAdmin(p) or p == server) then return end
 	
 	PTV3:startPizzaTime(p)
+	P_RemoveMobj(PTV3.pillarJohn)
 end, COM_ADMIN)
 
 COM_AddCommand('PTV3_breakreality', function(p)
@@ -78,7 +90,22 @@ COM_AddCommand('PTV3_becomechaser', function(p, chaser)
 	local chasertype = chaser or "pizzaface"
 	
 	p.ptv3.chaser = true
-	p.ptv3.chasertype = chasertype
+	p.ptv3.chasertype = string.lower(chasertype)
+
+	if chasertype == "pizzaface" then
+		PTV3.pizzaface = p
+		PTV3:pizzafaceSpawn()
+	end
+
+	if chasertype == "snick" then
+		PTV3.snick = p
+		PTV3:snickSpawn()
+	end
+
+	if chasertype == "johnghost" then
+		PTV3.johnGhost = p
+		PTV3:johnGhostSpawn()
+	end
 end, COM_ADMIN)
 COM_AddCommand('PTV3_giveitem', function(p, item)
 	PTV3:givePlayerItem(p, item)
@@ -95,8 +122,21 @@ COM_AddCommand('PTV3_forceovertime', function(p)
 	if not (IsPlayerAdmin(p) or p == server) then return end
 
 	PTV3:overtimeToggle()
-end)
-COM_AddCommand('PTV3_spawnaipizzaface', function(p, name)
+end, COM_ADMIN)
+COM_AddCommand('PTV3_setovertimer', function(p, time)
+	if not PTV3:isPTV3() then return end
+	if not (IsPlayerAdmin(p) or p == server) then return end
+
+	PTV3.overtime_time = time*TICRATE
+
+	local text = ("%02d %02d"):format(
+	G_TicsToMinutes(PTV3.overtime_time),
+	G_TicsToSeconds(PTV3.overtime_time)
+	)
+
+	CONS_Printf(consoleplayer, "Set War Timer to "..text)
+end, COM_ADMIN)
+COM_AddCommand('PTV3_spawnpizzaface', function(p, name)
 	if not PTV3:isPTV3() then return end
 	if not (IsPlayerAdmin(p) or p == server) then return end
 
@@ -155,6 +195,7 @@ local synced_variables = {
 	['maxotTime'] = (120+29)*TICRATE,
 	['secrets'] = {},
  	['game_over'] = -1,
+	['maxrankrequirement'] = 1500,
 	['hud_pt'] = -1,
 	['matchLog'] = {},
 
@@ -281,6 +322,9 @@ function PTV3:player(player)
 		['scoreReduce'] = {time = false, by = 0},
 
 		['pizzaMobj'] = false,
+		['pizzaface_skin'] = "pizzaface",
+		['snick_skin'] = "snick",
+		['johnghost_skin'] = "john",
 		
 		['pfBoost'] = 0,
 		['maxPfBoost'] = 2*TICRATE,
@@ -295,11 +339,13 @@ function PTV3:player(player)
 		['tauntframe'] = A,
 
 		['stun'] = 0,
-		['camper'] = false,
 
+		['camper'] = false,
 		['camper_area'] = {x=0, y=0},
 		['camper_radius'] = (40*24)*FU,
-		['camper_time'] = 0
+		['camper_time'] = 0,
+
+		['menumode'] = { inmenu = false, menutype = nil }
 	}
 	
 	if self.pizzatime then
@@ -374,7 +420,8 @@ addHook('NetVars', function(n)
 		"max_laps",
 		"max_elaps",
 		"max_erings",
-		"ai_pizzaface"
+		"ai_pizzaface",
+		"maxrankrequirement"
 	}
 
 	for _,i in pairs(net) do
@@ -394,7 +441,7 @@ addHook('MapLoad', function()
 		p.ptv3 = nil
 	end
 
-	if not PTV3:isPTV3() then 
+	if not PTV3:isPTV3() then
 		hud.enable('lives')
 		return
 	end

@@ -36,6 +36,7 @@ end
 return function(v, p)
 	if not PTV3:isPTV3() then return end
 	if not p.ptv3 then return end
+	if p.ptv3.chaser then return end
 
 	local rank_x = 240*FU
 	local rank_y = 60*FU

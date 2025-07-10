@@ -17,6 +17,7 @@ local WarTimerHUD = dofile "HUD/Overtime Timer"
 local EndHUD = dofile "HUD/Overtime End"
 local RankHUD = dofile "HUD/Ranks"
 local ComboHUD = dofile "HUD/Combo"
+local DresserHUD = dofile "HUD/Dresser Menu"
 local IconHUD = dofile "HUD/Icons"
 local TitlecardHUD = dofile "HUD/Titlecards"
 local InversionHUD = dofile "HUD/Inversion"
@@ -62,7 +63,8 @@ customhud.SetupItem("PTV3_Camper",          "ptv3", CamperHud,         "game", 2
 customhud.SetupItem("PTV3_Snick",           "ptv3", SnickHUD,          "game", 2)
 customhud.SetupItem("PTV3_Controls",        "ptv3", ControlsHUD,       "game", 2)
 customhud.SetupItem("PTV3_Can Lap",         "ptv3", CanLapHUD,         "game", 2)
-customhud.SetupItem("PTV3_ExLap Notif",     "ptv3", ExtremeNHUD,       "game", 3)
+customhud.SetupItem("PTV3_ELap Notif",      "ptv3", ExtremeNHUD,       "game", 3)
+customhud.SetupItem("PTV3_Dresser Menu",    "ptv3", DresserHUD,        "game", 3)
 customhud.SetupItem("PTV3_Titlecards",      "ptv3", TitlecardHUD,      "gameandscores", 4)
 customhud.SetupItem("Version",              "ptv3", VersionHUD,        "gameandscores", 5)
 customhud.SetupItem("Inversion",            "ptv3", InversionHUD,      "game", 5)

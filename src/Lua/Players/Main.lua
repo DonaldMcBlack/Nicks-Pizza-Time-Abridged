@@ -10,6 +10,7 @@ dofile(scriptPath.."PVP")
 local cutscene,precutscene = dofile(checksPath.."Cutscene")
 local exit = dofile(checksPath.."Exit")
 local gameover = dofile(checksPath.."Game Over")
+local ragdoll = dofile(checksPath.."Ragdoll")
 
 local exithandler = dofile(playerThinkerPath.."Exits")
 local scoreremoval = dofile(playerThinkerPath.."Score Removal")
@@ -18,23 +19,22 @@ local panic = dofile(playerThinkerPath.."Panic")
 
 local chasers = {
 	pizzaface = dofile(chaserThinkerPath.."Pizzaface"),
-	snick     = dofile(chaserThinkerPath.."Snick")
+	snick     = dofile(chaserThinkerPath.."Snick"),
+	johnghost = dofile(chaserThinkerPath.."John Ghost")
 }
 
 addHook("PreThinkFrame", do
 	for p in players.iterate do
 		if not (p and p.mo and p.ptv3) then continue end
 
-		for p in players.iterate do
-			if not (p
-			and p.valid
-			and p.mo
-			and p.mo.valid
-			and p.ptv3) then continue end
+		if not (p
+		and p.valid
+		and p.mo
+		and p.mo.valid
+		and p.ptv3) then continue end
 
-			precutscene(p)
-			pretaunt(p)
-		end
+		precutscene(p)
+		pretaunt(p)
 	end
 end)
 
@@ -44,6 +44,7 @@ local function runCode(p)
 	if cutscene(p) then return end
 	if exit(p)     then return end
 	if gameover(p) then return end
+    if ragdoll(p) then return end
 
 	if not p.ptv3.chaser then
 		exithandler(p)
@@ -111,18 +112,10 @@ addHook("PlayerThink", function(p)
 	p.ptv3.buttons = p.cmd.buttons
 end)
 
-addHook("ShouldDamage", function(t,i,s)
-	if (t and t.player and t.player.ptv3 and t.player.ptv3.chaser) then
-		return false
-	end
-end, MT_PLAYER)
-addHook("MobjDeath", function(t,i,s)
-	if (t and t.player and t.player.ptv3 and t.player.ptv3.chaser) then
-		return true
-	end
-end, MT_PLAYER)
-addHook("MobjDamage", function(t,i,s)
-	if (t and t.player and t.player.ptv3 and t.player.ptv3.chaser) then
-		return true
-	end
-end, MT_PLAYER)
+local function DoNotTheChaser(t, return_value)
+	if (t and t.player and t.player.ptv3 and t.player.ptv3.chaser) then return return_value end
+end
+
+addHook("ShouldDamage", function(t,i,s) DoNotTheChaser(t, false) end, MT_PLAYER)
+addHook("MobjDeath",    function(t,i,s) DoNotTheChaser(t, true)  end, MT_PLAYER)
+addHook("MobjDamage",   function(t,i,s) DoNotTheChaser(t, true)  end, MT_PLAYER)

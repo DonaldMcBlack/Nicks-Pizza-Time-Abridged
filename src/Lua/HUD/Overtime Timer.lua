@@ -18,6 +18,7 @@ return function(v)
 	end
 
 	-- war timer
+	local overtime = PTV3.overtime_time
 	local tweenTime = PTV3.HUD_returnTime(PTV3.overtimeStart, TICRATE, TICRATE, true)
 	local timer = v.cachePatch("WARALAR1")
 
@@ -27,13 +28,25 @@ return function(v)
 	local x = 160*FU-(timer.width*(scale/2))
 	local y = (200*FU)+tweenY
 
+	if overtime <= 5*TICRATE then
+		local maxTime = min(PTV3.maxotTime, 5*TICRATE)
+		local shakePerc = FixedDiv(maxTime-overtime, maxTime)*6
+
+		if overtime > 0 then
+			x = $+v.RandomRange(-shakePerc, shakePerc)
+			y = $+v.RandomRange(-shakePerc, shakePerc)
+		end
+
+		v.fadeScreen(0xFB00, ease.linear(shakePerc/3, 0, 31/2))
+	end
+
 	v.drawScaled(x, y, scale, timer, V_SNAPTOBOTTOM)
 
 	-- text
 
 	local text = ("%02d %02d"):format(
-		G_TicsToMinutes(PTV3.overtime_time),
-		G_TicsToSeconds(PTV3.overtime_time)
+		G_TicsToMinutes(overtime),
+		G_TicsToSeconds(overtime)
 	)
 
 	customhud.CustomFontString(v,

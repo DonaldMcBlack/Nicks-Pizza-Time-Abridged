@@ -217,7 +217,7 @@ local function drawChaserIcon(v,dp,c, chaser, norenderdetails)
 
 	local result = SG_ObjectTracking(v,dp,c, chaser)
 
-	local dist = R_PointToDist2(dp.mo.x, dp.mo.y, chaser.x, chaser.y)
+	local dist = R_PointToDist2(0, 0, R_PointToDist2(dp.mo.x, dp.mo.y, chaser.x, chaser.y), dp.mo.z-chaser.z)
 	if dist > 8000*FU then return end
 
 	local scale = max(FU/2, FixedMul(result.scale, FU))
@@ -291,6 +291,7 @@ local function drawChaserIcon(v,dp,c, chaser, norenderdetails)
 		return
 	end
 
+	if P_CheckSight(dp.mo, chaser) then return end
 	result.y = $-FixedMul(chaser.height, result.scale)
 
 	_iconShit(v,
@@ -306,8 +307,8 @@ local function drawChaserIcon(v,dp,c, chaser, norenderdetails)
 end
 
 local function SortChasersByDistance(pmo, prevChaser, nextChaser)
-	local dist = R_PointToDist2(pmo.x, pmo.y, prevChaser.x, prevChaser.y)
-	local dist2 = R_PointToDist2(pmo.x, pmo.y, nextChaser.x, nextChaser.y)
+	local dist = R_PointToDist2(0, 0, R_PointToDist2(pmo.x, pmo.y, prevChaser.x, prevChaser.y), pmo.z-prevChaser.z)
+	local dist2 = R_PointToDist2(0, 0, R_PointToDist2(pmo.x, pmo.y, nextChaser.x, nextChaser.y), pmo.z-nextChaser.z)
 
 	return dist < dist2
 end

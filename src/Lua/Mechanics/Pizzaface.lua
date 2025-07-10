@@ -107,7 +107,7 @@ local function getNearestPlayer(pos, conditions)
 end
 
 addHook('MobjSpawn', function(pf)
-	pf.intspeed = 23
+	pf.intspeed = 25
 	pf.incremspeed = FU
 	pf.incremspeedthreshold = 16
 	pf.destscale = (FU/2)*5/4
@@ -174,8 +174,7 @@ addHook('MobjThinker', function(pf)
 	end
 
 	if not (leveltime % 8) then
-		if (pf.momx ~= 0 or pf.momy ~= 0 or pf.momz ~= 0)
-		and not (pf.tracer and pf.tracer.player and pf.tracer.player == displayplayer) then
+		if (pf.momx ~= 0 or pf.momy ~= 0 or pf.momz ~= 0) then
 			PTV3:doEffect(pf, "PF Afterimage")
 		end
 		S_StartSound(pf, sfx_pizmov)

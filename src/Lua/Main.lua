@@ -92,16 +92,7 @@ addHook('PostThinkFrame', function()
 				pizza.cooldown = 3*TICRATE
 			end
 			
-			table.insert(p.ptv3.currentTeleportDest, {
-				x = p.mo.x,
-				y = p.mo.y,
-				z = p.mo.z,
-				angle = p.drawangle,
-				momx = p.mo.momx,
-				momy = p.mo.momy,
-				momz = p.mo.momz
-			})
-
+			p.ptv3.currentTeleportDest = tps.coords
 			table.remove(PTV3.tplist, tonumber(_))
 		end
 	end
@@ -139,19 +130,6 @@ addHook('PostThinkFrame', function()
 				PTV3.__fadedmus = true
 			end
 
-			if PTV3.overtime then
-				PTV3.overtime_time = max(0, $-1)
-				if PTV3.overtime_time
-				and not (PTV3.overtime_time % TICRATE) then
-					S_StartSoundAtVolume(nil, sfx_wartim, 255/3)
-				end
-
-				if PTV3.overtime_time == 0
-				or not PTV3:canOvertime() then
-					PTV3:endGame()
-				end
-			end
-
 			if not (PTV3.time)
 			and not PTV3.overtime then
 				if PTV3:canOvertime() then
@@ -162,6 +140,19 @@ addHook('PostThinkFrame', function()
 			end
 		else
 			if not PTV3.time and not (PTV3.pizzaface and PTV3.pizzaface.valid) then PTV3:pizzafaceSpawn() end
+		end
+
+		if PTV3.overtime then
+			PTV3.overtime_time = max(0, $-1)
+			if PTV3.overtime_time
+			and not (PTV3.overtime_time % TICRATE) then
+				S_StartSoundAtVolume(nil, sfx_wartim, 255/3)
+			end
+
+			if PTV3.overtime_time == 0
+			or not PTV3:canOvertime() then
+				PTV3:endGame()
+			end
 		end
 	end
 

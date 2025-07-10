@@ -1,5 +1,6 @@
 return function(v,p)
 	if not p.ptv3 then return end
+	if p.ptv3.chaser then return end
 	local rank = PTV3.ranks[p.ptv3.rank]
 	local rank_patch = v.cachePatch(rank.rank.."RANK")
 

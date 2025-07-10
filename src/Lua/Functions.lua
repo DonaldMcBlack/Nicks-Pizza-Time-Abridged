@@ -595,7 +595,7 @@ function PTV3:startPizzaTime(p)
 		if (player.ptv3.insecret) then
 			player.ptv3.secret_tptoend = true
 		elseif player ~= p then
-			self:teleportPlayer(player, self.endpos)
+			self:queueTeleport(player, self.endpos)
 			player.powers[pw_invulnerability] = 5*TICRATE
 		end
 		if player.ptv3.combo then

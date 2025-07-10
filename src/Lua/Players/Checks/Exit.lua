@@ -13,7 +13,6 @@ return function(p)
 	if (((p.cmd.buttons & BT_ATTACK) and not (p.ptv3.buttons & BT_ATTACK))
 	and p.ptv3.canLap) or p.ptv3.extreme
 	or gametype == GT_PTV3DM then
-		CONS_Printf(consoleplayer, "Check")
 		if gametype == GT_PTV3 and p.ptv3.laps == PTV3.max_laps then
 			if p.ptv3.extremeNotif < 4*TICRATE then
 				PTV3:newLap(p, lap_inc)

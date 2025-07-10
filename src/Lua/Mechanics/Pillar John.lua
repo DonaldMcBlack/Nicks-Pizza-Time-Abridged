@@ -25,11 +25,10 @@ mobjinfo[MT_PTV3_PILLARJOHN] = {
 
 addHook("MobjSpawn", function(john)
 	john.isAlive = true
-	PTV3.pillarJohn = true
+	PTV3.pillarJohn = john
 end, MT_PTV3_PILLARJOHN)
 
 local function killJohn(john, pmo)
-	if not john.isAlive then return end
 	if PTV3.minusworld then return end
 
 	local killAngle = R_PointToAngle2(john.x, john.y, pmo.x, pmo.y)
@@ -49,9 +48,9 @@ end
 
 addHook("TouchSpecial", function(john, pmo)
 	if not (pmo and pmo.player and pmo.player.ptv3) then return true end
+	if not john.isAlive then return true end
 
 	killJohn(john, pmo)
-
 	return true
 end, MT_PTV3_PILLARJOHN)
 

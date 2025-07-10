@@ -1,5 +1,11 @@
+freeslot("TOL_PTV3")
 rawset(_G, "PTV3", {})
 rawset(_G, "CV_PTV3", {})
+rawset(_G, "PTV3_MENU", {
+	dresser = {
+		rootentries = { [0] = "Inventory", [1] = "Chaser Skins"}
+	}
+})
 rawset(_G, "PTV3_2D", {__map = 507})
 
 // TODO:
@@ -30,15 +36,14 @@ else
 end
 
 -- this seems out of place, i know, but its for a reason
-
 G_AddGametype({
     name = "Pizza Time",
     identifier = "PTV3",
     typeoflevel = TOL_RACE,
     rules = GTR_EMERALDTOKENS|GTR_FRIENDLYFIRE|GTR_SPAWNINVUL|GTR_CAMPAIGN|GTR_SPAWNENEMIES|GTR_NOTITLECARD|GTR_DEATHPENALTY|GTR_FRIENDLY,
     intermissiontype = int_match,
-    headerleftcolor = 222,
-    headerrightcolor = 84,
+    headerleftcolor = 98,
+    headerrightcolor = 51,
     description = "Go head-to-head against your friends! Use items, kill enemies, and be the one that starts Pizza Time in the classic mode you know and love, but better!"
 })
 
@@ -48,8 +53,8 @@ G_AddGametype({
     typeoflevel = TOL_RACE,
     rules = GTR_EMERALDTOKENS|GTR_FRIENDLYFIRE|GTR_SPAWNINVUL|GTR_CAMPAIGN|GTR_SPAWNENEMIES|GTR_NOTITLECARD|GTR_DEATHPENALTY|GTR_FRIENDLY,
     intermissiontype = int_match,
-    headerleftcolor = 222,
-    headerrightcolor = 84,
+    headerleftcolor = 163,
+    headerrightcolor = 35,
     description = "Pizzaface and Snick just won't give you a break, won't they? Maneuver your way over the two, raise the time and be the last one standing in this high-stake version of Pizza Time!"
 })
 
