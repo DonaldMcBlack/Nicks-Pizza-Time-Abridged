@@ -120,7 +120,7 @@ addHook('PostThinkFrame', function()
 
 		if multiplayer then
 			PTV3.pftime = max(0, $-1)
-			if not PTV3.pftime then PTV3:pizzafaceSpawn() end
+			if not PTV3.pftime and not (PTV3.pizzaface and PTV3.pizzaface.valid) then PTV3:pizzafaceSpawn() end
 
 			if not PTV3.overtime
 			and PTV3.time <= 5*TICRATE
@@ -154,6 +154,8 @@ addHook('PostThinkFrame', function()
 				PTV3:endGame()
 			end
 		end
+	elseif gametype == GT_PTV3DM and leveltime > PTV3.maxTitlecardTime then
+		PTV3.pftime = max(0, $-1)
 	end
 
 	local alive, pizzafaces, finished, unfinished, alive_2, total = PTV3:playerCount()

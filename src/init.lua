@@ -22,7 +22,7 @@ rawset(_G, "PTV3_2D", {__map = 507})
 // pizzaface skins (coneball, eggman, brody fox, summa dat) (for a separate pack)
 // make mod more moddable
 // fix and finish death mode
-// make a title screen
+// make a title screen (done)
 // make maps for up to castle eggman
 // add a tutorial
 
@@ -48,14 +48,14 @@ G_AddGametype({
 })
 
 G_AddGametype({
-    name = "P.T.: Death Mode",
+    name = "Death Mode",
     identifier = "PTV3DM",
     typeoflevel = TOL_RACE,
     rules = GTR_EMERALDTOKENS|GTR_FRIENDLYFIRE|GTR_SPAWNINVUL|GTR_CAMPAIGN|GTR_SPAWNENEMIES|GTR_NOTITLECARD|GTR_DEATHPENALTY|GTR_FRIENDLY,
     intermissiontype = int_match,
     headerleftcolor = 163,
     headerrightcolor = 35,
-    description = "Pizzaface and Snick just won't give you a break, won't they? Maneuver your way over the two, raise the time and be the last one standing in this high-stake version of Pizza Time!"
+    description = "Pizzaface woke up early and is ready to exact his revenge! Collect clocks to keep him at bay as you battle to be the last one alive in this pizza massacre!"
 })
 
 states[freeslot "S_PTV3_PANIC"] = {

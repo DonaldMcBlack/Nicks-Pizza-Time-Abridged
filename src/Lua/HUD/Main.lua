@@ -22,6 +22,7 @@ local IconHUD = dofile "HUD/Icons"
 local TitlecardHUD = dofile "HUD/Titlecards"
 local InversionHUD = dofile "HUD/Inversion"
 local VersionHUD = dofile "HUD/Version"
+dofile "HUD/MainMenu"
 
 function PTV3.HUD_returnTime(startTime, length, offset, useTics)
 	if offset == nil then

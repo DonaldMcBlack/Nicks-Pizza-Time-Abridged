@@ -502,12 +502,6 @@ function PTV3:newLap(p, int)
 	-- For the quakes
 	if ((PTV3.minusworld and not PTV3.pizzatime) or PTV3.extreme) then PTV3.shakeintensity = min(p.ptv3.laps, 5) end
 
-	-- Speed up Pizzaface
-	if PTV3.pizzaface and PTV3.pizzaface.angry then
-		PTV3.pizzaface.incremspeed = $+(FU/(PTV3.max_elaps - (PTV3.max_elaps/2)))
-		PTV3.pizzaface.incremspeedthreshold = $-1
-	end
-
 	p.ptv3.lap_time = leveltime
 	p.powers[pw_invulnerability] = 5*TICRATE
 
@@ -521,20 +515,27 @@ function PTV3:newLap(p, int)
 		p.ptv3.combo_pos = self.MAX_COMBO_TIME
 	end
 
-	-- Spawn Pizzaface
-	if abs(p.ptv3.laps) >= 3 and not (self.pizzaface and self.pizzaface.valid) then
-		self.pftime = 0
-		if not multiplayer then PTV3.time = 0 end
-	end
+	if gametype ~= GT_PTV3DM then
+		-- Speed up Pizzaface
+		if PTV3.pizzaface and PTV3.pizzaface.angry then
+			PTV3.pizzaface.incremspeed = $+(FU/(PTV3.max_elaps - (PTV3.max_elaps/2)))
+			PTV3.pizzaface.incremspeedthreshold = $-1
+		end
+		-- Spawn Pizzaface
+		if abs(p.ptv3.laps) >= 3 and not (self.pizzaface and self.pizzaface.valid) then
+			self.pftime = 0
+			if not multiplayer then PTV3.time = 0 end
+		end
 
-	-- Spawn Snick
-	if abs(p.ptv3.laps) >= 4 and not (self.snick and self.snick.valid) then
-		self:snickSpawn()
-	end
+		-- Spawn Snick
+		if abs(p.ptv3.laps) >= 4 and not (self.snick and self.snick.valid) then
+			self:snickSpawn()
+		end
 
-	-- Spawn John Ghost
-	if abs(p.ptv3.laps) >= 5 and not (self.johnGhost and self.johnGhost.valid) then
-		self:johnGhostSpawn()
+		-- Spawn John Ghost
+		if abs(p.ptv3.laps) >= 5 and not (self.johnGhost and self.johnGhost.valid) then
+			self:johnGhostSpawn()
+		end
 	end
 	
 	PTV3:logEvent(event_text, 2)
@@ -583,9 +584,7 @@ end
 function PTV3:startPizzaTime(p)
 	self.pizzatime = true
 	self.hud_pt = leveltime
-	if gametype == GT_PTV3DM then
-		self:snickSpawn()
-	end
+
 	for player in players.iterate do
 		if not player.mo then continue end
 		if not player.ptv3 then continue end

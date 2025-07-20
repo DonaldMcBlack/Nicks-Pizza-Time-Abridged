@@ -49,7 +49,7 @@ end
 
 return function(v)
 	if not PTV3:isPTV3() then return end
-	if not (PTV3.pizzatime or PTV3.minusworld) then return end
+	if not (PTV3.pizzatime or PTV3.minusworld) and gametype ~= GT_PTV3DM then return end
 	if not multiplayer then return end
 	if leveltime-PTV3.hud_pt > PTV3.maxpftime+(8*TICRATE) then return end
 

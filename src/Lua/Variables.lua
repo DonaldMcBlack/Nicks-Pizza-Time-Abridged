@@ -466,6 +466,5 @@ addHook('MapLoad', function()
 	if gametype == GT_PTV3DM
 	and not PTV3.titlecards[gamemap] then
 		PTV3:pizzafaceSpawn()
-		PTV3:snickSpawn()
 	end
 end)

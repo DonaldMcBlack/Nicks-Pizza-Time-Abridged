@@ -2,9 +2,11 @@ freeslot("MT_PTV3_PIZZAFACE",
 	"SPR_PZAT",
 	"SPR_PZTL",
 	"SPR_PZAR",
+	"SPR_PZHY",
 	"S_PTV3_PIZZAFACE",
 	"S_PTV3_PIZZAMAD",
 	"S_PTV3_PIZZATROLL",
+	"S_PTV3_PIZZAHAPPY",
 	"sfx_pflgh",
 	"sfx_fplgh",
 	"sfx_pizmov"
@@ -53,6 +55,16 @@ states[S_PTV3_PIZZATROLL] = {
 	action = nil,
 	tics = -1,
 	nextstate = S_PTV3_PIZZATROLL
+}
+
+states[S_PTV3_PIZZAHAPPY] = {
+	sprite = SPR_PZHY,
+	frame = FF_ANIMATE|A,
+	action = nil,
+	tics = -1,
+	var1 = 17,
+	var2 = 2,
+	nextstate = S_PTV3_PIZZAHAPPY
 }
 
 local function followC(p)
@@ -106,9 +118,15 @@ local function getNearestPlayer(pos, conditions)
 	return pl
 end
 
+local function ChangeMobjState(pf, newstate)
+	if pf.state == newstate then return end
+	pf.state = newstate
+end
+
 addHook('MobjSpawn', function(pf)
 	pf.intspeed = 25
 	pf.incremspeed = FU
+	pf.combinedspeed = pf.intspeed*pf.incremspeed
 	pf.incremspeedthreshold = 16
 	pf.destscale = (FU/2)*5/4
 	pf.scale = (FU/2)*5/4
@@ -193,8 +211,19 @@ addHook('MobjThinker', function(pf)
 
 		local dist = R_PointToDist2(pf.x, pf.y, pf.target.x, pf.target.y)
 		if gametype == GT_PTV3DM then
+
+			local sped = pf.combinedspeed/2
+			local sped2 = pf.combinedspeed/20
+
+			if not PTV3.pftime then
+				sped = 10*pf.combinedspeed/2
+				sped2 = pf.combinedspeed/10
+				ChangeMobjState(pf, S_PTV3_PIZZAFACE)
+			else
+				ChangeMobjState(pf, S_PTV3_PIZZAHAPPY)
+			end
+
 			-- a bit of yoink from FlyTo
-			local sped = 3*pf.speed/2
 			local flyto = P_AproxDistance(P_AproxDistance(pf.target.x - pf.x, pf.target.y - pf.y), pf.target.z - pf.z)
 			if flyto < 1 then
 				flyto = 1
@@ -203,7 +232,6 @@ addHook('MobjThinker', function(pf)
             local tmomy = FixedMul(FixedDiv(pf.target.y - pf.y, flyto), sped)
             local tmomz = FixedMul(FixedDiv(pf.target.z - pf.z, flyto), sped)
 			-- and again
-			local sped2 = pf.flyspeed/15
 			local flyto2 = P_AproxDistance(P_AproxDistance(tmomx - pf.momx, tmomy - pf.momy), tmomz - pf.momz)
 			if flyto2 < 1 then
 				flyto2 = 1
@@ -307,7 +335,8 @@ function PTV3:pizzafaceSpawn()
 			position[_] = i
 		end
 
-		self.pizzaface = spawnAIpizza(clonething)
+		self.pizzaface = spawnAIpizza(position)
+		self.pizzaface.state = gametype == GT_PTV3DM and S_PTV3_PIZZAHAPPY or S_PTV3_PIZZAFACE
 		self.pizzaface.angry = false
 		self.pizzaface.display_name = "PIZZAFACE"
 		print("DEBUG - Spawn Pizzaface AI")
