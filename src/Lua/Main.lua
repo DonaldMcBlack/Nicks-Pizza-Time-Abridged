@@ -7,6 +7,7 @@ sfxinfo[freeslot "sfx_timexp"].caption = "BOOM!"
 sfxinfo[freeslot "sfx_doorsh"].caption = "SLAM!"
 
 addHook("ThinkFrame", function()
+	if not PTV3:isPTV3() then return end
 	if PTV3.pizzatime or PTV3.minusworld then P_StartQuake(PTV3.shakeintensity*FU, -1) end
 end)
 

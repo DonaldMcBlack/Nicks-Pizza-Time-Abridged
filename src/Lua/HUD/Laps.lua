@@ -1,5 +1,6 @@
-freeslot("sfx_lap2")
+freeslot("sfx_lap2", "sfx_lap_2")
 sfxinfo[sfx_lap2].caption = "Ding Ding Ding!"
+sfxinfo[sfx_lap_2].caption = "!gniD gniD gniD"
 
 local function customTween(t, times)
 	local ot = t/(FU/#times)

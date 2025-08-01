@@ -456,8 +456,6 @@ end
 -- Enters a new lap for the player who entered a Lap Portal.
 function PTV3:newLap(p, int)
 	if not (self.pizzatime or self.minusworld) then return end
-	if not p.ptv3 then return end
-	if p.ptv3.chaser then return end
 	if not (self:canLap(p)) then return end
 
 	if p.ptv3.isSwap and not p.ptv3.swapModeFollower then
@@ -505,7 +503,12 @@ function PTV3:newLap(p, int)
 	p.ptv3.lap_time = leveltime
 	p.powers[pw_invulnerability] = 5*TICRATE
 
-	if p == displayplayer then S_StartSound(nil, sfx_lap2, p) end
+	if p == displayplayer then
+		if PTV3.minusworld then S_StartSound(nil, sfx_lap_2, p)
+		else
+			S_StartSound(nil, sfx_lap2, p)
+		end
+	end
 
 	if p.ptv3.isSwap and p.ptv3.isSwap.valid then
 		p.ptv3.isSwap.powers[pw_invulnerability] = 5*TICRATE
@@ -612,8 +615,11 @@ function PTV3:startMinusWorld(p)
 	self.shakeintensity = 2
 
 	S_StartSound(nil, sfx_s3k9f)
-	P_SetOrigin(PTV3.spawnGate, PTV3.endpos.x, PTV3.endpos.y, PTV3.endpos.z)
-	PTV3.spawnGate.angle = PTV3.endpos.a
+	
+	if PTV3.spawnGate and PTV3.spawnGate.valid then
+		P_SetOrigin(PTV3.spawnGate, PTV3.endpos.x, PTV3.endpos.y, PTV3.endpos.z)
+		PTV3.spawnGate.angle = PTV3.endpos.a
+	end
 
 	for player in players.iterate do
 		if not player.mo and not player.ptv3 then continue end

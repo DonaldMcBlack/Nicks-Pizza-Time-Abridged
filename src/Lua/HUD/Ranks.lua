@@ -2,7 +2,10 @@ return function(v,p)
 	if not p.ptv3 then return end
 	if p.ptv3.chaser then return end
 	local rank = PTV3.ranks[p.ptv3.rank]
-	local rank_patch = v.cachePatch(rank.rank.."RANK")
+	local rank_patch = gametype == GT_PTV3DM and "DM_"..rank.rank.."RANK" or "PT_"..rank.rank.."RANK"
+	local rankfill_patch = gametype == GT_PTV3DM and "DM_"..rank.rank.."FILL" or "PT_"..rank.rank.."FILL"
+
+	rank_patch = v.cachePatch(rank_patch)
 
 	local x = 48*FU
 	local y = (42+16+10)*FU
@@ -34,7 +37,7 @@ return function(v,p)
 		v.drawCropped(
 			x, y,
 			s, s,
-			v.cachePatch(rank.rank.."FILL"),
+			v.cachePatch(rankfill_patch),
 			V_SNAPTOLEFT|V_SNAPTOTOP, nil,
 			0, cropy,
 			rank_patch.width*FU,

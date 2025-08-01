@@ -1,6 +1,17 @@
 local screenFadeTime = TICRATE/4
 local fadeTime = TICRATE/2
 
+local function GetSnap(string)
+	if string and type(string) ~= "string" then return end
+
+	if string == "top" then return V_SNAPTOTOP end
+	if string == "right" then return V_SNAPTORIGHT end
+	if string == "left" then return V_SNAPTOLEFT end
+	if string == "right" then return V_SNAPTORIGHT end
+
+	return nil 
+end
+
 return function(v)
 	if not PTV3:isPTV3() then return end
 	if not (PTV3.titlecards[gamemap]) then return end
@@ -21,7 +32,8 @@ return function(v)
 		v.drawFill()
 	end
 
-	local titlecard = v.cachePatch(PTV3.titlecards[gamemap].g)
+	local titlecard = v.cachePatch(PTV3.titlecards[gamemap].bg)
+	local titlecard_name = PTV3.titlecards[gamemap].title
 
 	local scale = FixedDiv(v.height()/v.dupy(), titlecard.height)
 
@@ -37,13 +49,19 @@ return function(v)
 
 	if tween < 10 then
 		local color
+		local shakeX, shakeY = v.RandomRange(-1*FU, 1*FU), v.RandomRange(-1*FU, 1*FU)
+
 		if gametype == GT_PTV3DM then
 			color = v.getColormap(TC_RAINBOW, SKINCOLOR_RED)
 		end
 		v.drawStretched(160*FU-(titlecard.width*(scale/2)),0, scale, scale, titlecard, flags, color)
+
+		flags = titlecard_name.snap ~= nil and $|GetSnap(titlecard_name.snap)
+
+		v.drawStretched((titlecard_name.pos_x+shakeX)-(titlecard.width*(scale/2)), titlecard_name.pos_y+shakeY, FU/3+(scale/8), FU/3+(scale/8), v.cachePatch(titlecard_name.graphic), flags, color)
+
 		if gametype == GT_PTV3DM then
-			local shakeX = v.RandomRange(-2*FU, 2*FU)
-			local shakeY = v.RandomRange(-2*FU, 2*FU)
+			shakeX, shakeY = v.RandomRange(-2*FU, 2*FU), v.RandomRange(-2*FU, 2*FU)
 			customhud.CustomFontString(v,
 				(160*FU)+shakeX, ((200-20)*FU)+shakeY,
 				"Death Mode",

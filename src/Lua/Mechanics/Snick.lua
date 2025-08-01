@@ -21,7 +21,7 @@ states[S_PTV3_SNICK] = {
     tics = -1,
     action = nil,
     var1 = 2,
-    var2 = 1,
+    var2 = 2,
     nextstate = S_PTV3_SNICK
 }
 
@@ -31,7 +31,7 @@ states[S_PTV3_SNICK_LUNGE] = {
     tics = -1,
     action = nil,
     var1 = 3,
-    var2 = 1,
+    var2 = 2,
     nextstate = S_PTV3_SNICK_LUNGE
 }
 
@@ -113,7 +113,8 @@ addHook('MobjThinker', function(snick)
 	end
 
 	if not (leveltime % 8)
-	and (snick.momx ~= 0 or snick.momy ~= 0 or snick.momz ~= 0) then
+	and (snick.momx ~= 0 or snick.momy ~= 0 or snick.momz ~= 0)
+	and not PTV3.snick.ptv3 then
 		PTV3:doEffect(snick, "Snick Afterimage")
 	end
 
@@ -145,9 +146,19 @@ end, MT_PTV3_SNICK)
 
 local function SnickTouchSpecial(snick, pmo)
 	if snick.tracer == pmo then return end
-	if (pmo and pmo.player and pmo.player.ptv3 and pmo.player.ptv3.pizzaface) then return end
+	if (pmo and pmo.player and pmo.player.ptv3 and pmo.player.ptv3.pizzaMobj) then return end
 
 	if (pmo.player.pflags & PF_JUMPED or pmo.player.pflags & PF_SPINNING or pmo.player.pflags & PF_STARTDASH) or pmo.player.powers[pw_invulnerability] then
+		local i = 0
+		while i < 20 do
+			local particle = P_SpawnMobjFromMobj(snick, 0, 0, 0, MT_ARIDDUST)
+			particle.momx = P_RandomRange(-10, 10)*FU
+			particle.momy = P_RandomRange(-10, 10)*FU
+			particle.momz = P_RandomRange(-10, 10)*FU
+			particle.scalespeed = FU/TICRATE
+			particle.destscale = 0
+			i = $+1
+		end
 		P_KillMobj(snick, pmo, pmo)
 		PTV3.snick = nil
 		PTV3:snickSpawn()

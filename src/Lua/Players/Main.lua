@@ -10,12 +10,13 @@ dofile(scriptPath.."PVP")
 local cutscene,precutscene = dofile(checksPath.."Cutscene")
 local exit = dofile(checksPath.."Exit")
 local gameover = dofile(checksPath.."Game Over")
-local ragdoll = dofile(checksPath.."Ragdoll")
 
 local exithandler = dofile(playerThinkerPath.."Exits")
 local scoreremoval = dofile(playerThinkerPath.."Score Removal")
 local taunt,pretaunt = dofile(playerThinkerPath.."Taunting")
 local panic = dofile(playerThinkerPath.."Panic")
+local itemequip = dofile(playerThinkerPath.."ItemEquip")
+local ragdoll = dofile(playerThinkerPath.."Ragdoll")
 
 local chasers = {
 	pizzaface = dofile(chaserThinkerPath.."Pizzaface"),
@@ -44,13 +45,13 @@ local function runCode(p)
 	if cutscene(p) then return end
 	if exit(p)     then return end
 	if gameover(p) then return end
-    if ragdoll(p) then return end
 
 	if not p.ptv3.chaser then
 		exithandler(p)
 		scoreremoval(p)
 		taunt(p)
 		panic(p)
+		ragdoll(p)
 	else
 		R_SetPlayerSkin(p, "sonic")
 		p.mo.flags2 = $|MF2_DONTDRAW
@@ -59,6 +60,8 @@ local function runCode(p)
 
 		chaserfunc(p)
 	end
+
+	itemequip(p)
 
 	PTV3:checkRank(p)
 	PTV3:returnNextRankPercent(p)

@@ -124,7 +124,7 @@ local function ChangeMobjState(pf, newstate)
 end
 
 addHook('MobjSpawn', function(pf)
-	pf.intspeed = 25
+	pf.intspeed = 29
 	pf.incremspeed = FU
 	pf.combinedspeed = pf.intspeed*pf.incremspeed
 	pf.incremspeedthreshold = 16
@@ -192,10 +192,10 @@ addHook('MobjThinker', function(pf)
 	end
 
 	if not (leveltime % 8) then
-		if (pf.momx ~= 0 or pf.momy ~= 0 or pf.momz ~= 0) then
+		if (pf.momx ~= 0 or pf.momy ~= 0 or pf.momz ~= 0) and not PTV3.pizzaface.ptv3 then
 			PTV3:doEffect(pf, "PF Afterimage")
 		end
-		S_StartSound(pf, sfx_pizmov)
+		if not S_SoundPlaying(pf, sfx_pizmov) then S_StartSound(pf, sfx_pizmov) end
 	end
 
 	pf.angry = (PTV3.extreme or PTV3.overtime) and not PTV3.minusworld or false

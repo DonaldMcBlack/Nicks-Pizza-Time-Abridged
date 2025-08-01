@@ -167,18 +167,7 @@ local pizzaface = function(p)
 			P_SetOrigin(p.mo, sel.x, sel.y, sel.z)
 			p.mo.momx,p.mo.momy,p.mo.momz = 0,0,0
 		else
-			local maxMove = 5
-
-			local HFU = FixedDiv(p.ptv3.chasermovetime, maxMove)
-			local VFU = FixedDiv(p.ptv3.chaservertmovetime, maxMove)
-
-			local moving, movingv = movement(p, canMove, 25*HFU, 25*VFU)
-			
-			if moving or movingv then
-				p.ptv3.chasermovetime = min(maxMove, $+1)
-			else
-				p.ptv3.chasermovetime = 0
-			end
+			movement(p, canMove, p.ptv3.pizzaMobj.combinedspeed, p.ptv3.pizzaMobj.combinedspeed, "PF Afterimage")
 			
 			-- anticamp(p, canMove)
 		end

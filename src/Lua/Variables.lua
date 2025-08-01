@@ -61,28 +61,36 @@ end
 COM_AddCommand('PTV3_openmenu', function(p, menuname)
 	if not PTV3:isPTV3() then return end
 
-	
-	
 	p.ptv3.menumode.inmenu = true
 	p.ptv3.menumode.menutype = string.lower(menuname)
 
 	CONS_Printf(p, "Entering: "..p.ptv3.menumode.menutype)
 end)
 
-COM_AddCommand('PTV3_pizzatimenow', function(p)
+COM_AddCommand('PTV3_pizzatimenow', function(p, lap)
 	if not PTV3:isPTV3() then return end
 	if not (IsPlayerAdmin(p) or p == server) then return end
-	
-	PTV3:startPizzaTime(p)
-	P_RemoveMobj(PTV3.pillarJohn)
+
+	local numlap = tonumber(lap)
+
+	if not (PTV3.pizzatime or PTV3.minusworld) then
+		if numlap then
+			if numlap < 0 then
+				PTV3:startMinusWorld(p)
+				numlap = $+1
+			else
+				PTV3:startPizzaTime(p)
+				numlap = $-1
+			end
+			PTV3:newLap(p, numlap)
+		else
+			PTV3:startPizzaTime(p)
+		end
+
+		if PTV3.pillarJohn then P_RemoveMobj(PTV3.pillarJohn) end
+	end
 end, COM_ADMIN)
 
-COM_AddCommand('PTV3_breakreality', function(p)
-	if not PTV3:isPTV3() then return end
-	if not (IsPlayerAdmin(p) or p == server) then return end
-	
-	PTV3:startMinusWorld(p)
-end, COM_ADMIN)
 COM_AddCommand('PTV3_becomechaser', function(p, chaser)
 	if not PTV3:isPTV3() then return end
 	if not (IsPlayerAdmin(p) or p == server) then return end
@@ -107,23 +115,22 @@ COM_AddCommand('PTV3_becomechaser', function(p, chaser)
 		PTV3:johnGhostSpawn()
 	end
 end, COM_ADMIN)
+
 COM_AddCommand('PTV3_giveitem', function(p, item)
-	PTV3:givePlayerItem(p, item)
-end, COM_ADMIN)
-COM_AddCommand('PTV3_addlaps', function(p, num)
 	if not PTV3:isPTV3() then return end
 	if not (IsPlayerAdmin(p) or p == server) then return end
-
-	num = tonumber(num)
-	PTV3:newLap(p, num)
+	
+	PTV3:GiveItem(p, string.lower(item))
 end, COM_ADMIN)
+
 COM_AddCommand('PTV3_forceovertime', function(p)
 	if not PTV3:isPTV3() then return end
 	if not (IsPlayerAdmin(p) or p == server) then return end
 
 	PTV3:overtimeToggle()
 end, COM_ADMIN)
-COM_AddCommand('PTV3_setovertimer', function(p, time)
+
+COM_AddCommand('PTV3_setWARtimer', function(p, time)
 	if not PTV3:isPTV3() then return end
 	if not (IsPlayerAdmin(p) or p == server) then return end
 
@@ -136,6 +143,7 @@ COM_AddCommand('PTV3_setovertimer', function(p, time)
 
 	CONS_Printf(consoleplayer, "Set War Timer to "..text)
 end, COM_ADMIN)
+
 COM_AddCommand('PTV3_spawnpizzaface', function(p, name)
 	if not PTV3:isPTV3() then return end
 	if not (IsPlayerAdmin(p) or p == server) then return end
@@ -271,7 +279,9 @@ function PTV3:player(player)
 	player.ptv3 = {
 		["buttons"] = player.cmd.buttons,
 		['laps'] = 0,
-		['ragdoll'] = { lands = 0, getuptimer = 0},
+
+		['ragdoll'] = 0,
+		['ragdoll_bounces'] = 0,
 
 		['chaser'] = false,
 		['chasertype'] = "pizzaface",
@@ -306,9 +316,12 @@ function PTV3:player(player)
 
 		['toppins'] = {},
 
-		['banana'] = 0,
-		['banana_angle'] = 0,
-		['banana_speed'] = 0,
+		['curItem'] = false,
+		['curItem_equipped'] = false,
+		['curItem_mobj'] = nil,
+		['invItems'] = {},
+		['ringBank'] = 0,
+
 		['exitShield'] = SH_NONE,
 		['pvpCooldown'] = 0,
 		

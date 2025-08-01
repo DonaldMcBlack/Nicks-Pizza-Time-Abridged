@@ -120,6 +120,7 @@ dofile "Titlecards Data"
 dofile "Functions"
 dofile "Effects/Main"
 dofile "Mechanics/Main"
+dofile "Items/Main"
 dofile "Config"
 
 PTV3.maxTitlecardTime = 3*TICRATE

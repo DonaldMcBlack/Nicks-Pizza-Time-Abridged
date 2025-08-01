@@ -23,27 +23,7 @@ local snick = function(p)
 			p.ptv3.pizzaMobj.state = state
 		end
 
-		movement(p, canMove, isDashing and 32*FU or 16*FU)
-		anticamp(p, canMove)
-
-		local maxMove = 5
-
-		local HFU = FixedDiv(p.ptv3.chasermovetime, maxMove)
-		local VFU = FixedDiv(p.ptv3.chaservertmovetime, maxMove)
-
-		local moving, movingv = movement(p, canMove, isDashing and 60*HFU or 30*HFU, isDashing and 60*VFU or 30*VFU)
-		
-		if moving then
-			p.ptv3.chasermovetime = min(maxMove, $+1)
-		else
-			p.ptv3.chasermovetime = 0
-		end
-		if movingv then
-			p.ptv3.chaservertmovetime = min(maxMove, $+1)
-		else
-			p.ptv3.chaservertmovetime = 0
-		end
-		
+		movement(p, canMove, isDashing and 32*FU or 16*FU, isDashing and 32*FU or 16*FU, "Snick Afterimage")
 		-- anticamp(p, canMove)
 	end
 end

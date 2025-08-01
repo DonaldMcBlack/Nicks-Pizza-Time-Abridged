@@ -78,7 +78,7 @@ return function(v)
 		time = PTV3.HUD_returnTime(PTV3.hud_pt, 5*FU)
 		y = ease.linear(time, 220*FU, 180*FU)
 	elseif not PTV3.time and not multiplayer then
-		time = PTV3.HUD_returnTime(PTV3.hud_pt+(PTV3.maxtime-PTV3.time)+(7*TICRATE), 3*TICRATE, nil, true)
+		time = PTV3.HUD_returnTime(leveltime-PTV3.hud_pt, 3*TICRATE, nil, true)
 		y = ease.linear(time, 180*FU, 260*FU)
 	end
 	

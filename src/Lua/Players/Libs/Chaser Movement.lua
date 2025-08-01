@@ -2,7 +2,21 @@ local function cAngle(p)
 	return p.cmd.angleturn<<16 + R_PointToAngle2(0, 0, p.cmd.forwardmove*FU, -p.cmd.sidemove*FU)
 end
 
-return function(p, canMove, speedx, speedy)
+local function Move(p, angle, speedx, speedy)
+	if max(abs(p.cmd.forwardmove), abs(p.cmd.sidemove)) > 0 then
+		local frac = abs(FixedDiv(FixedHypot(
+				abs(p.cmd.sidemove << 16),
+				abs(p.cmd.forwardmove << 16)
+			), 50*FU
+		))
+		frac = min($, FU)
+
+		p.mo.momx = P_ReturnThrustX(nil, angle, FixedMul(speedx,frac))
+		p.mo.momy = P_ReturnThrustY(nil, angle, FixedMul(speedy,frac))
+	end
+end
+
+return function(p, canMove, speedx, speedy, afterimage)
 	p.powers[pw_shield] = SH_NONE
 	p.powers[pw_carry] = 0
 	p.mo.scale = FU*5/4
@@ -15,15 +29,11 @@ return function(p, canMove, speedx, speedy)
 		speedy = speedx
 	end
 
-	-- CONS_Printf(p, canMove)
-
 	if canMove then
 		local isMoving = false
-		local isMovingV = false
 		local moveAngle
 		
 		if p.cmd.buttons & BT_JUMP or p.cmd.buttons & BT_SPIN then
-			isMovingV = true
 
 			if p.cmd.buttons & BT_JUMP then
 				p.mo.momz = speedy
@@ -32,18 +42,23 @@ return function(p, canMove, speedx, speedy)
 			if p.cmd.buttons & BT_SPIN then
 				p.mo.momz = -speedy
 			end
+			isMoving = true
 		end
 
 		if p.cmd.forwardmove or p.cmd.sidemove then
 			moveAngle = cAngle(p)
-			p.mo.momx = FixedMul(speedx, cos(moveAngle))
-			p.mo.momy = FixedMul(speedx, sin(moveAngle))
+			p.ptv3.pizzaMobj.angle = moveAngle
+
+			Move(p, moveAngle, speedx, speedy)
+
 			isMoving = true
-		else
-			isMoving = false
 		end
 
-		return isMoving,isMovingV
+		if afterimage and isMoving and not (leveltime % 8) then
+			PTV3:doEffect(p.ptv3.pizzaMobj, afterimage)
+		end
+
+		return isMoving
 	end
-	return false,false
+	return false
 end

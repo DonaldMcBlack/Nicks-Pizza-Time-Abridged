@@ -1,8 +1,29 @@
 MainCfg
+TitleScrollXSpeed = 0
+LoopTitle = false
+HideTitlePics = true
+NumDemos = 0
+
+Level 99
+Levelname = Outside
+SubTitle = "Road to the Pizza Tower..."
+Act = 0
+Music = TOP
+TypeOfLevel = Singleplayer,Co-op
+NextLevel = 1
+SkyNum = 19
+RecordAttack = false
+LevelSelect = 1
+SaveGame = true
+SkyboxScale = 64
+FlickyList = Bluebird,Chipmunk
+LevelSelect = 1
+NoVisitNeeded = true
+NoZone = true
 
 Level PT
 LevelName = The Pizza Tower
-TypeOfLevel = Singleplayer, PTV3
+TypeOfLevel = Singleplayer,PTV3
 Act = 0
 Music = MONDAY
 NextLevel = TITLE

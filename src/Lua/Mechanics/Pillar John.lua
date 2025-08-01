@@ -23,6 +23,14 @@ mobjinfo[MT_PTV3_PILLARJOHN] = {
 	flags = MF_SPECIAL|MF_ENEMY
 }
 
+addHook("ShouldDamage", function(t,i,s)
+	return true
+end, MT_PTV3_PILLARJOHN)
+
+addHook('MobjDamage', function(t,i,s)
+	return true
+end, MT_PTV3_PILLARJOHN)
+
 addHook("MobjSpawn", function(john)
 	john.isAlive = true
 	PTV3.pillarJohn = john
