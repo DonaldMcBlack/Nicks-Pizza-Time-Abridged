@@ -465,6 +465,8 @@ addHook('MapLoad', function()
 		endSector(thing)
 	end
 
+	PTV3.setJohnBlocks()
+
 	-- I don't care if it's not there in the actual gametype, I want it gone.
 	for mobj in mobjs.iterate() do
 		if mobj.type == MT_SIGN and mobj.valid then P_RemoveMobj(mobj) end

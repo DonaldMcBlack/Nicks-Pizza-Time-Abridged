@@ -10,8 +10,7 @@ rawset(_G, "PTV3_2D", {__map = 507})
 
 // TODO:
 // add custom music support (done)
-// add multiple chasers
-// plan: snick (done), ghost john, fake peppino, sonic with a shotgun, etc
+// add multiple chasers (done)
 // make lobby background
 // (john gutter background)
 // give pizzaface ana bility

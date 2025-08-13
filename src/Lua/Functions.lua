@@ -264,32 +264,51 @@ local oppositefaces = {
 	["JOHNBLK0"] = "JOHNBLK1",
 }
 
-PTV3.switchJohnBlocks = function()
-	if mapheaderinfo[gamemap].ptv3_nofofflip ~= nil
-		return
-	end
-	
-	for sec in sectors.iterate
-		for rover in sec.ffloors()
+PTV3.setJohnBlocks = function()
+	if mapheaderinfo[gamemap].ptv3_nofofflip ~= nil then return end
+
+	-- TODO: Don't hardcode this for just the John Block textures
+	for sec in sectors.iterate do
+		for rover in sec.ffloors() do
 			if not rover.valid then continue end
 			local side = rover.master.frontside
 			
 			if not (side.midtexture == R_TextureNumForName("JOHNBLK1")
-			or side.midtexture == R_TextureNumForName("JOHNBLK0"))
-			--or side.midtexture == R_TextureNumForName("TKISBKB1")
-			--or side.midtexture == R_TextureNumForName("TKISBKB2"))
+			or side.midtexture == R_TextureNumForName("JOHNBLK0")) then
+				continue
+			end
+
+
+			if side.midtexture == R_TextureNumForName("JOHNBLK0") then
+				rover.flags = $|FOF_TRANSLUCENT|FOF_NOSHADE &~(FOF_SOLID|FOF_CUTLEVEL|FOF_CUTSOLIDS)
+				rover.alpha = 128
+			end
+		end
+	end
+end
+
+PTV3.switchJohnBlocks = function()
+	if mapheaderinfo[gamemap].ptv3_nofofflip ~= nil then return end
+	
+	for sec in sectors.iterate do
+		for rover in sec.ffloors() do
+			if not rover.valid then continue end
+			local side = rover.master.frontside
+			
+			if not (side.midtexture == R_TextureNumForName("JOHNBLK1")
+			or side.midtexture == R_TextureNumForName("JOHNBLK0")) then
 				continue
 			end
 			
 			local oppositeface = oppositefaces[
-					string.sub(R_TextureNameForNum(side.midtexture),1,8)
-				]
+				string.sub(R_TextureNameForNum(side.midtexture),1,8)
+			]
 				
 			--???????
 			if oppositeface == nil then continue end
 			
 			--awake to asleep
-			if rover.flags & FOF_SOLID
+			if rover.flags & FOF_SOLID then
 				rover.flags = $|FOF_TRANSLUCENT|FOF_NOSHADE &~(FOF_SOLID|FOF_CUTLEVEL|FOF_CUTSOLIDS)
 				rover.alpha = 128
 			--asleep to awake
