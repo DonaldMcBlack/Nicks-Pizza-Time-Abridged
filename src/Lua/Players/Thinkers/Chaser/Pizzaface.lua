@@ -25,26 +25,6 @@ addHook("MapThingSpawn", function(mo)
 	end
 end, MT_STARPOST)
 
-local function P_FlyTo(mo, fx, fy, fz, sped, addques)
-	local z = mo.z+(mo.height/2)
-    if mo.valid then
-        local flyto = P_AproxDistance(P_AproxDistance(fx - mo.x, fy - mo.y), fz - z)
-        if flyto < 1 then
-            flyto = 1
-        end
-		
-        if addques then
-            mo.momx = $ + FixedMul(FixedDiv(fx - mo.x, flyto), sped)
-            mo.momy = $ + FixedMul(FixedDiv(fy - mo.y, flyto), sped)
-            mo.momz = $ + FixedMul(FixedDiv(fz - z, flyto), sped)
-        else
-            mo.momx = FixedMul(FixedDiv(fx - mo.x, flyto), sped)
-            mo.momy = FixedMul(FixedDiv(fy - mo.y, flyto), sped)
-            mo.momz = FixedMul(FixedDiv(fz - z, flyto), sped)
-        end
-    end
-end
-
 local function getNearestPlayer(pos, conditions)
 	local x,y,z,pl
 
@@ -113,7 +93,7 @@ local pizzaface = function(p)
 					p.ptv3.pizzaface_chasedown = 5*TICRATE
 					p.ptv3.pizzaface_chasedowncool = 20*TICRATE
 
-					S_StartSound(p.mo, sfx_pflgh)
+					S_StartSound(p.mo, p.skindata.laughsound)
 				end
 
 				if p.cmd.buttons & BT_CUSTOM2 and not (p.ptv3.buttons & BT_CUSTOM2) then
@@ -128,7 +108,7 @@ local pizzaface = function(p)
 			p.ptv3.pizzaface_teleporting = false
 			p.ptv3.pizzaface_teleportingcool = 40*TICRATE
 			p.ptv3.stun = 4*TICRATE
-			S_StartSound(p.mo, sfx_pflgh)
+			S_StartSound(p.mo, p.skindata.laughsound)
 		end
 
 		if p.ptv3.pizzaface_chasedown then
@@ -167,7 +147,7 @@ local pizzaface = function(p)
 			P_SetOrigin(p.mo, sel.x, sel.y, sel.z)
 			p.mo.momx,p.mo.momy,p.mo.momz = 0,0,0
 		else
-			movement(p, canMove, p.ptv3.pizzaMobj.combinedspeed, p.ptv3.pizzaMobj.combinedspeed, "PF Afterimage")
+			movement(p, canMove, p.skindata.intspeed*p.skindata.incremspeed, p.skindata.intspeed*p.skindata.incremspeed, "PF Afterimage")
 			
 			-- anticamp(p, canMove)
 		end

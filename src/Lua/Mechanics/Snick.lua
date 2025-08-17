@@ -1,62 +1,5 @@
-freeslot("MT_PTV3_SNICK",
-	"SPR_SNOR",
-	"SPR_SLUN",
-	"S_PTV3_SNICK",
-	"S_PTV3_SNICK_LUNGE"
-)
-
-mobjinfo[MT_PTV3_SNICK] = {
-	doomednum = -1,
-	spawnstate = S_PTV3_SNICK,
-	spawnhealth = 1000,
-	deathstate = S_NULL,
-	radius = 32*FU,
-	height = 32*FU,
-	flags = MF_NOCLIP|MF_NOGRAVITY|MF_NOCLIPHEIGHT|MF_SPECIAL
-}
-
-states[S_PTV3_SNICK] = {
-    sprite = SPR_SNOR,
-    frame = FF_ANIMATE|A,
-    tics = -1,
-    action = nil,
-    var1 = 2,
-    var2 = 2,
-    nextstate = S_PTV3_SNICK
-}
-
-states[S_PTV3_SNICK_LUNGE] = {
-    sprite = SPR_SLUN,
-    frame = FF_ANIMATE|A,
-    tics = -1,
-    action = nil,
-    var1 = 3,
-    var2 = 2,
-    nextstate = S_PTV3_SNICK_LUNGE
-}
-
 local function followC(p)
-	return p.mo.health and p.ptv3 and not p.ptv3.pizzaface and not (p.ptv3.fake_exit)
-end
-
-local function P_FlyTo(mo, fx, fy, fz, sped, addques)
-	local z = mo.z+(mo.height/2)
-    if mo.valid then
-        local flyto = P_AproxDistance(P_AproxDistance(fx - mo.x, fy - mo.y), fz - z)
-        if flyto < 1 then
-            flyto = 1
-        end
-		
-        if addques then
-            mo.momx = $ + FixedMul(FixedDiv(fx - mo.x, flyto), sped)
-            mo.momy = $ + FixedMul(FixedDiv(fy - mo.y, flyto), sped)
-            mo.momz = $ + FixedMul(FixedDiv(fz - z, flyto), sped)
-        else
-            mo.momx = FixedMul(FixedDiv(fx - mo.x, flyto), sped)
-            mo.momy = FixedMul(FixedDiv(fy - mo.y, flyto), sped)
-            mo.momz = FixedMul(FixedDiv(fz - z, flyto), sped)
-        end
-    end
+	return p.mo.health and p.ptv3 and not p.ptv3.chaser and not (p.ptv3.fake_exit)
 end
 
 local function getNearestPlayer(pos, conditions)
@@ -88,18 +31,30 @@ local function getNearestPlayer(pos, conditions)
 	return pl
 end
 
+function PTV3:LoadSkin_Snick(properties)
+	if not properties then error("One of Snick's skins were not found.") return end
+	if type(properties) ~= "table" then error("One of Snick's skins is not a table.") return end
+
+	local default_struct = PTV3_SKINS.snick[0]
+
+	for i,v in pairs(default_struct) do
+		if properties[i] == nil or type(properties[i]) ~= type(default_struct[i]) then
+			properties[i] = default_struct[i]
+		end
+	end
+
+	table.insert(PTV3_SKINS.snick, properties)
+end
+
 addHook('MobjSpawn', function(snick)
 	local player = getNearestPlayer(PTV3.spawn, followC)
 	if not player then return end
 
-	snick.speed = 10*FU
 	snick.target = player.mo
 	snick.shadowscale = snick.scale
 end, MT_PTV3_SNICK)
 
-addHook("ShouldDamage", function(t,i,s)
-	return false
-end, MT_PTV3_SNICK)
+addHook("ShouldDamage", function(t,i,s) return false end, MT_PTV3_SNICK)
 
 addHook('MobjThinker', function(snick)
 	local runCode = true
@@ -122,25 +77,10 @@ addHook('MobjThinker', function(snick)
 
 	local player = getNearestPlayer(PTV3.spawn, followC)
 	snick.target = player and player.mo
-	snick.momx,snick.momy,snick.momz = 0,0,0
 	if snick.target then
-		local dist = P_AproxDistance(snick.x - snick.target.x, snick.y - snick.target.y)
-		local speedup = 650*FU
-		snick.angle = R_PointToAngle2(snick.x, snick.y, snick.target.x, snick.target.y)
-		
-		if dist > speedup then
-			snick.speed = min(FixedMul(FU/20, dist), 300*FU)
-			if snick.state ~= S_PTV3_SNICK_LUNGE then
-				snick.state = S_PTV3_SNICK_LUNGE
-			end
-		else
-			snick.speed = ease.linear(FU/32, snick.speed, 10*FU)
-			if snick.state ~= S_PTV3_SNICK then
-				snick.state = S_PTV3_SNICK
-			end
-		end
-		
-		P_FlyTo(snick, snick.target.x, snick.target.y, snick.target.z+8*FU, snick.speed)
+		snick.skindata.behaviour(snick)
+	else
+		snick.momx,snick.momy,snick.momz = 0,0,0
 	end
 end, MT_PTV3_SNICK)
 
@@ -175,11 +115,11 @@ addHook('TouchSpecial', function(snick, pmo)
 	return true
 end, MT_PTV3_SNICK)
 
-local function spawnAIpizza(s)
+local function spawnmobj(s)
 	return P_SpawnMobj(s.x, s.y, s.z+(300*FU), MT_PTV3_SNICK)
 end
 
-function PTV3:snickSpawn()
+function PTV3:snickSpawn(skin)
 	local canSpawnAI = not (self.snick and self.snick.ptv3)
 
 	if canSpawnAI then
@@ -199,18 +139,44 @@ function PTV3:snickSpawn()
 		end
 		
 		position.z = $+(120*FU)
-		self.snick = spawnAIpizza(position)
-		self.snick.display_name = "SNICK"
+		self.snick = spawnmobj(position)
 
+		if skin then
+			for _,i in pairs(PTV3_SKINS.snick) do
+				if skin == string.lower(PTV3_SKINS.snick[_].name) then self.snick.skindata = PTV3_SKINS.snick[_] break end
+			end
+		else
+			self.snick.skindata = PTV3_SKINS.snick[self.skinIndex.snick]
+		end
+
+		if not self.snick.skindata then
+			error("Skin is null. Picking default skin.")
+			self.snick.skindata = PTV3_SKINS.snick[0]
+		end
 	else
 		if self.snick.ptv3
 		and self.snick.ptv3.pizzaMobj
 		and self.snick.ptv3.pizzaMobj.valid then return end
 
-		local snick = spawnAIpizza(self.snick.mo)
+		local snick = spawnmobj(self.snick.mo)
+
+		if skin then
+			for _,i in pairs(PTV3_SKINS.snick) do
+				if skin == string.lower(PTV3_SKINS.snick[_].name) then self.snick.skindata = PTV3_SKINS.snick[_] break end
+			end
+		else
+			self.snick.skindata = PTV3_SKINS.snick[self.skinIndex.snick]
+		end
+
+		if not self.snick.skindata then
+			error("Skin is null. Picking default skin.")
+			self.snick.skindata = PTV3_SKINS.snick[0]
+		end
+		snick.state = self.snick.skindata.states.normal
+
 		snick.tracer = self.snick.mo
 		self.snick.ptv3.pizzaMobj = snick
-		print("DEBUG - Spawn Player Mask")
+		print("DEBUG - Spawn Player Mask: "..self.snick.skindata.name)
 	end
 
 	table.insert(self.currentchasers, self.snick)

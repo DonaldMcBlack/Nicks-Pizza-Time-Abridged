@@ -27,13 +27,11 @@ return function(v)
 	local x = ease.linear(FU, -15*FU, 15*FU)
 	local y = 150*FU
 
-	-- CONS_Printf(consoleplayer, "Pizza Rage: "..x)
-
 	local intensity = FU
 	local shakeX = v.RandomRange(-intensity, intensity)
 	local shakeY = v.RandomRange(-intensity, intensity)
 
-	local dec = L_FixedDecimal(PTV3.pizzaface.incremspeed, 2)
+	local dec = L_FixedDecimal(PTV3.pizzaface.skindata.incremspeed, 2)
 
 	local patch = v.cachePatch("PIZZARAGE")
 

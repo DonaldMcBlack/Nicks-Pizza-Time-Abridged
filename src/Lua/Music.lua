@@ -89,7 +89,12 @@ addHook('PostThinkFrame', function()
 	end
 
 	if PTV3.extreme then
-		song = "POTMAC"
+
+		if PTV3.pizzaface.skindata.extreme_theme then
+			song = PTV3.pizzaface.skindata.extreme_theme
+		else
+			song = "POTMAC"
+		end
 	end
 
 	if PTV3.overtime then

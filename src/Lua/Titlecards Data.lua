@@ -1,12 +1,12 @@
 PTV3.titlecards = {
 	[1] = {
 		bg = "GFZ1TC",
-		title = { graphic = "GFZ1TT", pos_x = 400*FU, pos_y = 10*FU, snap = "right"},
+		title = { graphic = "GFZ1TT", pos_x = 350*FU, pos_y = 10*FU, snap = "right"},
 		mus = "GF1TIL"
 	},
 	[2] = {
 		bg = "GFZ2TC",
-		title = {graphic = "GFZ2TT", pos_x = 160*FU, pos_y = 50*FU, snap = "right"},
+		title = {graphic = "GFZ2TT", pos_x = 360*FU, pos_y = 10*FU, snap = "right"},
 		mus = "GF2TIL"
 	},
 	[4] = {

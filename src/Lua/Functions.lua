@@ -540,8 +540,8 @@ function PTV3:newLap(p, int)
 	if gametype ~= GT_PTV3DM then
 		-- Speed up Pizzaface
 		if PTV3.pizzaface and PTV3.pizzaface.angry then
-			PTV3.pizzaface.incremspeed = $+(FU/(PTV3.max_elaps - (PTV3.max_elaps/2)))
-			PTV3.pizzaface.incremspeedthreshold = $-1
+			PTV3.pizzaface.skindata.incremspeed = $+(FU/(PTV3.max_elaps - (PTV3.max_elaps/2)))
+			PTV3.pizzaface.skindata.incremspeedthreshold = max($-1, 0)
 		end
 		-- Spawn Pizzaface
 		if abs(p.ptv3.laps) >= 3 and not (self.pizzaface and self.pizzaface.valid) then

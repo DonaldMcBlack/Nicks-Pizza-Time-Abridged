@@ -1,94 +1,5 @@
-freeslot("MT_PTV3_PIZZAFACE",
-	"SPR_PZAT",
-	"SPR_PZTL",
-	"SPR_PZAR",
-	"SPR_PZHY",
-	"S_PTV3_PIZZAFACE",
-	"S_PTV3_PIZZAMAD",
-	"S_PTV3_PIZZATROLL",
-	"S_PTV3_PIZZAHAPPY",
-	"sfx_pflgh",
-	"sfx_fplgh",
-	"sfx_pizmov"
-)
-
-sfxinfo[sfx_pflgh].caption = "Pizzaface is coming..."
-sfxinfo[sfx_fplgh].caption = "Is that the...Pizzaface?"
-sfxinfo[sfx_pizmov] = {
-	flags = SF_X2AWAYSOUND|SF_NOMULTIPLESOUND,
-	caption = "Pizzaface is near..."
-}
-
-mobjinfo[MT_PTV3_PIZZAFACE] = {
-	doomednum = -1,
-	spawnstate = S_PTV3_PIZZAFACE,
-	spawnhealth = 1000,
-	deathstate = S_NULL,
-	radius = 60*FU,
-	height = 60*FU,
-	flags = MF_NOCLIP|MF_NOGRAVITY|MF_NOCLIPHEIGHT|MF_SPECIAL
-}
-
-states[S_PTV3_PIZZAFACE] = {
-    sprite = SPR_PZAT,
-    frame = FF_ANIMATE|A,
-    tics = -1,
-    action = nil,
-    var1 = P,
-    var2 = 2,
-    nextstate = S_PTV3_PIZZAFACE
-}
-
-states[S_PTV3_PIZZAMAD] = {
-	sprite = SPR_PZAR,
-	frame = FF_ANIMATE|A,
-	tics = -1,
-	action = nil,
-	var1 = 10,
-	var2 = 2,
-	nextstate = S_PTV3_PIZZAMAD
-}
-
-states[S_PTV3_PIZZATROLL] = {
-	sprite = SPR_PZTL,
-	frame = A,
-	action = nil,
-	tics = -1,
-	nextstate = S_PTV3_PIZZATROLL
-}
-
-states[S_PTV3_PIZZAHAPPY] = {
-	sprite = SPR_PZHY,
-	frame = FF_ANIMATE|A,
-	action = nil,
-	tics = -1,
-	var1 = 17,
-	var2 = 2,
-	nextstate = S_PTV3_PIZZAHAPPY
-}
-
 local function followC(p)
 	return p.mo.health and p.ptv3 and not p.ptv3.chaser and not (p.ptv3.fake_exit)
-end
-
-local function P_FlyTo(mo, fx, fy, fz, sped, addques)
-	local z = mo.z+(mo.height/2)
-    if mo.valid then
-        local flyto = P_AproxDistance(P_AproxDistance(fx - mo.x, fy - mo.y), fz - z)
-        if flyto < 1 then
-            flyto = 1
-        end
-		
-        if addques then
-            mo.momx = $ + FixedMul(FixedDiv(fx - mo.x, flyto), sped)
-            mo.momy = $ + FixedMul(FixedDiv(fy - mo.y, flyto), sped)
-            mo.momz = $ + FixedMul(FixedDiv(fz - z, flyto), sped)
-        else
-            mo.momx = FixedMul(FixedDiv(fx - mo.x, flyto), sped)
-            mo.momy = FixedMul(FixedDiv(fy - mo.y, flyto), sped)
-            mo.momz = FixedMul(FixedDiv(fz - z, flyto), sped)
-        end
-    end
 end
 
 local function getNearestPlayer(pos, conditions)
@@ -118,15 +29,22 @@ local function getNearestPlayer(pos, conditions)
 	return pl
 end
 
-local function ChangeMobjState(pf, newstate)
-	if pf.state == newstate then return end
-	pf.state = newstate
+function PTV3:LoadSkin_Pizzaface(properties)
+	if not properties then error("One of Pizzaface's skins were not found.") return end
+	if type(properties) ~= "table" then error("One of Pizzaface's skins is not a table.") return end
+
+	local default_struct = PTV3_SKINS.pizzaface[0]
+
+	for i,v in pairs(default_struct) do
+		if properties[i] == nil or type(properties[i]) ~= type(default_struct[i]) then
+			properties[i] = default_struct[i]
+		end
+	end
+
+	table.insert(PTV3_SKINS.pizzaface, properties)
 end
 
 addHook('MobjSpawn', function(pf)
-	pf.intspeed = 29
-	pf.incremspeed = FU
-	pf.combinedspeed = pf.intspeed*pf.incremspeed
 	pf.incremspeedthreshold = 16
 	pf.destscale = (FU/2)*5/4
 	pf.scale = (FU/2)*5/4
@@ -134,50 +52,22 @@ addHook('MobjSpawn', function(pf)
 	pf.spriteyscale = $*2
 	pf.shadowscale = pf.scale*3
 
-	if PTV3.minusworld then S_StartSound(nil, sfx_fplgh)
-	else S_StartSound(nil, sfx_pflgh) end
+	-- if PTV3.minusworld then S_StartSound(nil, sfx_fplgh)
+	-- else S_StartSound(nil, laughsound) end
 
 	pf.cooldown = 3*TICRATE
 end, MT_PTV3_PIZZAFACE)
 
-addHook('ShouldDamage', function(t,i,s)
-	return false
-end, MT_PTV3_PIZZAFACE)
-addHook('MobjDamage', function(t,i,s)
-	return true
-end, MT_PTV3_PIZZAFACE)
-addHook('MobjRemoved', function(t,i,s)
-	return true
-end, MT_PTV3_PIZZAFACE)
-addHook('MobjDeath', function(t,i,s)
-	return true
-end, MT_PTV3_PIZZAFACE)
-
-rawset(_G,'L_DoBrakes', function(mo,factor)
-	mo.momx = FixedMul($,factor)
-	mo.momy = FixedMul($,factor)
-	mo.momz = FixedMul($,factor)
-end)
-
-rawset(_G, "L_SpeedCap", function(mo,limit,factor)
-	local spd_xy = R_PointToDist2(0,0,mo.momx,mo.momy)
-	local spd, ang =
-		R_PointToDist2(0,0,spd_xy,mo.momz),
-		R_PointToAngle2(0,0,mo.momx,mo.momy)
-	if spd > limit then
-		if factor == nil then
-			factor = FixedDiv(limit,spd)
-		end
-		L_DoBrakes(mo,factor)
-		return factor
-	end
-end)
+addHook('ShouldDamage', function(t,i,s) return false end, MT_PTV3_PIZZAFACE)
+addHook('MobjDamage', function(t,i,s)   return true end, MT_PTV3_PIZZAFACE)
+addHook('MobjRemoved', function(t,i,s)  return true end, MT_PTV3_PIZZAFACE)
+addHook('MobjDeath', function(t,i,s)    return true end, MT_PTV3_PIZZAFACE)
 
 addHook('MobjThinker', function(pf)
 	local runCode = true
 
 	if pf.cooldown then
-		pf.cooldown = $-1
+		pf.cooldown = max($-1, 0)
 		pf.frame = ($ & ~FF_TRANSMASK)|((pf.cooldown)/16<<FF_TRANSSHIFT)
 		runCode = false
 	end
@@ -206,67 +96,7 @@ addHook('MobjThinker', function(pf)
 	pf.target = player and player.mo
 	
 	if pf.target then
-		pf.angle = R_PointToAngle2(pf.x, pf.y, pf.target.x, pf.target.y)
-		pf.speed = pf.intspeed*pf.incremspeed
-
-		local dist = R_PointToDist2(pf.x, pf.y, pf.target.x, pf.target.y)
-		if gametype == GT_PTV3DM then
-
-			local sped = pf.combinedspeed/2
-			local sped2 = pf.combinedspeed/20
-
-			if not PTV3.pftime then
-				sped = 10*pf.combinedspeed/2
-				sped2 = pf.combinedspeed/10
-				ChangeMobjState(pf, S_PTV3_PIZZAFACE)
-			else
-				ChangeMobjState(pf, S_PTV3_PIZZAHAPPY)
-			end
-
-			-- a bit of yoink from FlyTo
-			local flyto = P_AproxDistance(P_AproxDistance(pf.target.x - pf.x, pf.target.y - pf.y), pf.target.z - pf.z)
-			if flyto < 1 then
-				flyto = 1
-			end
-            local tmomx = FixedMul(FixedDiv(pf.target.x - pf.x, flyto), sped)
-            local tmomy = FixedMul(FixedDiv(pf.target.y - pf.y, flyto), sped)
-            local tmomz = FixedMul(FixedDiv(pf.target.z - pf.z, flyto), sped)
-			-- and again
-			local flyto2 = P_AproxDistance(P_AproxDistance(tmomx - pf.momx, tmomy - pf.momy), tmomz - pf.momz)
-			if flyto2 < 1 then
-				flyto2 = 1
-			end
-            pf.momx = $ + FixedMul(FixedDiv(tmomx - pf.momx, flyto2), sped2)
-            pf.momy = $ + FixedMul(FixedDiv(tmomy - pf.momy, flyto2), sped2)
-            pf.momz = $ + FixedMul(FixedDiv(tmomz - pf.momz, flyto2), sped2)
-			L_SpeedCap(pf, sped)
-		else
-			-- Behaviour changes ---------------------
-			if pf.angry then -- Enraged Pizzaface
-				if pf.state ~= S_PTV3_PIZZAMAD then pf.state = S_PTV3_PIZZAMAD end
-				if dist > FU*2000 then
-					pf.speed = max(FixedMul(FU/pf.incremspeedthreshold, dist-(FU*500)), 23*pf.incremspeed)
-				else
-					pf.speed = ease.linear(FU/pf.incremspeedthreshold, pf.speed, 23*pf.incremspeed)
-				end
-			else -- Normal Pizzaface
-				if PTV3.minusworld and not PTV3.pizzatime then
-					if dist < FU*100 and pf.state ~= S_PTV3_PIZZATROLL then pf.state = S_PTV3_PIZZATROLL
-					elseif dist > FU*100 and pf.state ~= S_PTV3_PIZZAFACE then pf.state = S_PTV3_PIZZAFACE end
-
-					pf.speed = max(FixedMul(FU/8, dist-(FU*250)), 23*FU)
-				else
-					pf.intspeed = 23
-					pf.incremspeed = FU
-				end
-			end
-
-			if pf.eflags & MFE_UNDERWATER then
-				pf.speed = FixedDiv($, 2*FU)
-			end
-
-			P_FlyTo(pf, pf.target.x, pf.target.y, pf.target.z, pf.speed)
-		end
+		pf.skindata.behaviour(pf)
 	else
 		pf.momx, pf.momy, pf.momz = 0, 0, 0
 	end
@@ -310,17 +140,16 @@ addHook('TouchSpecial', function(pf, pmo)
 	return true
 end, MT_PTV3_PIZZAFACE)
 
-local function spawnAIpizza(s)
+local function spawnmobj(s)
 	return P_SpawnMobj(s.x, s.y, s.z, MT_PTV3_PIZZAFACE)
 end
 
 -- Spawns Pizzaface.
-function PTV3:pizzafaceSpawn()
+function PTV3:pizzafaceSpawn(skin)
 	local canSpawnAI = not (self.pizzaface and self.pizzaface.ptv3)
 
 	if canSpawnAI then
-		if self.pizzaface
-		and self.pizzaface.valid then return end
+		if self.pizzaface and self.pizzaface.valid then return end
 
 		local position = {}
 		local clonething
@@ -335,20 +164,51 @@ function PTV3:pizzafaceSpawn()
 			position[_] = i
 		end
 
-		self.pizzaface = spawnAIpizza(position)
-		self.pizzaface.state = gametype == GT_PTV3DM and S_PTV3_PIZZAHAPPY or S_PTV3_PIZZAFACE
+		self.pizzaface = spawnmobj(position)
+
+		if skin then
+			for _,i in pairs(PTV3_SKINS.pizzaface) do
+				if skin == string.lower(PTV3_SKINS.pizzaface[_].name) then self.pizzaface.skindata = PTV3_SKINS.pizzaface[_] break end
+			end
+		else
+			self.pizzaface.skindata = PTV3_SKINS.pizzaface[self.skinIndex.pizzaface]
+		end
+
+		if not self.pizzaface.skindata then
+			error("Skin is null. Picking default skin.")
+			self.pizzaface.skindata = PTV3_SKINS.pizzaface[0]
+		end
+
+		self.pizzaface.state = gametype == GT_PTV3DM and self.pizzaface.skindata.states.happy or self.pizzaface.skindata.states.laughing
 		self.pizzaface.angry = false
-		self.pizzaface.display_name = "PIZZAFACE"
-		print("DEBUG - Spawn Pizzaface AI")
+		S_StartSound(nil, self.pizzaface.skindata.laughsound)
+		print("DEBUG - Spawn "..self.pizzaface.skindata.name.." AI")
 	else
 		if self.pizzaface.ptv3
 		and self.pizzaface.ptv3.pizzaMobj
 		and self.pizzaface.ptv3.pizzaMobj.valid then return end
 
-		local pf = spawnAIpizza(self.pizzaface.mo)
+		local pf = spawnmobj(self.pizzaface.mo)
+
+		if skin then
+			for _,i in pairs(PTV3_SKINS.pizzaface) do
+				if skin == string.lower(PTV3_SKINS.pizzaface[_].name) then self.pizzaface.skindata = PTV3_SKINS.pizzaface[_] break end
+			end
+		else
+			self.pizzaface.skindata = PTV3_SKINS.pizzaface[self.skinIndex.pizzaface]
+		end
+
+		if not self.pizzaface.skindata then
+			error("Skin is null. Picking default skin.")
+			self.pizzaface.skindata = PTV3_SKINS.pizzaface[0]
+		end
+
+		pf.state = self.pizzaface.skindata.states.normal
+
 		pf.tracer = self.pizzaface.mo
 		self.pizzaface.ptv3.pizzaMobj = pf
-		print("DEBUG - Spawn Player Mask")
+		S_StartSound(nil, self.pizzaface.skindata.laughsound)
+		print("DEBUG - Spawn Player Mask: "..self.pizzaface.skindata.name)
 	end
 
 	table.insert(self.currentchasers, self.pizzaface)

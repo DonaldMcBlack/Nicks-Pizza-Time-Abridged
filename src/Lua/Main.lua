@@ -1,10 +1,4 @@
-sfxinfo[freeslot("sfx_winer")].caption = "You won!"
-
 local cutsceneTime = PTV3.maxTitlecardTime+(2*TICRATE)
-
-sfxinfo[freeslot "sfx_wartim"].caption = "Beep!"
-sfxinfo[freeslot "sfx_timexp"].caption = "BOOM!"
-sfxinfo[freeslot "sfx_doorsh"].caption = "SLAM!"
 
 addHook("ThinkFrame", function()
 	if not PTV3:isPTV3() then return end

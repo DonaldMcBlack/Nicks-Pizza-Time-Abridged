@@ -100,21 +100,52 @@ COM_AddCommand('PTV3_becomechaser', function(p, chaser)
 	p.ptv3.chaser = true
 	p.ptv3.chasertype = string.lower(chasertype)
 
+
 	if chasertype == "pizzaface" then
 		PTV3.pizzaface = p
-		PTV3:pizzafaceSpawn()
+		PTV3:pizzafaceSpawn(p.ptv3.pizzaface_skin)
 	end
 
 	if chasertype == "snick" then
 		PTV3.snick = p
-		PTV3:snickSpawn()
+		PTV3:snickSpawn(p.ptv3.snick_skin)
 	end
 
 	if chasertype == "johnghost" then
 		PTV3.johnGhost = p
-		PTV3:johnGhostSpawn()
+		PTV3:johnGhostSpawn(p.ptv3.johnghost_skin)
 	end
 end, COM_ADMIN)
+
+COM_AddCommand('PTV3_setchaserskin', function(p, skin)
+	if not PTV3:isPTV3() then return end
+
+	local skin_name = skin ~= nil and string.lower(skin) or nil
+
+	for _,v in pairs(PTV3_SKINS.pizzaface) do
+		if skin_name == string.lower(PTV3_SKINS.pizzaface[_].name) then
+			p.ptv3.pizzaface_skin = string.lower(PTV3_SKINS.pizzaface[_].name)
+			CONS_Printf(p, "Your Pizzaface skin has been set to: "..PTV3_SKINS.pizzaface[_].name)
+			return
+		end
+	end
+
+	for _,v in pairs(PTV3_SKINS.snick) do
+		if skin_name == string.lower(PTV3_SKINS.snick[_].name) then
+			p.ptv3.snick_skin = string.lower(PTV3_SKINS.snick[_].name)
+			CONS_Printf(p, "Your Snick skin has been set to: "..PTV3_SKINS.snick[_].name)
+			return
+		end
+	end
+
+	for _,v in pairs(PTV3_SKINS.johnGhost) do
+		if skin_name == string.lower(PTV3_SKINS.johnGhost[_].name) then
+			p.ptv3.johnghost_skin = string.lower(PTV3_SKINS.johnGhost[_].name)
+			CONS_Printf(p, "Your John Ghost skin has been set to: "..PTV3_SKINS.johnGhost[_].name)
+			return
+		end
+	end
+end, COM_LOCAL)
 
 COM_AddCommand('PTV3_giveitem', function(p, item)
 	if not PTV3:isPTV3() then return end
@@ -144,26 +175,29 @@ COM_AddCommand('PTV3_setWARtimer', function(p, time)
 	CONS_Printf(consoleplayer, "Set War Timer to "..text)
 end, COM_ADMIN)
 
-COM_AddCommand('PTV3_spawnpizzaface', function(p, name)
+COM_AddCommand('PTV3_spawnpizzaface', function(p, skin)
 	if not PTV3:isPTV3() then return end
 	if not (IsPlayerAdmin(p) or p == server) then return end
 
-	PTV3:pizzafaceSpawn()
+	local skin_name = skin ~= nil and string.lower(skin) or nil
+	PTV3:pizzafaceSpawn(skin_name)
 	P_SetOrigin(PTV3.pizzaface, p.mo.x, p.mo.y, p.mo.z)
 end, COM_ADMIN)
 
-COM_AddCommand('PTV3_spawnsnick', function(p)
+COM_AddCommand('PTV3_spawnsnick', function(p, skin)
 	if not PTV3:isPTV3() then return end
 	if not (IsPlayerAdmin(p) or p == server) then return end
 
-	PTV3:snickSpawn()
+	local skin_name = skin ~= nil and string.lower(skin) or nil
+	PTV3:snickSpawn(skin_name)
 end, COM_ADMIN)
 
-COM_AddCommand('PTV3_spawnjohnghost', function(p)
+COM_AddCommand('PTV3_spawnjohnghost', function(p, skin)
 	if not PTV3:isPTV3() then return end
 	if not (IsPlayerAdmin(p) or p == server) then return end
 
-	PTV3:johnGhostSpawn()
+	local skin_name = skin ~= nil and string.lower(skin) or nil
+	PTV3:johnGhostSpawn(skin_name)
 end, COM_ADMIN)
 COM_AddCommand('PTV3_endgame', function(p)
 	if not PTV3:isPTV3() then return end
@@ -191,6 +225,7 @@ local synced_variables = {
 	['pizzaface'] = false,
 	['snick'] = false,
 	['johnGhost'] = false,
+	['skinIndex'] = { pizzaface = 0, snick = 0, johnGhost = 0 },
 	['overtime'] = false,
 	['overtimeStart'] = 0,
 	['pizzafacetps'] = {},
@@ -415,6 +450,7 @@ addHook('NetVars', function(n)
 		"pillarJohn",
 		"snick",
 		"johnGhost",
+		"skinIndex",
 		"overtime",
 		"overtimeStart",
 		"time",
@@ -477,6 +513,16 @@ addHook('MapLoad', function()
 	PTV3.maxtime = PTV3.time
 	PTV3.pftime = 30*TICRATE
 	PTV3.maxpftime = PTV3.pftime
+
+	if not titlemapinaction then
+		PTV3.skinIndex.pizzaface = P_RandomRange(0, #PTV3_SKINS.pizzaface)
+		PTV3.skinIndex.snick = P_RandomRange(0, #PTV3_SKINS.snick)
+		PTV3.skinIndex.johnGhost = P_RandomRange(0, #PTV3_SKINS.johnGhost)
+
+		CONS_Printf(consoleplayer, "Pizzaface is... "..PTV3_SKINS.pizzaface[PTV3.skinIndex.pizzaface].name)
+		CONS_Printf(consoleplayer, "Snick is... "..PTV3_SKINS.snick[PTV3.skinIndex.snick].name)
+		CONS_Printf(consoleplayer, "John is... "..PTV3_SKINS.johnGhost[PTV3.skinIndex.johnGhost].name)
+	end
 	
 	if gametype == GT_PTV3DM
 	and not PTV3.titlecards[gamemap] then

@@ -224,8 +224,8 @@ local function drawChaserIcon(v,dp,c, chaser, norenderdetails)
 
 	local p = nil
 	local color = SKINCOLOR_WHITE
-	local chaser_name = chaser.display_name
-	local icon = chaser.display_name + "ICON"
+	local chaser_name = chaser.skindata.name
+	local icon = chaser.skindata.icons[chaser.skindata.current_icon]
 
 	if chaser == PTV3.pizzaface then
 		p = (PTV3.pizzaface.tracer and PTV3.pizzaface.tracer.valid) and PTV3.pizzaface.tracer.player
@@ -236,7 +236,6 @@ local function drawChaserIcon(v,dp,c, chaser, norenderdetails)
 			else
 				color = SKINCOLOR_CRIMSON
 			end
-			icon = $.."2"
 		end
 	else
 		p = (chaser.tracer and chaser.tracer.valid) and chaser.tracer.player
@@ -244,7 +243,7 @@ local function drawChaserIcon(v,dp,c, chaser, norenderdetails)
 
 	if p and p.ptv3 and p.ptv3.pizzaface_teleporting then return end
 
-	if not result.onScreen then 
+	if not result.onScreen then
 		local playerResult = SG_ObjectTracking(v,dp,c,dp.mo)
 
 		if not playerResult.onScreen then
