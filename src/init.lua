@@ -45,6 +45,7 @@ dofile "Freeslots"
 rawset(_G, "PTV3_SKINS", {
 	pizzaface = {
 		[0] = {
+			display_name = "Pizzaface",
 			name = "Pizzaface",
 			minus_name = "Protoface",
 			extreme_theme = nil,
@@ -135,6 +136,7 @@ rawset(_G, "PTV3_SKINS", {
 	},
 	snick = {
 		[0] = {
+			display_name = "Snick",
 			name = "Snick",
 			minus_name = "Shade",
 			extreme_theme = nil,
@@ -177,6 +179,7 @@ rawset(_G, "PTV3_SKINS", {
 	},
 	johnGhost = {
 		[0] = {
+			display_name = "John",
 			name = "John",
 			minus_name = "Jonathan",
 			extreme_theme = nil,
@@ -194,21 +197,26 @@ rawset(_G, "PTV3_SKINS", {
 			current_icon = 1,
 
 			behaviour = function(john)
+				john.skindata.current_icon = PTV3.pizzatime < 0 and -1 or 1
+				john.ambience = PTV3.pizzatime < 0 and john.skindata.ambient_sfx.minus or john.skindata.ambient_sfx.normal
+
+				if not S_SoundPlaying(john, john.ambience) then S_StartSound(john, john.ambience) end
+
 				local dist = P_AproxDistance(john.x - john.target.x, john.y - john.target.y)
 				john.angle = R_PointToAngle2(john.x, john.y, john.target.x, john.target.y)
-				john.speed = john.skindata.basespeed
+				john.speed = $ == nil and john.skindata.basespeed or $
+				john.maxspeed = $ == nil and john.skindata.basespeed or $
 
 				if PTV3.pizzatime < 0 then
-					if dist > 1000*FU then
-						john.speed = $+(FU/32)
-					else
-						john.speed = max($-(FU/128), john.skindata.basespeed)
-					end
+					john.skindata.basespeed = 10*FU
+					john.maxspeed = dist > 2000*FU and min($+(FU/3), 100*FU) or max(john.skindata.basespeed, $-(FU/6))
+					john.speed = john.maxspeed
 				else
+					john.skindata.basespeed = 5*FU
 					john.speed = max(FixedMul(FU/32, dist), john.skindata.basespeed)
 				end
 				
-				P_FlyTo(john, john.target.x, john.target.y, john.target.z, john.speed)
+				P_FlyTo(john, john.target.x, john.target.y, john.target.z+((john.target.scale*john.target.height)+(60*FU)), john.speed)
 			end
 		}
 	}

@@ -75,12 +75,12 @@ COM_AddCommand('PTV3_pizzatimenow', function(p, lap)
 
 	if not PTV3.pizzatime then
 		if numlap then
-			if numlap < 0 then
+			if numlap > 0 then
 				PTV3:startPizzaTime(p, 1)
-				numlap = $+1
+				numlap = $-1
 			else
 				PTV3:startPizzaTime(p, -1)
-				numlap = $-1
+				numlap = $+1
 			end
 			PTV3:newLap(p, numlap)
 		else

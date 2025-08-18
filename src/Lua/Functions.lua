@@ -558,7 +558,7 @@ function PTV3:newLap(p, int)
 end
 
 function PTV3:startPizzaTime(p, int)
-	int = $ > 1 and 1 or -1
+	int = $ > 0 and 1 or -1
 
 	self.pizzatime = int
 	self.hud_pt = leveltime
@@ -580,15 +580,17 @@ function PTV3:startPizzaTime(p, int)
 
 		player.ptv3.laps = $+int
 
-		if (player.ptv3.insecret) then
-			player.ptv3.secret_tptoend = true
+		if (player.ptv3.insecret) then player.ptv3.secret_tptoend = true end
+
+		if int < 0 then
+			self:queueTeleport(player, self.spawn)
 		elseif player ~= p then
-			self:queueTeleport(player, self.pizzatime < 0 and self.spawn or self.endpos)
-			player.powers[pw_invulnerability] = 5*TICRATE
+			self:queueTeleport(player, self.endpos)
 		end
-		if player.ptv3.combo then
-			player.ptv3.combo_pos = PTV3.MAX_COMBO_TIME
-		end
+
+		player.powers[pw_invulnerability] = 5*TICRATE
+		
+		if player.ptv3.combo then player.ptv3.combo_pos = PTV3.MAX_COMBO_TIME end
 	end
 
 	local event = self.pizzatime < 0 and "Minus World" or "Pizza Time"

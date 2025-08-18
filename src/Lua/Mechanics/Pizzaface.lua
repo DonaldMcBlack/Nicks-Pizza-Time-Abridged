@@ -97,6 +97,7 @@ addHook('MobjThinker', function(pf)
 	
 	if pf.target then
 		pf.skindata.behaviour(pf)
+		pf.skindata.display_name = PTV3.pizzatime < 0 and pf.skindata.minus_name or pf.skindata.name
 	else
 		pf.momx, pf.momy, pf.momz = 0, 0, 0
 	end

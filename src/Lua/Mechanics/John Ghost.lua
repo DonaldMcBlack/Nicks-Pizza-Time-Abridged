@@ -77,6 +77,7 @@ addHook('MobjThinker', function(john)
 
 	if john.target then
 		john.skindata.behaviour(john)
+		john.skindata.display_name = PTV3.pizzatime < 0 and john.skindata.minus_name or john.skindata.name
 	else
 		john.momx,john.momy,john.momz = 0,0,0
 	end
@@ -89,7 +90,7 @@ local function JohnTouchSpecial(john, pmo)
     local p = pmo.player
 	
 	if p.ptv3.fake_exit then return end
-	john.speed, john.basespeed = 0, 0
+	john.speed, john.basespeed, john.maxspeed = 0, 0, 0
     PTV3:queueTeleport(p, p.ptv3.currentTeleportDest, false, john)
 	S_StartSound(nil, sfx_jghtct, p)
 	P_SetOrigin(john, PTV3.spawn.x, PTV3.spawn.y, PTV3.spawn.z+(200*FU))
@@ -127,7 +128,7 @@ function PTV3:johnGhostSpawn(skin)
 		end
 
 		if not self.johnGhost.skindata then
-			warn("Skin is null. Picking default skin.")
+			error("Skin is null. Picking default skin.")
 			self.johnGhost.skindata = PTV3_SKINS.johnGhost[0]
 		end
 	else
