@@ -3,7 +3,7 @@ PTV3.panicSpriteBlacklist = {
 }
 
 return function(p)
-	if (PTV3.pizzatime or PTV3.minusworld)
+	if PTV3.pizzatime
 	and not PTV3.panicSpriteBlacklist[p.mo.skin] then
 		local speed = FixedHypot(p.rmomx, p.rmomy)
 

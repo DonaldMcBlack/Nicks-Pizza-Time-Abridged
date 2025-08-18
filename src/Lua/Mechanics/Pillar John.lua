@@ -37,7 +37,7 @@ addHook("MobjSpawn", function(john)
 end, MT_PTV3_PILLARJOHN)
 
 local function killJohn(john, pmo)
-	if PTV3.minusworld then return end
+	if PTV3.pizzatime < 0 then return end
 
 	local killAngle = R_PointToAngle2(john.x, john.y, pmo.x, pmo.y)
 
@@ -50,7 +50,7 @@ local function killJohn(john, pmo)
 	P_StartQuake(15*FU, 5*TICRATE)
 
 	if not PTV3.pizzatime then
-		PTV3:startPizzaTime(pmo.player)
+		PTV3:startPizzaTime(pmo.player, 1)
 	end
 end
 
@@ -65,15 +65,15 @@ end, MT_PTV3_PILLARJOHN)
 addHook("MobjDeath", function(john, i, s)
 	if not (s and s.player and s.player.ptv3) then return end
 
-	if not PTV3.pizzatime and not PTV3.minusworld then
-		PTV3:startPizzaTime(s.player)
+	if not PTV3.pizzatime then
+		PTV3:startPizzaTime(s.player, 1)
 	end
 end, MT_PTV3_PILLARJOHN)
 
 addHook("MobjThinker", function(john)
 	if not (john and john.valid) then return end
 
-	if PTV3.minusworld then P_RemoveMobj(john) return end
+	if PTV3.pizzatime < 0 then P_RemoveMobj(john) return end
 
 	if not john.isAlive then
 		john.flags = $|MF_NOCLIP|MF_NOCLIPHEIGHT

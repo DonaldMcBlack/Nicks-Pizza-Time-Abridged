@@ -3,12 +3,7 @@ return function(p)
 	if p.ptv3.swapModeFollower and p.ptv3.swapModeFollower.valid then return true end
 
 	p.pflags = $|PF_FULLSTASIS
-	local lap_inc = nil
-
-	if PTV3.minusworld then lap_inc = -1
-	else
-		lap_inc = 1
-	end
+	local lap_inc = PTV3.pizzatime < 0 and -1 or 1
 
 	if (((p.cmd.buttons & BT_ATTACK) and not (p.ptv3.buttons & BT_ATTACK))
 	and p.ptv3.canLap) or p.ptv3.extreme

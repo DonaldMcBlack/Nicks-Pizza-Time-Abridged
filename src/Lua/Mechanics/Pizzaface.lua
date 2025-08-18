@@ -88,7 +88,7 @@ addHook('MobjThinker', function(pf)
 		if not S_SoundPlaying(pf, sfx_pizmov) then S_StartSound(pf, sfx_pizmov) end
 	end
 
-	pf.angry = (PTV3.extreme or PTV3.overtime) and not PTV3.minusworld or false
+	pf.angry = (PTV3.extreme or PTV3.overtime) and PTV3.pizzatime > 0 or false
 
 	if not runCode then return end
 
@@ -152,13 +152,7 @@ function PTV3:pizzafaceSpawn(skin)
 		if self.pizzaface and self.pizzaface.valid then return end
 
 		local position = {}
-		local clonething
-
-		if gametype == GT_PTV3DM or PTV3.minusworld then
-			clonething = self.spawn
-		else
-			clonething = self.endpos
-		end
+		local clonething = (gametype == GT_PTV3DM or PTV3.pizzatime < 0) and self.spawn or self.endpos
 
 		for _,i in pairs(clonething) do
 			position[_] = i

@@ -60,7 +60,7 @@ end, MT_PTV3_JOHNGHOST)
 addHook('MobjThinker', function(john)
 	if john.tracer then return end
 
-	if PTV3.minusworld and not PTV3.pizzatime then
+	if PTV3.pizzatime < 0 then
 		if john.state ~= S_PTV3_JONATHANPHANTOM then
 			john.state = S_PTV3_JONATHANPHANTOM
 			john.ambience = sfx_jphmsp
@@ -111,9 +111,7 @@ function PTV3:johnGhostSpawn(skin)
 		if self.johnGhost and self.johnGhost.valid then return end
 
 		local position = {}
-		local clonething = self.endpos
-
-		if PTV3.minusworld then clonething = self.spawn end
+		local clonething = PTV3.pizzatime < 0 and self.spawn or self.endpos
 
 		for _,i in pairs(clonething) do position[_] = i end
 		

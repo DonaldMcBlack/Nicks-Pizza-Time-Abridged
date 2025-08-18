@@ -509,24 +509,17 @@ function PTV3:newLap(p, int)
 	end
 
 	if abs(p.ptv3.laps) ~= 1 then
-		if PTV3.minusworld then
-			self:queueTeleport(p, PTV3.spawn, p.ptv3.extreme)
-		else
-			self:queueTeleport(p, PTV3.endpos, p.ptv3.extreme)
-		end
+		self:queueTeleport(p, PTV3.pizzatime < 0 and PTV3.spawn or PTV3.endpos, p.ptv3.extreme)
 	end
 
 	-- For the quakes
-	if ((PTV3.minusworld and not PTV3.pizzatime) or PTV3.extreme) then PTV3.shakeintensity = min(p.ptv3.laps, 5) end
+	if (PTV3.pizzatime < 0 or PTV3.extreme) then PTV3.shakeintensity = min(p.ptv3.laps, 5) end
 
 	p.ptv3.lap_time = leveltime
 	p.powers[pw_invulnerability] = 5*TICRATE
 
 	if p == displayplayer then
-		if PTV3.minusworld then S_StartSound(nil, sfx_lap_2, p)
-		else
-			S_StartSound(nil, sfx_lap2, p)
-		end
+		S_StartSound(nil, PTV3.pizzatime < 0 and sfx_lap_2 or sfx_lap2, p)
 	end
 
 	if p.ptv3.isSwap and p.ptv3.isSwap.valid then
@@ -564,8 +557,42 @@ function PTV3:newLap(p, int)
 	PTV3.callbacks('NewLap', p)
 end
 
-local function PrepareYourPizza(p, event)
+function PTV3:startPizzaTime(p, int)
+	int = $ > 1 and 1 or -1
+
+	self.pizzatime = int
+	self.hud_pt = leveltime
+
+	local callback_string = self.pizzatime < 0 and 'MinusWorld' or 'PizzaTime'
 	PTV3.shakeintensity = 2
+
+	if self.pizzatime < 0 then
+		if PTV3.spawnGate and PTV3.spawnGate.valid then
+			P_SetOrigin(PTV3.spawnGate, PTV3.endpos.x, PTV3.endpos.y, PTV3.endpos.z)
+			PTV3.spawnGate.angle = PTV3.endpos.a
+		end
+
+		S_StartSound(nil, sfx_s3k9f)
+	end
+
+	for player in players.iterate do
+		if not player.mo and not player.ptv3 then continue end
+
+		player.ptv3.laps = $+int
+
+		if (player.ptv3.insecret) then
+			player.ptv3.secret_tptoend = true
+		elseif player ~= p then
+			self:queueTeleport(player, self.pizzatime < 0 and self.spawn or self.endpos)
+			player.powers[pw_invulnerability] = 5*TICRATE
+		end
+		if player.ptv3.combo then
+			player.ptv3.combo_pos = PTV3.MAX_COMBO_TIME
+		end
+	end
+
+	local event = self.pizzatime < 0 and "Minus World" or "Pizza Time"
+
 	local time = string.format( "%02d:%02d", G_TicsToMinutes(leveltime), G_TicsToSeconds(leveltime) )
 	PTV3:logEvent(p.name.." has started "..event.." in "..time.."!", 1)
 
@@ -601,62 +628,7 @@ local function PrepareYourPizza(p, event)
 	end
 
 	PTV3.switchJohnBlocks()
-end
-
-function PTV3:startPizzaTime(p)
-	self.pizzatime = true
-	self.hud_pt = leveltime
-
-	for player in players.iterate do
-		if not player.mo then continue end
-		if not player.ptv3 then continue end
-
-		player.ptv3.laps = $+1
-
-		if (player.ptv3.insecret) then
-			player.ptv3.secret_tptoend = true
-		elseif player ~= p then
-			self:queueTeleport(player, self.endpos)
-			player.powers[pw_invulnerability] = 5*TICRATE
-		end
-		if player.ptv3.combo then
-			player.ptv3.combo_pos = PTV3.MAX_COMBO_TIME
-		end
-	end
-
-	PrepareYourPizza(p, "Pizza Time")
-	PTV3.callbacks('PizzaTime', p)
-end
-
-function PTV3:startMinusWorld(p)
-	self.minusworld = true
-	self.hud_pt = leveltime
-	self.shakeintensity = 2
-
-	S_StartSound(nil, sfx_s3k9f)
-	
-	if PTV3.spawnGate and PTV3.spawnGate.valid then
-		P_SetOrigin(PTV3.spawnGate, PTV3.endpos.x, PTV3.endpos.y, PTV3.endpos.z)
-		PTV3.spawnGate.angle = PTV3.endpos.a
-	end
-
-	for player in players.iterate do
-		if not player.mo and not player.ptv3 then continue end
-		
-		player.ptv3.laps = $-1
-
-		if (player.ptv3.insecret) then
-			player.ptv3.secret_tptoend = true
-		else
-			self:queueTeleport(player, self.spawn)
-		end
-		if player.ptv3.combo then
-			player.ptv3.combo_pos = PTV3.MAX_COMBO_TIME
-		end
-	end
-
-	PrepareYourPizza(p, "Minus World")
-	PTV3.callbacks('MinusWorld', p)
+	PTV3.callbacks(callback_string, p)
 end
 
 // for the funny

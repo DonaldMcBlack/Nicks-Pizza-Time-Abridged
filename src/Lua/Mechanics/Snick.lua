@@ -126,13 +126,7 @@ function PTV3:snickSpawn(skin)
 		if self.snick and self.snick.valid then return end
 
 		local position = {}
-		local clonething
-
-		if PTV3.minusworld then
-			clonething = self.spawn
-		else
-			clonething = self.endpos
-		end
+		local clonething = PTV3.pizzatime < 0 and self.spawn or self.endpos
 
 		for _,i in pairs(clonething) do
 			position[_] = i

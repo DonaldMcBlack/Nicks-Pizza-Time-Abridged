@@ -257,7 +257,7 @@ local function ExitSignThinker(mo)
 		mo.flags2 = $|MF2_DONTDRAW
 		mo.flags = $|MF_NOGRAVITY
 
-		if PTV3.pizzatime or PTV3.minusworld then
+		if PTV3.pizzatime then
 			local px = mo.x
 			local py = mo.y
 			local br = dist*mo.scale

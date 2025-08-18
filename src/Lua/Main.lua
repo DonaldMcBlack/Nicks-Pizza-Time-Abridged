@@ -2,13 +2,13 @@ local cutsceneTime = PTV3.maxTitlecardTime+(2*TICRATE)
 
 addHook("ThinkFrame", function()
 	if not PTV3:isPTV3() then return end
-	if PTV3.pizzatime or PTV3.minusworld then P_StartQuake(PTV3.shakeintensity*FU, -1) end
+	if PTV3.pizzatime then P_StartQuake(PTV3.shakeintensity*FU, -1) end
 end)
 
 local function SpawnGateController(MaxTimeOpen)
 
-	if (leveltime > MaxTimeOpen and not (PTV3.pizzatime or PTV3.minusworld))
-	or (PTV3.game_over >= 0 and (PTV3.pizzatime or PTV3.minusworld)) then
+	if (leveltime > MaxTimeOpen and not PTV3.pizzatime)
+	or (PTV3.game_over >= 0 and PTV3.pizzatime) then
 		if PTV3.spawnGate._frame ~= A then
 			S_StartSound(PTV3.spawnGate, sfx_doorsh)
 			P_StartQuake(FU*5, TICRATE/2)
@@ -108,7 +108,7 @@ addHook('PostThinkFrame', function()
 	end
 
 	-- Everything that's controlled when the timer starts is in here.
-	if (PTV3.pizzatime or PTV3.minusworld) then
+	if PTV3.pizzatime then
 		PTV3.time = max(0, $-1)
 
 		if consoleplayer then consoleplayer.realtime = PTV3.time end
@@ -207,10 +207,10 @@ addHook('PostThinkFrame', function()
 	if HAPPY_HOUR then -- happy hour support
 		local hh = HAPPY_HOUR
 		hh.othergt = PTV3:isPTV3()
-		hh.happyhour = (PTV3.pizzatime or PTV3.minusworld) --and (PTSR.gameover == false)
+		hh.happyhour = abs(PTV3.pizzatime) --and (PTSR.gameover == false)
 		hh.timelimit = PTV3.maxtime
 		hh.timeleft = PTV3.time
-		hh.time = (PTV3.pizzatime or PTV3.minusworld) and leveltime-PTV3.hud_pt or 0
+		hh.time = PTV3.pizzatime and leveltime-PTV3.hud_pt or 0
 		hh.overtime = PTV3.overtime
 		hh.gameover = PTV3.game_over > 0
 	end

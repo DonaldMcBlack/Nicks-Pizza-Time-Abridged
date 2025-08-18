@@ -73,18 +73,18 @@ COM_AddCommand('PTV3_pizzatimenow', function(p, lap)
 
 	local numlap = tonumber(lap)
 
-	if not (PTV3.pizzatime or PTV3.minusworld) then
+	if not PTV3.pizzatime then
 		if numlap then
 			if numlap < 0 then
-				PTV3:startMinusWorld(p)
+				PTV3:startPizzaTime(p, 1)
 				numlap = $+1
 			else
-				PTV3:startPizzaTime(p)
+				PTV3:startPizzaTime(p, -1)
 				numlap = $-1
 			end
 			PTV3:newLap(p, numlap)
 		else
-			PTV3:startPizzaTime(p)
+			PTV3:startPizzaTime(p, 1)
 		end
 
 		if PTV3.pillarJohn then P_RemoveMobj(PTV3.pillarJohn) end
@@ -207,8 +207,7 @@ end, COM_ADMIN)
 
 -- vars
 local synced_variables = {
-	['pizzatime'] = false,
-	['minusworld'] = false,
+	['pizzatime'] = 0,
 	['total_laps'] = 1,
 	['spawn'] = {x=0,y=0,z=0},
 	['endpos'] = {x=0,y=0,z=0,a=0},

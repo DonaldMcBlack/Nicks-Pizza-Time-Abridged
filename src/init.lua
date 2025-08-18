@@ -114,7 +114,7 @@ rawset(_G, "PTV3_SKINS", {
 						end
 						pf.skindata.current_icon = 2
 					else -- Normal Pizzaface
-						if PTV3.minusworld and not PTV3.pizzatime then
+						if PTV3.pizzatime < 0 then
 							if dist < FU*100 and pf.state ~= S_PTV3_PIZZATROLL then pf.state = S_PTV3_PIZZATROLL
 							elseif dist > FU*100 and pf.state ~= S_PTV3_PIZZAFACE then pf.state = S_PTV3_PIZZAFACE end
 
@@ -198,7 +198,7 @@ rawset(_G, "PTV3_SKINS", {
 				john.angle = R_PointToAngle2(john.x, john.y, john.target.x, john.target.y)
 				john.speed = john.skindata.basespeed
 
-				if (PTV3.minusworld and not PTV3.pizzatime) then
+				if PTV3.pizzatime < 0 then
 					if dist > 1000*FU then
 						john.speed = $+(FU/32)
 					else

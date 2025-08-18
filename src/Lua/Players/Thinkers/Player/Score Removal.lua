@@ -1,5 +1,5 @@
 return function(p)
-	if (PTV3.pizzatime or PTV3.minusworld)
+	if PTV3.pizzatime
 	and not (leveltime % TICRATE)
 	and not p.ptv3.chaser
 	and not p.ptv3.fake_exit

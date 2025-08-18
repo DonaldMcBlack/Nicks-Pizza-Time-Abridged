@@ -55,7 +55,7 @@ addHook("TouchSpecial", function(gate, pmo)
 	and pmo and pmo.valid and pmo.player and pmo.player.ptv3) then
 		return true
 	end
-	if not (PTV3.pizzatime or PTV3.minusworld) then return true end
+	if not PTV3.pizzatime then return true end
 
 	local p = pmo.player
 	

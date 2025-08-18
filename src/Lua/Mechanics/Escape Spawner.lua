@@ -169,7 +169,7 @@ addHook("MobjThinker", function(spawner)
 		spawner.reactiontime = 5*TICRATE
 	elseif spawner.reactiontime > 0 then
 		spawner.reactiontime = $1-1
-	elseif (PTV3.pizzatime or PTV3.minusworld)
+	elseif PTV3.pizzatime
 	and P_LookForPlayers(spawner,FixedMul(spawnrange,spawner.scale),true,false) == true
 	and (spawner.target and spawner.target.player.ptv3 and spawner.target.player.ptv3.laps > spawner.spawnlap) then
 		--Spawn in

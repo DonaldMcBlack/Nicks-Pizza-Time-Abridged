@@ -29,7 +29,7 @@ PTV3.ranks = {
 		music = "PRANK",
 		fill = false,
 		canGet = function(p)
-			if PTV3.pizzatime or PTV3.minusworld then return p.ptv3
+			if PTV3.pizzatime then return p.ptv3
 			and not p.ptv3.combo_dropped
 			and p.ptv3.started_combo
 			and abs(p.ptv3.laps) >= 2

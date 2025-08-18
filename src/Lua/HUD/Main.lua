@@ -13,7 +13,7 @@ local ControlsHUD = dofile "HUD/Controls"
 local PizzaRageHUD = dofile "HUD/Pizza Rage"
 local PizzafaceTimerHUD = dofile "HUD/Pizzaface Timer"
 local TimerHUD = dofile "HUD/Normal Timer"
-local WarTimerHUD = dofile "HUD/Overtime Timer"
+local WarTimerHUD = dofile "HUD/WAR Timer"
 local EndHUD = dofile "HUD/Overtime End"
 local RankHUD = dofile "HUD/Ranks"
 local ComboHUD = dofile "HUD/Combo"
@@ -55,7 +55,7 @@ customhud.SetupItem("PTV3_Overtime",        "ptv3", OvertimeHUD,       "game", 1
 customhud.SetupItem("PTV3_Pizza Rage",      "ptv3", PizzaRageHUD,      "game", 1)
 customhud.SetupItem("PTV3_Pizzaface Timer", "ptv3", PizzafaceTimerHUD, "game", 1)
 customhud.SetupItem("PTV3_Timer",           "ptv3", TimerHUD,          "game", 1)
-customhud.SetupItem("PTV3_Overtime Timer",  "ptv3", WarTimerHUD,       "game", 1)
+customhud.SetupItem("PTV3_WAR Timer",       "ptv3", WarTimerHUD,       "game", 1)
 customhud.SetupItem("PTV3_End",             "ptv3", EndHUD,            "game", 1)
 customhud.SetupItem("PTV3_Rank",            "ptv3", RankHUD,           "game", -1)
 customhud.SetupItem("PTV3_Combo",           "ptv3", ComboHUD,          "game", -1)

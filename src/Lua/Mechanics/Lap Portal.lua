@@ -55,7 +55,7 @@ addHook("MobjThinker", function(mo)
 	if displayplayer and displayplayer.valid then
 		local p = displayplayer
 
-		if not (PTV3.pizzatime or PTV3.minusworld) or not PTV3:canLap(p) then
+		if not PTV3.pizzatime or PTV3.pizzatime < 0 or not PTV3:canLap(p) then
 			mo.frame = $|TR_TRANS50
 		else
 			mo.frame = $ & ~TR_TRANS50
@@ -83,11 +83,11 @@ addHook("TouchSpecial", function(mo, pmo)
 end, MT_PTV3_LAPPORTAL)
 
 addHook("TouchSpecial", function(mo, pmo)
-	if PTV3.pizzatime and not PTV3.minusworld then return true end
+	if PTV3.pizzatime > 0 then return true end
 	if not CanEnterPortal(mo, pmo) then return true end
 
-	if not PTV3.pizzatime and not PTV3.minusworld then
-		PTV3:startMinusWorld(pmo.player)
+	if not PTV3.pizzatime then
+		PTV3:startPizzaTime(pmo.player, -1)
 		return true
 	end
 

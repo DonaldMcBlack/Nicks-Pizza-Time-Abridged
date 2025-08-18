@@ -3,7 +3,7 @@ addHook('PlayerSpawn', function(p)
 	if not (p and p.mo) then return end
 	if not p.ptv3 then PTV3:player(p) end
 
-	if PTV3.pizzatime or PTV3.minusworld then
+	if PTV3.pizzatime then
 		PTV3:queueTeleport(p)
 	end
 	if p.ptv3.insecret then
