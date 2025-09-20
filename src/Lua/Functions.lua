@@ -437,10 +437,17 @@ function PTV3:extremeToggle(p)
 	end
 end
 
+-- Enters Overtime
 function PTV3:overtimeToggle()
 	if self.overtime then return end
 	self.overtime = true
 	self.overtimeStart = leveltime
+
+	if not self.wartimer then
+		self.wartimer = true
+		self.wartimerStart = leveltime
+	end
+
 	S_StartSound(nil, sfx_timexp)
 
 	if not (PTV3.snick) then
@@ -532,9 +539,9 @@ function PTV3:newLap(p, int)
 
 	if gametype ~= GT_PTV3DM then
 		-- Speed up Pizzaface
-		if PTV3.pizzaface and PTV3.pizzaface.angry then
-			PTV3.pizzaface.skindata.incremspeed = $+(FU/(PTV3.max_elaps - (PTV3.max_elaps/2)))
-			PTV3.pizzaface.skindata.incremspeedthreshold = max($-1, 0)
+		if self.pizzaface and self.pizzaface.angry then
+			self.pizzaface.skindata.incremspeed = $+(FU/(self.max_elaps - (self.max_elaps/2)))
+			self.pizzaface.skindata.incremspeedthreshold = max($-1, 0)
 		end
 		-- Spawn Pizzaface
 		if abs(p.ptv3.laps) >= 3 and not (self.pizzaface and self.pizzaface.valid) then
@@ -543,9 +550,15 @@ function PTV3:newLap(p, int)
 		end
 
 		-- Spawn Snick
-		if abs(p.ptv3.laps) >= 4 and not (self.snick and self.snick.valid) then
-			self:snickSpawn()
+		if abs(p.ptv3.laps) >= 4 then
+			if not (self.snick and self.snick.valid) then self:snickSpawn() end
+			if not self.wartimer and not multiplayer then
+				self.wartimer = true
+				self.wartimerStart = leveltime
+			end
 		end
+
+		if self.wartimer then self.overtime_time = TICRATE*60 end
 
 		-- Spawn John Ghost
 		if abs(p.ptv3.laps) >= 5 and not (self.johnGhost and self.johnGhost.valid) then

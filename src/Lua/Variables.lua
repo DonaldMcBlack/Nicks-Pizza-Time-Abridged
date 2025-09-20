@@ -2,7 +2,7 @@
 
 CV_PTV3['time'] = CV_RegisterVar({
 	name = "PTV3_time",
-	defaultvalue = 300,
+	defaultvalue = 5,
 	flags = CV_NETVAR,
 	PossibleValue = CV_Unsigned
 })
@@ -225,6 +225,8 @@ local synced_variables = {
 	['snick'] = false,
 	['johnGhost'] = false,
 	['skinIndex'] = { pizzaface = 0, snick = 0, johnGhost = 0 },
+	['wartimer'] = false,
+	['wartimerStart'] = 0,
 	['overtime'] = false,
 	['overtimeStart'] = 0,
 	['pizzafacetps'] = {},
@@ -233,7 +235,8 @@ local synced_variables = {
 	['pftime'] = 30*TICRATE,
 	['spawnGate'] = false,
 	['__fadedmus'] = false,
-	['overtime_time'] = (120+29)*TICRATE,
+	['wartime'] = 1,
+	['overtime_time'] = TICRATE,
 	['maxotTime'] = (120+29)*TICRATE,
 	['secrets'] = {},
  	['game_over'] = -1,
@@ -450,6 +453,8 @@ addHook('NetVars', function(n)
 		"snick",
 		"johnGhost",
 		"skinIndex",
+		"wartimer",
+		"wartimerStart",
 		"overtime",
 		"overtimeStart",
 		"time",
@@ -458,6 +463,7 @@ addHook('NetVars', function(n)
 		"maxpftime",
 		"spawnGate",
 		"__fadedmus",
+		"wartime",
 		"overtime_time",
 		"maxotTime",
 		"secrets",
@@ -482,7 +488,17 @@ addHook('MapChange', function()
 	PTV3:init()
 end)
 
-addHook('MapLoad', function()
+local function PreparePizzaTimer(minutes, seconds)
+	if not seconds then return end
+
+	PTV3.time = seconds*TICRATE
+
+	if not minutes then return end
+
+	PTV3.time = $+minutes*TICRATE*60
+end
+
+addHook('MapLoad', function(map)
 	PTV3:init()
 	-- one more for safety
 	for p in players.iterate do
@@ -508,7 +524,10 @@ addHook('MapLoad', function()
 	end
 
 	local alive, pizzafaces, total = PTV3.playerCount and PTV3:playerCount()
-	PTV3.time = CV_PTV3['time'].value*TICRATE
+
+	PreparePizzaTimer(mapheaderinfo[map].pizzatimelimit_mins ~= nil and tonumber(mapheaderinfo[map].pizzatimelimit_mins) or CV_PTV3['time'].value, mapheaderinfo[map].pizzatimelimit_secs ~= nil and tonumber(mapheaderinfo[map].pizzatimelimit_secs) or 1)
+
+	PTV3.overtime_time = multiplayer and (120+29)*TICRATE or TICRATE*60
 	PTV3.maxtime = PTV3.time
 	PTV3.pftime = 30*TICRATE
 	PTV3.maxpftime = PTV3.pftime

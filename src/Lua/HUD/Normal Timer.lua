@@ -63,7 +63,7 @@ return function(v)
 	if PTV3.overtime then return end
 
 	local time = nil
-	local maxtime = CV_PTV3['time'].value*TICRATE
+	local maxtime = PTV3.maxtime
 
 	local f = v.cachePatch('PIZZAFILL')
 	local b = v.cachePatch('PIZZABAR')

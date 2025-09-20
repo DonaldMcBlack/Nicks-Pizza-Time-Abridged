@@ -171,7 +171,7 @@ addHook("MobjThinker", function(spawner)
 		spawner.reactiontime = $1-1
 	elseif PTV3.pizzatime
 	and P_LookForPlayers(spawner,FixedMul(spawnrange,spawner.scale),true,false) == true
-	and (spawner.target and spawner.target.player.ptv3 and spawner.target.player.ptv3.laps > spawner.spawnlap) then
+	and (spawner.target and spawner.target.player.ptv3 and spawner.target.player.ptv3.laps ~= spawner.spawnlap) then
 		--Spawn in
 		spawner.state = S_ESCAPESPAWNER1
 		spawner.spawnlap = spawner.target.player.ptv3.laps

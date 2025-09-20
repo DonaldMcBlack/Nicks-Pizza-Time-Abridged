@@ -49,9 +49,10 @@ rawset(_G, "PTV3_SKINS", {
 			name = "Pizzaface",
 			minus_name = "Protoface",
 			extreme_theme = nil,
-			states = { laughing = S_PTV3_PIZZALAUGHING, happy = S_PTV3_PIZZAHAPPY, normal = S_PTV3_PIZZAFACE, enraged = S_PTV3_PIZZAMAD },
+			states = { haywire = S_PTV3_PIZZAHAYWIRE, laughing = S_PTV3_PIZZALAUGHING, happy = S_PTV3_PIZZAHAPPY, normal = S_PTV3_PIZZAFACE, enraged = S_PTV3_PIZZAMAD },
 			laughsound = sfx_pflgh,
 			effect = "PF Afterimage",
+			can_haywire = true,
 			intspeed = 25,
 			incremspeed = FU,
 			incremspeedthreshold = 16,
@@ -65,9 +66,14 @@ rawset(_G, "PTV3_SKINS", {
 
 			current_icon = 1,
 
+			spawn = function(pf)
+				pf.state = S_PTV3_PIZZALAUGHING
+				CONS_Printf(consoleplayer, "Spawn function exists!")
+			end,
+
 			behaviour = function(pf)
 				pf.angle = R_PointToAngle2(pf.x, pf.y, pf.target.x, pf.target.y)
-				pf.combinedspeed = pf.skindata.intspeed*pf.skindata.incremspeed
+				pf.combinedspeed = not pf.brokentimer and (pf.skindata.intspeed*pf.skindata.incremspeed) or (pf.skindata.intspeed*pf.skindata.incremspeed)/2
 				pf.speed = pf.combinedspeed
 
 				if pf.state == S_PTV3_PIZZALAUGHING then pf.state = S_PTV3_PIZZAFACE end
@@ -120,6 +126,11 @@ rawset(_G, "PTV3_SKINS", {
 							elseif dist > FU*100 and pf.state ~= S_PTV3_PIZZAFACE then pf.state = S_PTV3_PIZZAFACE end
 
 							pf.speed = max(FixedMul(FU/8, dist-(FU*250)), 23*FU)
+						end
+
+						if pf.brokentimer and pf.state ~= S_PTV3_PIZZAHAYWIRE then pf.state = S_PTV3_PIZZAHAYWIRE
+						elseif not pf.brokentimer and pf.state ~= S_PTV3_PIZZAFACE then
+							pf.state = S_PTV3_PIZZAFACE
 						end
 
 						pf.skindata.current_icon = 1

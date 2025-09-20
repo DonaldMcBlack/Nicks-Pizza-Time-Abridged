@@ -11,11 +11,13 @@ freeslot("MT_PTV3_PIZZAFACE",
 	"SPR_PZAR",
 	"SPR_PZHY",
 	"SPR_PZLH",
+	"SPR_PZHW",
 	"S_PTV3_PIZZAFACE",
 	"S_PTV3_PIZZAMAD",
 	"S_PTV3_PIZZATROLL",
 	"S_PTV3_PIZZAHAPPY",
 	"S_PTV3_PIZZALAUGHING",
+	"S_PTV3_PIZZAHAYWIRE",
 	"sfx_pflgh",
 	"sfx_fplgh",
 	"sfx_pizmov"
@@ -84,6 +86,16 @@ states[S_PTV3_PIZZAHAPPY] = {
 	var1 = 17,
 	var2 = 2,
 	nextstate = S_PTV3_PIZZAHAPPY
+}
+
+states[S_PTV3_PIZZAHAYWIRE] = {
+	sprite = SPR_PZHW,
+	frame = FF_ANIMATE|A,
+	action = nil,
+	tics = -1,
+	var1 = 7,
+	var2 = 2,
+	nextstate = S_PTV3_PIZZAHAYWIRE
 }
 
 --- SNICK /// -----------------------------------------------

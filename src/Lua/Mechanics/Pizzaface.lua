@@ -33,29 +33,34 @@ function PTV3:LoadSkin_Pizzaface(properties)
 	if not properties then error("One of Pizzaface's skins were not found.") return end
 	if type(properties) ~= "table" then error("One of Pizzaface's skins is not a table.") return end
 
-	local default_struct = PTV3_SKINS.pizzaface[0]
+	-- local default_struct = PTV3_SKINS.pizzaface[0]
 
-	for i,v in pairs(default_struct) do
-		if properties[i] == nil or type(properties[i]) ~= type(default_struct[i]) then
-			properties[i] = default_struct[i]
-		end
-	end
+	-- for i,v in pairs(default_struct) do
+	-- 	if properties[i] == nil or type(properties[i]) ~= type(default_struct[i]) then
+	-- 		properties[i] = default_struct[i]
+	-- 	end
+	-- end
 
 	table.insert(PTV3_SKINS.pizzaface, properties)
 end
 
+local function ApplySkin(pf_skindata, selectedskin)
+	local default_struct = PTV3_SKINS.pizzaface[0]
+
+	for i, v in pairs(default_struct) do
+		if pf_skindata[i] ~= selectedskin[i] then pf_skindata[i] = selectedskin[i] end
+	end
+end
+
 addHook('MobjSpawn', function(pf)
-	pf.incremspeedthreshold = 16
 	pf.destscale = (FU/2)*5/4
 	pf.scale = (FU/2)*5/4
 	pf.spritexscale = $*2
 	pf.spriteyscale = $*2
 	pf.shadowscale = pf.scale*3
-
-	-- if PTV3.minusworld then S_StartSound(nil, sfx_fplgh)
-	-- else S_StartSound(nil, laughsound) end
-
 	pf.cooldown = 3*TICRATE
+
+	pf.skindata = {}
 end, MT_PTV3_PIZZAFACE)
 
 addHook('ShouldDamage', function(t,i,s) return false end, MT_PTV3_PIZZAFACE)
@@ -101,37 +106,34 @@ addHook('MobjThinker', function(pf)
 	else
 		pf.momx, pf.momy, pf.momz = 0, 0, 0
 	end
+
+	if pf.brokentimer then pf.brokentimer = $-1 end
 end, MT_PTV3_PIZZAFACE)
 
 local function PFTouchSpecial(pf, pmo)
 	if pf.cooldown then return end
 	if pf.tracer == pmo then return end
+	
+	local victim = pmo.player
+	
 	local src = pf
-	if pf.tracer
-	and pf.tracer.valid then
+	if pf.tracer and pf.tracer.valid then
 		src = pf.tracer
-	end
-	
-	if pmo.player.powers[pw_invulnerability]
-	or (pmo.player.ptv3
-	and (pmo.player.ptv3.fake_exit
-	or pmo.player.ptv3.chaser)) then
-		return
-	end
-	
-	if pf.tracer
-	and pf.tracer.valid then
 		local p = pf.tracer.player
-		if p.ptv3
-		and (p.ptv3.camper or p.ptv3.pizzaface_teleporting or p.ptv3.stun) then
+
+		if p.ptv3 and (p.ptv3.camper
+					or p.ptv3.pizzaface_teleporting
+					or p.ptv3.stun) then
 			return
 		end
 	end
 	
-	local canKill = PTV3.callbacks("PizzafaceKill", pf, pmo)
-	if canKill then
+	if victim.powers[pw_invulnerability]
+	or (victim.ptv3 and (victim.ptv3.fake_exit or victim.ptv3.chaser)) then
 		return
 	end
+	
+	if PTV3.callbacks("PizzafaceKill", pf, pmo) then return end
 	
 	P_DamageMobj(pmo, src, src, 999, DMG_INSTAKILL)
 end
@@ -163,10 +165,13 @@ function PTV3:pizzafaceSpawn(skin)
 
 		if skin then
 			for _,i in pairs(PTV3_SKINS.pizzaface) do
-				if skin == string.lower(PTV3_SKINS.pizzaface[_].name) then self.pizzaface.skindata = PTV3_SKINS.pizzaface[_] break end
+				if skin == string.lower(PTV3_SKINS.pizzaface[_].name) then ApplySkin(self.pizzaface.skindata, PTV3_SKINS.pizzaface[_]) break end
 			end
 		else
-			self.pizzaface.skindata = PTV3_SKINS.pizzaface[self.skinIndex.pizzaface]
+			ApplySkin(self.pizzaface.skindata, PTV3_SKINS.pizzaface[self.skinIndex.pizzaface])
+
+			CONS_Printf(consoleplayer, PTV3_SKINS.pizzaface[self.skinIndex.pizzaface].incremspeed)
+			CONS_Printf(consoleplayer, self.pizzaface.skindata.incremspeed)
 		end
 
 		if not self.pizzaface.skindata then
@@ -174,7 +179,12 @@ function PTV3:pizzafaceSpawn(skin)
 			self.pizzaface.skindata = PTV3_SKINS.pizzaface[0]
 		end
 
-		self.pizzaface.state = gametype == GT_PTV3DM and self.pizzaface.skindata.states.happy or self.pizzaface.skindata.states.laughing
+		if self.pizzaface.skindata.spawn then
+			self.pizzaface.skindata.spawn(self.pizzaface)
+		else
+			self.pizzaface.state = gametype == GT_PTV3DM and self.pizzaface.skindata.states.happy or self.pizzaface.skindata.states.laughing
+		end
+		
 		self.pizzaface.angry = false
 		S_StartSound(nil, self.pizzaface.skindata.laughsound)
 		print("DEBUG - Spawn "..self.pizzaface.skindata.name.." AI")
@@ -208,3 +218,12 @@ function PTV3:pizzafaceSpawn(skin)
 
 	table.insert(self.currentchasers, self.pizzaface)
 end
+
+addHook("LinedefExecute", function(line, mo, sector)
+	if gametype == GT_PTV3DM then return end
+	if not mo.player or not PTV3.pizzaface then return end
+	if mo ~= PTV3.pizzaface.target then return end
+
+	PTV3.pizzaface.brokentimer = 10
+	CONS_Printf(mo.player, "BREAKING PIZZAFACE")
+end, "PIZZABREAK")

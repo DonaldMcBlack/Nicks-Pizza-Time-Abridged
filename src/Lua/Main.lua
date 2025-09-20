@@ -137,7 +137,7 @@ addHook('PostThinkFrame', function()
 			if not PTV3.time and not (PTV3.pizzaface and PTV3.pizzaface.valid) then PTV3:pizzafaceSpawn() end
 		end
 
-		if PTV3.overtime then
+		if PTV3.wartimer then
 			PTV3.overtime_time = max(0, $-1)
 			if PTV3.overtime_time
 			and not (PTV3.overtime_time % TICRATE) then
@@ -145,7 +145,7 @@ addHook('PostThinkFrame', function()
 			end
 
 			if PTV3.overtime_time == 0
-			or not PTV3:canOvertime() then
+			or not PTV3:canOvertime() and PTV3.overtime then
 				PTV3:endGame()
 			end
 		end
