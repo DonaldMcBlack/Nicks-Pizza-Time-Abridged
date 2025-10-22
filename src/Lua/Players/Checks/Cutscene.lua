@@ -5,14 +5,11 @@ states[freeslot "S_PTV3_WALKANIM"] = {
 	nextstate = S_PTV3_WALKANIM
 }
 
-
-
 local function cutscene(p)
-	local cutsceneTime = PTV3.maxTitlecardTime+(2*TICRATE)
+	local cutsceneTime = PTV3.titlecards[gamemap] and PTV3.maxTitlecardTime+(2*TICRATE) or PTV3.maxTitlecardTime
 
 	if leveltime < cutsceneTime
-	and PTV3.spawnGate
-	and PTV3.spawnGate.valid
+	and PTV3.spawnGate and PTV3.spawnGate.valid
 	and leveltime >= PTV3.maxTitlecardTime then
 		local time = leveltime - PTV3.maxTitlecardTime
 		local remain = cutsceneTime - leveltime
@@ -46,6 +43,7 @@ local function cutscene(p)
 		else
 			p.mo.state = S_PLAY_STND
 			p.mo.angle = PTV3.spawnGate.angle
+			p.ptv3.currentTeleportDest = PTV3.spawn
 		end
 
 		return true
@@ -55,11 +53,10 @@ local function cutscene(p)
 end
 
 local function precutscene(p)
-	local cutsceneTime = PTV3.maxTitlecardTime+(2*TICRATE)
+	local cutsceneTime = PTV3.titlecards[gamemap] and PTV3.maxTitlecardTime+(2*TICRATE) or 2*TICRATE
 
 	if leveltime < cutsceneTime
-	and PTV3.spawnGate
-	and PTV3.spawnGate.valid then
+	and PTV3.spawnGate and PTV3.spawnGate.valid then
 		p.cmd.forwardmove = 0
 		p.cmd.sidemove = 0
 		p.cmd.buttons = 0

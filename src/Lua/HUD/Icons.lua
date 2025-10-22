@@ -224,7 +224,7 @@ local function drawChaserIcon(v,dp,c, chaser, norenderdetails)
 
 	local p = nil
 	local color = SKINCOLOR_WHITE
-	local chaser_name = chaser.skindata.display_name
+	local chaser_name = chaser.skindata.display_name[PTV3.pizzatime or 1]
 	local icon = chaser.skindata.icons[chaser.skindata.current_icon]
 
 	if chaser == PTV3.pizzaface then

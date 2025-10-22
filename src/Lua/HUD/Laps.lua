@@ -23,21 +23,15 @@ local function getPatchesFromNum(v, font, num)
 end
 
 return function(v,p)
-	if not PTV3.pizzatime then return end
-	if not p.ptv3 then return end
-	if p.ptv3.lap_time < 0 then return end
+	if not PTV3.pizzatime or not p.ptv3 or p.ptv3.lap_time < 0 then return end
 	local time = ((leveltime - p.ptv3.lap_time)*(FU))/35
-	
+
 	if time > FU*5 then return end
-	
-	local lapgraph = v.cachePatch('PTLAP')
-	local patches = getPatchesFromNum(v, "PTLAP", p.ptv3.laps)
+	local lapgraph = v.patchExists('PTLAP'..p.ptv3.laps) and v.cachePatch('PTLAP'..p.ptv3.laps) or v.cachePatch('PTLAP')
 
 	local scale = FU/3
 	local x = (160*FU)-((lapgraph.width*scale)/2)
 	local y = ease.linear(time, -lapgraph.height*scale, 4*FU)
-
-	x = $+v.RandomRange(-3*scale,3*scale)
 
 	if time > FU*4 then
 		y = ease.linear(time-(FU*4), 4*FU, -lapgraph.height*scale)
@@ -45,14 +39,20 @@ return function(v,p)
 		y = 4*FU
 	end
 
+	x = $+v.RandomRange(-3*scale,3*scale)
 	y = $+v.RandomRange(-3*scale,3*scale)
+
 	v.drawScaled(x,y,scale,lapgraph,V_SNAPTOTOP)
-	local fx = 0
-	for _,patch in ipairs(patches) do
-		local x = x + (165*scale)
-		local fy = (91-patch.height)*scale
-		
-		v.drawScaled(x+fx,y+fy,scale,patch,V_SNAPTOTOP)
-		fx = $+FixedDiv(patch.width*scale, FU)
+
+	if not v.patchExists('PTLAP'..p.ptv3.laps) then
+		local patches = getPatchesFromNum(v, "PTLAP", p.ptv3.laps)
+		local fx = 0
+		for _,patch in ipairs(patches) do
+			local x = x + (155*scale)
+			local fy = (91-patch.height)*scale
+			
+			v.drawScaled(x+fx,y+fy,scale,patch,V_SNAPTOTOP)
+			fx = $+FixedDiv(patch.width*scale, FU)
+		end
 	end
 end

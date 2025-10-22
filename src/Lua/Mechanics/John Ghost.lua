@@ -53,9 +53,7 @@ addHook('MobjSpawn', function(john)
 	john.target = player.mo
 end, MT_PTV3_JOHNGHOST)
 
-addHook("ShouldDamage", function(t,i,s)
-	return false
-end, MT_PTV3_JOHNGHOST)
+addHook("ShouldDamage", function(t,i,s) return false end, MT_PTV3_JOHNGHOST)
 
 addHook('MobjThinker', function(john)
 	if john.tracer then return end
@@ -77,27 +75,13 @@ addHook('MobjThinker', function(john)
 
 	if john.target then
 		john.skindata.behaviour(john)
-		john.skindata.display_name = PTV3.pizzatime < 0 and john.skindata.minus_name or john.skindata.name
 	else
 		john.momx,john.momy,john.momz = 0,0,0
 	end
 end, MT_PTV3_JOHNGHOST)
 
-local function JohnTouchSpecial(john, pmo)
-	if john.tracer == pmo then return end
-	if (pmo and pmo.player and pmo.player.ptv3 and pmo.player.ptv3.chaser) then return end
-
-    local p = pmo.player
-	
-	if p.ptv3.fake_exit then return end
-	john.speed, john.basespeed, john.maxspeed = 0, 0, 0
-    PTV3:queueTeleport(p, p.ptv3.currentTeleportDest, false, john)
-	S_StartSound(nil, sfx_jghtct, p)
-	P_SetOrigin(john, PTV3.spawn.x, PTV3.spawn.y, PTV3.spawn.z+(200*FU))
-end
-
 addHook('TouchSpecial', function(john, pmo)
-	JohnTouchSpecial(john, pmo)
+	john.skindata.touch(john, pmo)
 	return true
 end, MT_PTV3_JOHNGHOST)
 
@@ -112,11 +96,11 @@ function PTV3:johnGhostSpawn(skin)
 		if self.johnGhost and self.johnGhost.valid then return end
 
 		local position = {}
-		local clonething = PTV3.pizzatime < 0 and self.spawn or self.endpos
+		local clonething = PTV3.pizzatime > 0 and PTV3.endpos or {x = 0, y = 0, z = 0, a = 0}
 
 		for _,i in pairs(clonething) do position[_] = i end
 		
-		position.z = $+(120*FU)
+		position.z = PTV3.pizzatime > 0 and $+(120*FU) or 0
 		self.johnGhost = spawnmobj(position)
 
 		if skin then

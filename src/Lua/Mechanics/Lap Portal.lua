@@ -75,7 +75,7 @@ local function CanEnterPortal(mo, pmo)
 end
 
 addHook("TouchSpecial", function(mo, pmo)
-	if not PTV3.pizzatime then return true end
+	if PTV3.pizzatime < 0 then return true end
 	if not CanEnterPortal(mo, pmo) then return true end
 
 	PTV3:newLap(pmo.player, 1)

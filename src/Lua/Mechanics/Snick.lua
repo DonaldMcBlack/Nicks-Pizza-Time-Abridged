@@ -79,7 +79,6 @@ addHook('MobjThinker', function(snick)
 	snick.target = player and player.mo
 	if snick.target then
 		snick.skindata.behaviour(snick)
-		snick.skindata.display_name = PTV3.pizzatime < 0 and snick.skindata.minus_name or snick.skindata.name
 	else
 		snick.momx,snick.momy,snick.momz = 0,0,0
 	end

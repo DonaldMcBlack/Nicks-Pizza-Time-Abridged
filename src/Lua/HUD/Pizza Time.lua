@@ -3,7 +3,7 @@ return function(v)
 	if PTV3.hud_pt < 0 then return end
 	local time = PTV3.HUD_returnTime(PTV3.hud_pt, 3*FU)
 	
-	local flashTime = PTV3.HUD_returnTime(PTV3.hud_pt, TICRATE/2, nil, true)
+	local flashTime = PTV3.HUD_returnTime(PTV3.hud_pt, TICRATE/4, nil, true)
 	v.fadeScreen(SKINCOLOR_WHITE, ease.linear(flashTime, 10, 0))
 	
 	local patch = (leveltime % 4) / 2 and v.cachePatch('PITIM1') or v.cachePatch('PITIM2')

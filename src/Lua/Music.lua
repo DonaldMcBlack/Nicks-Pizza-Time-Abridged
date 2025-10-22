@@ -41,6 +41,20 @@ addHook('PostThinkFrame', function()
 	local secretmusic = modsongs["Secret"] or "SECRET"
 
 	if displayplayer and displayplayer.ptv3 and not playPizzaTimeMusic() then
+		if PTV3.titlecards[gamemap] and leveltime <= PTV3.maxTitlecardTime then
+			if leveltime < PTV3.maxTitlecardTime
+			and mapmusname ~= PTV3.titlecards[gamemap].mus then
+				mapmusname = PTV3.titlecards[gamemap].mus
+				S_ChangeMusic(mapmusname, false)
+			end
+		
+			if leveltime == PTV3.maxTitlecardTime
+			and mapmusname == PTV3.titlecards[gamemap].mus then
+				mapmusname = mapheaderinfo[gamemap].musname
+				S_ChangeMusic(mapmusname, true)
+			end
+		end
+
 		if displayplayer.ptv3.insecret and mapmusname ~= secretmusic then
 			mapmusname = secretmusic
 			S_ChangeMusic(mapmusname, true)
@@ -49,20 +63,6 @@ addHook('PostThinkFrame', function()
 		if not displayplayer.ptv3.insecret and mapmusname == secretmusic then
 			mapmusname = mapheaderinfo[gamemap].musname
 			S_ChangeMusic(mapmusname, true)
-		end
-
-		if PTV3.titlecards[gamemap] then
-			if leveltime < PTV3.maxTitlecardTime
-			and mapmusname ~= PTV3.titlecards[gamemap].mus then
-				mapmusname = PTV3.titlecards[gamemap].mus
-				S_ChangeMusic(mapmusname, false)
-			end
-		
-			if leveltime >= PTV3.maxTitlecardTime
-			and mapmusname == PTV3.titlecards[gamemap].mus then
-				mapmusname = mapheaderinfo[gamemap].musname
-				S_ChangeMusic(mapmusname, true)
-			end
 		end
 	end
 

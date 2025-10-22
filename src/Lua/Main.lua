@@ -1,4 +1,4 @@
-local cutsceneTime = PTV3.maxTitlecardTime+(2*TICRATE)
+local cutsceneTime
 
 addHook("ThinkFrame", function()
 	if not PTV3:isPTV3() then return end
@@ -78,6 +78,12 @@ addHook('PostThinkFrame', function()
 			p.ptv3.fake_exit = false
 			p.mo.flags2 = $ & ~MF2_DONTDRAW
 
+			if tps.source and tps.source.type == MT_PTV3_SECRET then
+				p.pflags = $|PF_SPINNING|PF_JUMPED
+				tps.mo.state = S_PLAY_ROLL
+				P_SetObjectMomZ(tps.mo, -12*FU, false)
+			end
+
 			if (PTV3.pizzaface and PTV3.pizzaface.valid)
 			and PTV3.pizzaface.target == (p and p.mo)
 			and tps.source ~= PTV3.johnGhost then
@@ -93,10 +99,15 @@ addHook('PostThinkFrame', function()
 	end
 
 	if PTV3.spawnGate and PTV3.spawnGate.valid then
+		cutsceneTime = PTV3.titlecards[gamemap] and PTV3.maxTitlecardTime+(2*TICRATE) or 2*TICRATE
 		if PTV3.titlecards[gamemap] then
 			SpawnGateController(PTV3.maxTitlecardTime+TICRATE)
 		else
 			SpawnGateController(TICRATE)
+		end
+
+		if consoleplayer and not PTV3.pizzatime then
+			consoleplayer.realtime = max(0, leveltime-cutsceneTime)
 		end
 	end
 
@@ -196,12 +207,6 @@ addHook('PostThinkFrame', function()
 		else
 			PTV3.pizzaface.intspeed = $+FixedMul(increase, FU+FU/3)
 		end
-	end
-
-	if PTV3.titlecards[gamemap]
-	and consoleplayer
-	and not PTV3.pizzatime then
-		consoleplayer.realtime = max(0, leveltime-cutsceneTime)
 	end
 
 	if HAPPY_HOUR then -- happy hour support

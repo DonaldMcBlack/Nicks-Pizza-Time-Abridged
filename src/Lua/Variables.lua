@@ -239,6 +239,7 @@ local synced_variables = {
 	['overtime_time'] = TICRATE,
 	['maxotTime'] = (120+29)*TICRATE,
 	['secrets'] = {},
+	['secret_count'] = 0,
  	['game_over'] = -1,
 	['maxrankrequirement'] = 1500,
 	['hud_pt'] = -1,
@@ -265,10 +266,9 @@ local function spawnSector(t)
 
 	local a = PTV3.spawn.a
 
-	if PTV3.titlecards[gamemap] then
-		PTV3.spawnGate = P_SpawnMobj(PTV3.spawn.x+(-230*cos(a)), PTV3.spawn.y+(-230*sin(a)), PTV3.spawn.z, MT_PTV3_SPAWNGATE)
-		PTV3.spawnGate.angle = a
-	end
+	PTV3.spawnGate = R_PointInSubsectorOrNil(PTV3.spawn.x+(-230*cos(a)), PTV3.spawn.y+(-230*sin(a))) and P_SpawnMobj(PTV3.spawn.x+(-230*cos(a)), PTV3.spawn.y+(-230*sin(a)), PTV3.spawn.z, MT_PTV3_SPAWNGATE) or
+												P_SpawnMobj(PTV3.spawn.x, PTV3.spawn.y, PTV3.spawn.z, MT_PTV3_SPAWNGATE)
+	PTV3.spawnGate.angle = a
 
 	PTV3.spawnsector = sec
 end
@@ -338,7 +338,7 @@ function PTV3:player(player)
 		['specforce'] = false,
 		['extreme'] = false,
 		['fake_exit'] = false,
-		['insecret'] = 0,
+		['insecret'] = false,
 		['secretsfound'] = 0,
 		['secret_tptoend'] = false,
 		['combo'] = 0,
@@ -372,6 +372,7 @@ function PTV3:player(player)
 		['scoreReduce'] = {time = false, by = 0},
 
 		['pizzaMobj'] = false,
+		['pizzaMobj_skindata'] = {},
 		['pizzaface_skin'] = "pizzaface",
 		['snick_skin'] = "snick",
 		['johnghost_skin'] = "john",
@@ -467,6 +468,7 @@ addHook('NetVars', function(n)
 		"overtime_time",
 		"maxotTime",
 		"secrets",
+		"secret_count",
 		"pizzafacetps",
 		"game_over",
 		"hud_pt",
@@ -518,9 +520,11 @@ addHook('MapLoad', function(map)
 
 	PTV3.setJohnBlocks()
 
-	-- I don't care if it's not there in the actual gametype, I want it gone.
-	for mobj in mobjs.iterate() do
-		if mobj.type == MT_SIGN and mobj.valid then P_RemoveMobj(mobj) end
+	for i, v in ipairs(PTV3.secrets) do
+		if PTV3.secrets[i-1] ~= nil and PTV3.secrets[i-1].sgroup == v.sgroup then continue
+		else
+			PTV3.secret_count = $+1
+		end
 	end
 
 	local alive, pizzafaces, total = PTV3.playerCount and PTV3:playerCount()
@@ -547,3 +551,6 @@ addHook('MapLoad', function(map)
 		PTV3:pizzafaceSpawn()
 	end
 end)
+
+-- I don't care if it's not there in the actual gametype, I want it gone.
+addHook("MobjThinker", function(sign) if sign and sign.valid then P_RemoveMobj(sign) end end, MT_SIGN)

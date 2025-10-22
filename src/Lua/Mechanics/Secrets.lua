@@ -1,156 +1,165 @@
 freeslot("sfx_secfou",
+	"sfx_secent",
+	"sfx_secexi",
 	"MT_PTV3_SECRET",
-	"MT_PTV3_SECRETEXIT",
-	"MT_PTV3_SECRETTP",
-	"MT_PTV3_CODESECRET",
 	"SPR_SIDL",
 	"SPR_SCRY",
+	"SPR_SEHI",
 	"S_PTV3_SECRET",
-	"S_PTV3_SECRET_CRY"
+	"S_PTV3_SECRET_CRY",
+	"S_PTV3_SECRET_SPAWN"
 )
 
+sfxinfo[sfx_secent].caption = "Eye invasion"
+sfxinfo[sfx_secexi].caption = "Fat tear"
 sfxinfo[sfx_secfou].caption = "Secret found!"
 
 mobjinfo[MT_PTV3_SECRET] = {
+	--$Name "Secret Eye"
+	--$Sprite SIDLA0
+	--$Category "PTV3A"
+	--$Color 13
+	--$Arg0 Group
+	--$Arg1 Type
+	--$Arg1Type 11
+	--$Arg1Enum { 0="Entry"; 1="EntryDest"; 2="Exit";}
+	--$Arg2 Set 2D?
+	--$Arg2Type 11
+	--$Arg2Enum { 0="No"; 1="Yes";}
+	--$Arg3 Distance to Reveal
+	--$Arg3Type 0
+	--$Arg3Default 0
+	--$Arg3RenderStyle Circle
+	--$Arg3RenderColor d868a0
     doomednum = 2222,
-    spawnstate = S_NULL,
-    radius = 16*FRACUNIT,
-    height = 48*FRACUNIT,
-}
-mobjinfo[MT_PTV3_SECRETTP] = {
-    doomednum = 2223,
-    spawnstate = S_NULL,
-    radius = 16*FRACUNIT,
-    height = 48*FRACUNIT,
-}
-mobjinfo[MT_PTV3_SECRETEXIT] = {
-    doomednum = 2224,
-    spawnstate = S_NULL,
-    radius = 16*FRACUNIT,
-    height = 48*FRACUNIT,
-}
-
-mobjinfo[MT_PTV3_CODESECRET] = {
-    doomednum = -1,
-	spawnstate = S_PTV3_SECRET_CRY,
+    spawnstate = S_PTV3_SECRET,
 	spawnhealth = 1000,
 	deathstate = S_NULL,
-	radius = 48*FU,
-	height = 64*FU,
+    radius = 16*FRACUNIT,
+    height = 48*FRACUNIT,
 	flags = MF_NOCLIP|MF_NOGRAVITY|MF_NOCLIPHEIGHT|MF_SPECIAL
+}
+
+states[S_PTV3_SECRET_SPAWN] = {
+	sprite = SPR_SEHI,
+	frame = A|FF_ANIMATE,
+	tics = 20,
+	action = nil,
+	var1 = 10,
+	var2 = 2,
+	nextstate = S_PTV3_SECRET
 }
 
 states[S_PTV3_SECRET] = {
     sprite = SPR_SIDL,
-    frame = A,
+    frame = A|FF_ANIMATE,
     tics = -1,
-    action = nil,
-    var1 = 2,
+    action = function(secret)
+		if secret.hidden then secret.hidden = false end
+	end,
+    var1 = 13,
     var2 = 2,
     nextstate = S_PTV3_SECRET
 }
 
 states[S_PTV3_SECRET_CRY] = {
     sprite = SPR_SCRY,
-    frame = A,
+    frame = A|FF_ANIMATE,
     tics = -1,
     action = nil,
-    var1 = 2,
+    var1 = 11,
     var2 = 2,
     nextstate = S_PTV3_SECRET_CRY
 }
 
-local tplist = {}
 local saved_sky = 0
 
-addHook('NetVars', function(n)
-	tplist = n($)
-end)
-addHook('MapLoad', function()
-	saved_sky = 0
-end)
+addHook('MapLoad', function() saved_sky = 0 end)
 
-local function SpawnSecret(x,y,z,angle,type)
-	if not PTV3:isPTV3() then return end
-	local z = P_FloorzAtPos(x*FU, y*FU, 0*FU, 64*FU)+(z*FU)
-	local secret = P_SpawnMobj(x*FU, y*FU, z, MT_PTV3_CODESECRET)
-	secret.stype = type
+addHook('MapThingSpawn', function(secret, thing)
+	secret.sgroup = thing.args[0]
+	secret.stype = thing.args[1]
+	secret.switch_2D = thing.args[2]
+	secret.reveal_range = thing.args[3]*FU
 
-	if not PTV3.secrets[angle] then
-		PTV3.secrets[angle] = {}
+	if secret.reveal_range > 0 then
+		secret.flags2 = $|MF2_DONTDRAW
+		secret.hidden = true
 	end
-	PTV3.secrets[angle][type] = secret
-	secret.link = angle
-end
 
-addHook('MapThingSpawn', function(mo,thing)
-	if thing.type == 2222 then
-		SpawnSecret(thing.x,thing.y,thing.z,thing.angle,1)
-	end
-	if thing.type == 2223 then
-		SpawnSecret(thing.x,thing.y,thing.z,thing.angle,0)
-	end
-	if thing.type == 2224 then
-		SpawnSecret(thing.x,thing.y,thing.z,thing.angle,2)
-	end
-end)
+	table.insert(PTV3.secrets, secret)
+end, MT_PTV3_SECRET)
 
 addHook('MobjSpawn', function(secret)
-	secret.stype = 1
 	secret.teleported = {}
-end, MT_PTV3_CODESECRET)
+end, MT_PTV3_SECRET)
 
 addHook("MobjThinker", function(secret)
-	if secret.stype == 0 then
-		if secret.state ~= S_PTV3_SECRET_CRY then
-			secret.state = S_PTV3_SECRET_CRY
-		end
-		return
-	else
-		if secret.state ~= S_PTV3_SECRET then
-			secret.state = S_PTV3_SECRET
-		end
-		return
-	end
-end, MT_PTV3_CODESECRET)
+	if not secret.hidden
+	or secret.state == S_PTV3_SECRET_SPAWN then return end
 
-local function SecretCollide(secret,mo)
+	for p in players.iterate() do
+		if not (p.mo and p.mo.valid) then continue end
+
+		local pmo = p.mo
+		local dist = R_PointToDist2(0, 0, R_PointToDist2(pmo.x, pmo.y, secret.x, secret.y), pmo.z-secret.z)
+
+		if dist < secret.reveal_range then
+			secret.state = S_PTV3_SECRET_SPAWN
+			secret.flags2 = $ & ~MF2_DONTDRAW
+			break
+		end
+	end
+end, MT_PTV3_SECRET)
+
+local function FindSecretEye(entered, group)
+	for _, v in ipairs(PTV3.secrets) do
+		if v.sgroup ~= entered.sgroup then continue end
+
+		if (entered.stype == 2 and v.stype == 0)
+		or (v.stype < 2 and entered.stype < v.stype) then
+			return v
+		end
+	end
 end
 
 addHook('TouchSpecial', function(secret,mo)
-	if secret.stype == 0 then return true end
-	if mo.type ~= MT_PLAYER then return true end
-	if not (mo and mo.valid) then return true end
-	if PTV3.overtime
-	and not (mo.player and mo.player.ptv3 and mo.player.ptv3.insecret) then
-		return  true
-	end
-	if secret.teleported[mo.player] then return true end
-	
-	local type = 0
-	local type2 = secret.link
-	if secret.stype == 2 then
-		type = 1
-		type2 = 0
-		PTV3.callbacks('ExitSecret', mo.player)
-	elseif mo.player.ptv3 then
-		mo.player.ptv3.secretsfound = $+1
-		S_StartSound(nil, sfx_secfou, mo.player)
-		PTV3.callbacks('FoundSecret', mo.player)
-	end
-	
-	
-	local link = PTV3.secrets[secret.link][type]
-	
-	table.insert(tplist, {mo.player, {x=link.x, y=link.y, z=link.z, a=mo.angle}, type})
-	-- sometimes this doesnt like to work so i gotta improvise
+	if secret.stype == 1
+	or secret.hidden
+	or not (mo and mo.valid and mo.player)
+	or (PTV3.overtime and not (mo.player and mo.player.ptv3 and mo.player.ptv3.insecret))
+	or secret.teleported[mo.player] then return true end
 
-	secret.teleported[mo.player] = true
-	if type2 ~= 0 then
-		mo.player.ptv3.insecret = type2
+	local p = mo.player
+	local next_secret = FindSecretEye(secret)
+	local link = { x=next_secret.x, y=next_secret.y, z=next_secret.z, a=next_secret.angle }
+	
+	if secret.stype == 2 then
+		PTV3:exitSecret(p)
+		S_StartSound(p.mo, sfx_secexi)
+		PTV3.callbacks('ExitSecret', p)
+	else
+		p.ptv3.insecret = true
+		p.ptv3.secretsfound = $+1
+
+		S_StartSound(nil, sfx_secfou, p)
+		S_StartSound(p.mo, sfx_secent, p)
+
+		saved_sky = levelskynum
+		P_SetupLevelSky(102, p)
+		PTV3.callbacks('FoundSecret', p)
 	end
+
+	PTV3.hud_secret = leveltime
+	PTV3:queueTeleport(p, link, false, secret)
+	PTV3:increaseCombo(p, 3)
+	
+	next_secret.state = S_PTV3_SECRET_CRY
+	mo.flags2 = secret.switch_2D and $|MF2_TWOD or $ & ~MF2_TWOD
+	secret.teleported[p] = true
+
 	return true
-end, MT_PTV3_CODESECRET)
+end, MT_PTV3_SECRET)
 
 function PTV3:exitSecret(p)
 	if not (p and p.ptv3 and p.ptv3.insecret) then return end
@@ -162,6 +171,7 @@ function PTV3:exitSecret(p)
 	if p == consoleplayer
 	and saved_sky then
 		if PTV3.overtime then
+			
 			P_SetSkyboxMobj(nil, false)
 			P_SetupLevelSky(9, p)
 		elseif PTV3.extreme then
@@ -173,31 +183,5 @@ function PTV3:exitSecret(p)
 
 		saved_sky = 0
 	end
-
-	p.ptv3.insecret = 0
+	p.ptv3.insecret = false
 end
-
-addHook('ThinkFrame', do
-	for _,tp in ipairs(tplist) do
-		if not tp[1].mo.valid then
-			table.remove(tplist, _)
-			continue
-		end
-		if (tp[3] == 1 and not tp[1].ptv3.secret_tptoend)
-		or tp[3] ~= 1 then
-			PTV3:queueTeleport(unpack(tp))
-		end
-		
-		if tp[3] == 0 then
-			if tp[1] == consoleplayer then
-				saved_sky = levelskynum
-				P_SetupLevelSky(102, tp[1])
-				PTV3.hud_secret = leveltime
-			end
-		elseif tp[3] == 1 then
-			PTV3:exitSecret(tp[1])
-		end
-		
-		table.remove(tplist, _)
-	end
-end)

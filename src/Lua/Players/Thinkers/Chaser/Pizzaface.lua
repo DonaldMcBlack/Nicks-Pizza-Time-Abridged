@@ -1,7 +1,7 @@
 local movement = dofile "Players/Libs/Chaser Movement"
 -- local anticamp = dofile "Players/Libs/Anticamp"
 
-addHook("PostThinkFrame", do
+addHook("PostThinkFrame", function()
 	if not PTV3:isPTV3() then return end
 
 	for p in players.iterate do
@@ -52,105 +52,116 @@ local function getNearestPlayer(pos, conditions)
 	return pl
 end
 
+local function PerformAction(p, pizztable, chaser)
+	if p.cmd.buttons & BT_CUSTOM1 then
+		if pizztable.pizzaface_chasedown then
+			if not pizztable.buttons & BT_CUSTOM1 then
+				pizztable.pizzaface_chasedown = 0
+			end
+			pizztable.pizzaface_chasedown = max(0, $-1)
+		end
+
+		CONS_Printf(p, "Perform Ability 1")
+	end
+
+	if p.cmd.buttons & BT_CUSTOM2 then
+		if not (pizztable.buttons & BT_CUSTOM2) then
+			if pizztable.pizzaface_teleporting then
+				pizztable.pizzaface_teleporting = false
+				pizztable.pizzaface_teleportingcool = 40*TICRATE
+				pizztable.stun = 4*TICRATE
+				S_StartSound(p.mo, chaser.laughsound)
+			else
+				pizztable.pizzaface_teleporting = true
+			end
+			
+		end
+		CONS_Printf(p, "Perform Ability 2")
+	end
+
+	if p.cmd.buttons & BT_CUSTOM3 then
+		CONS_Printf(p, "Perform Ability 3")
+	end
+end
+
 local pizzaface = function(p)
 	local canMove = true
+	local pt_table = p.ptv3
+	local chasermo = p.ptv3.pizzaMobj
+	local chaserdata = p.ptv3.pizzaMobj_skindata
 
-	if p.ptv3.pizzaMobj and p.ptv3.pizzaMobj.valid then
-		p.ptv3.pizzaMobj.tracer = p.mo
+	if not (chasermo and chasermo.valid) then return end
 
-		-- p.mo.flags = $|MF_NOCLIP|MF_NOCLIPHEIGHT
+	chasermo.tracer = p.mo
 
-		if p.ptv3.pizzaface_chasedown then
-			if p.cmd.buttons & BT_CUSTOM1
-			and not (p.ptv3.buttons & BT_CUSTOM1) then
-				p.ptv3.pizzaface_chasedown = 0
-			end
-			p.ptv3.pizzaface_chasedown = max(0, $-1)
+	-- p.mo.flags = $|MF_NOCLIP|MF_NOCLIPHEIGHT
+
+	if canMove and
+	not (pt_table.pizzaface_chasedowncool or pt_table.pizzaface_chasedown or pt_table.pizzaface_teleporting) then
+		if p.cmd.buttons & BT_CUSTOM1 and not (pt_table.buttons & BT_CUSTOM1) then
+			pt_table.pizzaface_chasedown = 5*TICRATE
+			pt_table.pizzaface_chasedowncool = 20*TICRATE
+
+			S_StartSound(p.mo, chaserdata.laughsound)
+		end
+	end
+
+	if p.cmd.buttons & BT_CUSTOM1|BT_CUSTOM2|BT_CUSTOM3 then
+		PerformAction(p, pt_table, chaserdata)
+	else
+		pt_table.pizzaface_chasedowncool = max(0, $-1)
+		pt_table.pizzaface_teleportingcool = max(0, $-1)
+	end
+
+	if PTV3.pftime or pt_table.stun or chasermo.cooldown then
+		pt_table.stun = max(0, $-1)
+	end
+
+	if pt_table.pizzaface_teleporting then
+		chasermo.flags2 = $|MF2_DONTDRAW
+	else
+		chasermo.flags2 = $ & ~MF2_DONTDRAW
+	end
+
+	if pt_table.pizzaface_chasedown then
+		pt_table.chasermovetime = 0
+		pt_table.chaservertmovetime = 0
+		local player = getNearestPlayer(p.mo, function(p2)
+			return p2
+			and p2.mo
+			and p2.mo.health
+			and p2.ptv3
+			and not p2.ptv3.chaser
+		end)
+
+		if not player then
+			pt_table.pizzaface_chasedown = 0
 		else
-			p.ptv3.pizzaface_chasedowncool = max(0, $-1)
+			P_FlyTo(p.mo, player.mo.x, player.mo.y, player.mo.z, 45*FU)
 		end
+	elseif pt_table.pizzaface_teleporting then
+		if abs(p.cmd.sidemove) >= 25
+		and abs(pt_table.pizzaface_tpsidemove) < 25 then
+			local selIndex = p.cmd.sidemove >= 0 and 1 or -1
 
-		if PTV3.pftime or p.ptv3.stun or p.ptv3.pizzaMobj.cooldown then
-			p.ptv3.stun = max(0, $-1)
-		end
+			pt_table.pizzaface_tpselection = $+selIndex
 
-		if p.ptv3.pizzaface_teleportingcool then
-			p.ptv3.pizzaface_teleportingcool = max(0, $-1)
-		end
-
-		if p.ptv3.pizzaface_teleporting then
-			p.ptv3.pizzaMobj.flags2 = $|MF2_DONTDRAW
-		else
-			p.ptv3.pizzaMobj.flags2 = $ & ~MF2_DONTDRAW
-		end
-
-		if canMove then
-			if not (p.ptv3.pizzaface_chasedowncool)
-			and not (p.ptv3.pizzaface_chasedown)
-			and not p.ptv3.pizzaface_teleporting then
-
-				if p.cmd.buttons & BT_CUSTOM1 and not (p.ptv3.buttons & BT_CUSTOM1) then
-					p.ptv3.pizzaface_chasedown = 5*TICRATE
-					p.ptv3.pizzaface_chasedowncool = 20*TICRATE
-
-					S_StartSound(p.mo, p.skindata.laughsound)
-				end
-
-				if p.cmd.buttons & BT_CUSTOM2 and not (p.ptv3.buttons & BT_CUSTOM2) then
-					p.ptv3.pizzaface_teleporting = true
-				end
+			if pt_table.pizzaface_tpselection > #PTV3.pizzafacetps then
+				pt_table.pizzaface_tpselection = 1
+			elseif pt_table.pizzaface_tpselection < 1 then
+				pt_table.pizzaface_tpselection = #PTV3.pizzafacetps
 			end
 		end
+		pt_table.pizzaface_tpsidemove = p.cmd.sidemove
 
-		if p.ptv3.pizzaface_teleporting
-		and p.cmd.buttons & BT_CUSTOM2
-		and not (p.ptv3.buttons & BT_CUSTOM2) then
-			p.ptv3.pizzaface_teleporting = false
-			p.ptv3.pizzaface_teleportingcool = 40*TICRATE
-			p.ptv3.stun = 4*TICRATE
-			S_StartSound(p.mo, p.skindata.laughsound)
-		end
+		local sel = PTV3.pizzafacetps[pt_table.pizzaface_tpselection]
 
-		if p.ptv3.pizzaface_chasedown then
-			p.ptv3.chasermovetime = 0
-			p.ptv3.chaservertmovetime = 0
-			local player = getNearestPlayer(p.mo, function(p2)
-				return p2
-				and p2.mo
-				and p2.mo.health
-				and p2.ptv3
-				and not p2.ptv3.chaser
-			end)
-
-			if not player then
-				p.ptv3.pizzaface_chasedown = 0
-			else
-				P_FlyTo(p.mo, player.mo.x, player.mo.y, player.mo.z, 45*FU)
-			end
-		elseif p.ptv3.pizzaface_teleporting then
-			if abs(p.cmd.sidemove) >= 25
-			and abs(p.ptv3.pizzaface_tpsidemove) < 25 then
-				local selIndex = p.cmd.sidemove >= 0 and 1 or -1
-
-				p.ptv3.pizzaface_tpselection = $+selIndex
-
-				if p.ptv3.pizzaface_tpselection > #PTV3.pizzafacetps then
-					p.ptv3.pizzaface_tpselection = 1
-				elseif p.ptv3.pizzaface_tpselection < 1 then
-					p.ptv3.pizzaface_tpselection = #PTV3.pizzafacetps
-				end
-			end
-			p.ptv3.pizzaface_tpsidemove = p.cmd.sidemove
-
-			local sel = PTV3.pizzafacetps[p.ptv3.pizzaface_tpselection]
-
-			P_SetOrigin(p.mo, sel.x, sel.y, sel.z)
-			p.mo.momx,p.mo.momy,p.mo.momz = 0,0,0
-		else
-			movement(p, canMove, p.skindata.intspeed*p.skindata.incremspeed, p.skindata.intspeed*p.skindata.incremspeed, "PF Afterimage")
-			
-			-- anticamp(p, canMove)
-		end
+		P_SetOrigin(p.mo, sel.x, sel.y, sel.z)
+		p.mo.momx,p.mo.momy,p.mo.momz = 0,0,0
+	else
+		movement(p, canMove, chaserdata.intspeed*chaserdata.incremspeed, chaserdata.intspeed*chaserdata.incremspeed, "PF Afterimage")
+		
+		-- anticamp(p, canMove)
 	end
 end
 

@@ -45,12 +45,12 @@ dofile "Freeslots"
 rawset(_G, "PTV3_SKINS", {
 	pizzaface = {
 		[0] = {
-			display_name = "Pizzaface",
+			display_name = { [-1] = "Protoface", [1] = "Pizzaface"},
 			name = "Pizzaface",
-			minus_name = "Protoface",
-			extreme_theme = nil,
+			extreme_theme = "POTMAC",
 			states = { haywire = S_PTV3_PIZZAHAYWIRE, laughing = S_PTV3_PIZZALAUGHING, happy = S_PTV3_PIZZAHAPPY, normal = S_PTV3_PIZZAFACE, enraged = S_PTV3_PIZZAMAD },
-			laughsound = sfx_pflgh,
+			laughsound = { [-1] = sfx_fplgh, [1] = sfx_pflgh },
+			movesound = { [-1] = sfx_promov, [1] = sfx_pizmov },
 			effect = "PF Afterimage",
 			can_haywire = true,
 			intspeed = 25,
@@ -68,7 +68,6 @@ rawset(_G, "PTV3_SKINS", {
 
 			spawn = function(pf)
 				pf.state = S_PTV3_PIZZALAUGHING
-				CONS_Printf(consoleplayer, "Spawn function exists!")
 			end,
 
 			behaviour = function(pf)
@@ -142,14 +141,67 @@ rawset(_G, "PTV3_SKINS", {
 
 					P_FlyTo(pf, pf.target.x, pf.target.y, pf.target.z, pf.speed)
 				end
-			end
+			end,
+
+			active_ability = 0,
+
+			abilities = {
+				[1] = {
+					name = "Ram",
+					buttontype = "Press",
+					actiontime = 10*TICRATE,
+					icon = "ACTION_RAM",
+					button = "C1",
+					
+					cooldown = 0,
+					cooldown_maxduration = 20*TICRATE,
+
+					can_cancel = true,
+					restrict = true,
+
+					action = function(p, pf)
+					end
+				},
+				[2] = {
+					name = "Teleport",
+					buttontype = "Hold",
+					actiontime = -1,
+					icon = "ACTION_TELEPORT",
+					button = "C2",
+
+					cooldown = 0,
+					cooldown_maxduration = 40*TICRATE,
+
+					can_cancel = false,
+					restrict = true,
+
+					action = function(p, pf)
+						
+					end
+				},
+				[3] = {
+					name = "Deploy",
+					buttontype = "Press",
+					actiontime = 12,
+					icon = "ACTION_DEPLOY",
+					button = "C3",
+					
+					cooldown = 0,
+					cooldown_maxduration = 5*TICRATE,
+
+					can_cancel = false,
+					restrict = false,
+
+					action = function(p, pf)
+					end
+				}
+			}
 		}
 	},
 	snick = {
 		[0] = {
-			display_name = "Snick",
+			display_name = { [-1] = "Shade", [1] = "Snick" },
 			name = "Snick",
-			minus_name = "Shade",
 			extreme_theme = nil,
 			states = { normal = S_PTV3_SNICK, lunge = S_PTV3_SNICK_LUNGE },
 			effect = "Snick Afterimage",
@@ -190,14 +242,15 @@ rawset(_G, "PTV3_SKINS", {
 	},
 	johnGhost = {
 		[0] = {
-			display_name = "John",
+			display_name = { [-1] = "Jonathan", [1] = "John"},
 			name = "John",
-			minus_name = "Jonathan",
 			extreme_theme = nil,
 			states = { normal = S_PTV3_JOHNGHOST, minus_normal = S_PTV3_JONATHANPHANTOM },
 			ambient_sfx = { normal = sfx_jghtsp, minus = sfx_jphmsp },
 			effect = nil,
 			basespeed = 5*FU,
+			touch_cooldown = 5*FU,
+			touch_cooldownmax = 5*FU,
 
 			icons = {
 				[-1] = "JONATHANICON",
@@ -206,6 +259,19 @@ rawset(_G, "PTV3_SKINS", {
 			},
 
 			current_icon = 1,
+
+			touch = function(john, pmo)
+				if john.tracer == pmo then return end
+				if (pmo and pmo.player and pmo.player.ptv3 and pmo.player.ptv3.chaser) then return end
+
+				local p = pmo.player
+				
+				if p.ptv3.fake_exit then return end
+				john.speed, john.basespeed, john.maxspeed = 0, 0, 0
+				PTV3:queueTeleport(p, p.ptv3.currentTeleportDest, false, john)
+				S_StartSound(nil, sfx_jghtct, p)
+				P_SetOrigin(john, PTV3.spawn.x, PTV3.spawn.y, PTV3.spawn.z+(200*FU))
+			end,
 
 			behaviour = function(john)
 				john.skindata.current_icon = PTV3.pizzatime < 0 and -1 or 1
@@ -233,32 +299,26 @@ rawset(_G, "PTV3_SKINS", {
 	}
 })
 rawset(_G, "CV_PTV3", {})
-rawset(_G, "PTV3_MENU", {
-	dresser = {
-		rootentries = { [0] = "Inventory", [1] = "Chaser Skins"}
-	}
-})
 rawset(_G, "PTV3_2D", {__map = 507})
 
 // TODO:
-// add custom music support (done)
-// add multiple chasers (done)
-// make lobby background
-// give pizzaface ana bility
-// planned: chasedown, teleport (done, needs polish)
-// give snick an ability
-// planned: sonic playstyle, ringslinger
-// add more ways for players to mock pizzaface and other chasers
-// pizzaface skins (coneball, eggman, brody fox, summa dat) (for a separate pack)
-// make mod more moddable
-// fix and finish death mode
-// make a title screen (done)
-// make maps for up to castle eggman
-// add a tutorial
+// Add custom music support (done)
+// Add multiple chasers (done)
+// Give delay to players on certain things (John Ghost, Secret Eyes, Lap Portal, etc)
+// Make multiplayer lobby map
+// Give Pizzaface, Snick, and John Ghost their abilities (First Priority) (Pizzaface: Chasedown, Teleport, Summon)
+// Add more ways for players to mock chasers
+// Chaser skins (Gooch, Eggman, Coneball, Summadat, Boots, etc) (Complete official separate pack)
+// Fix and finish Death Mode
+// Make a title screen (done)
+// Make maps for up to Castle Eggman (Make BCZ4!)
+// Add tutorial map
 
 local file = io.openlocal("client/NicksPT/SongData.txt", "r")
 if not file then
 	local save = io.openlocal("client/NicksPT/SongData.txt", "w")
+	if not save then return end
+
 	save:flush()
 	save:close()
 else

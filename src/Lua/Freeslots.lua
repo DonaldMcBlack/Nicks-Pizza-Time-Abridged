@@ -20,7 +20,8 @@ freeslot("MT_PTV3_PIZZAFACE",
 	"S_PTV3_PIZZAHAYWIRE",
 	"sfx_pflgh",
 	"sfx_fplgh",
-	"sfx_pizmov"
+	"sfx_pizmov",
+	"sfx_promov"
 )
 
 sfxinfo[sfx_pflgh].caption = "Pizzaface is coming..."
@@ -28,6 +29,11 @@ sfxinfo[sfx_fplgh].caption = "Is that the...Pizzaface?"
 sfxinfo[sfx_pizmov] = {
 	flags = SF_X2AWAYSOUND|SF_NOMULTIPLESOUND,
 	caption = "Pizzaface is near..."
+}
+
+sfxinfo[sfx_promov] = {
+	flags = SF_X2AWAYSOUND|SF_NOMULTIPLESOUND,
+	caption = "Protoface is near..."
 }
 
 mobjinfo[MT_PTV3_PIZZAFACE] = {
