@@ -1,7 +1,7 @@
 local function followC(p) return p.mo.health and p.ptv3 and not p.ptv3.chaser and not (p.ptv3.fake_exit) end
 
 local function getNearestPlayer(pos, conditions)
-	local x,y,z,pl
+	local x,y,z,pl,pm
 
 	for p in players.iterate do
 		if not p.mo then continue end
@@ -21,10 +21,11 @@ local function getNearestPlayer(pos, conditions)
 			y = newy
 			z = newz
 			pl = p
+			pm = p.mo
 		end
 	end
 
-	return pl
+	return pm
 end
 
 function PTV3:LoadSkin_Pizzaface(properties)
@@ -66,8 +67,24 @@ addHook('MobjDamage', function(t,i,s)   return true end, MT_PTV3_PIZZAFACE)
 addHook('MobjRemoved', function(t,i,s)  return true end, MT_PTV3_PIZZAFACE)
 addHook('MobjDeath', function(t,i,s)    return true end, MT_PTV3_PIZZAFACE)
 
+local function ProcessSkindata(pf)
+	local skindata = pf.player and pf.player.ptv3.pizzaMobj_skindata or pf.skindata
+	if not S_SoundPlaying(pf, skindata.movesound[(PTV3.pizzatime or 1)]) then S_StartSound(pf, skindata.movesound[(PTV3.pizzatime or 1)]) end
+
+	if not (leveltime % 8) then
+		if (pf.momx ~= 0 or pf.momy ~= 0 or pf.momz ~= 0) then
+			if pf.player then
+				PTV3:doEffect(pf.player.ptv3.pizzaMobj, skindata.effect)
+			else
+				PTV3:doEffect(pf, skindata.effect)
+			end
+		end
+	end
+end
+
 addHook('MobjThinker', function(pf)
 	local runCode = true
+	local player = (pf.tracer and pf.tracer.valid) and pf.tracer or nil
 
 	if pf.cooldown then
 		pf.cooldown = max($-1, 0)
@@ -75,29 +92,19 @@ addHook('MobjThinker', function(pf)
 		runCode = false
 	end
 
-	if pf.tracer and pf.tracer.valid then
-		local t = pf.tracer
-
-		pf.momx,pf.momy,pf.momz = t.momx,t.momy,t.momz
+	if player then
+		pf.momx,pf.momy,pf.momz = player.momx, player.momy, player.momz
 		runCode = false
 	elseif not (PTV3.pizzaface and PTV3.pizzaface.valid) then
 		PTV3.pizzaface = pf
 	end
 
-	if not (leveltime % 8) then
-		if (pf.momx ~= 0 or pf.momy ~= 0 or pf.momz ~= 0) and not PTV3.pizzaface.ptv3 then
-			PTV3:doEffect(pf, "PF Afterimage")
-		end
-		if not S_SoundPlaying(pf, pf.skindata.movesound[PTV3.pizzatime] or pf.skindata.movesound[1]) then S_StartSound(pf, pf.skindata.movesound[PTV3.pizzatime] or pf.skindata.movesound[1]) end
-	end
-
+	ProcessSkindata(player or pf)
 	pf.angry = (PTV3.extreme or PTV3.overtime) and PTV3.pizzatime > 0 or false
 
 	if not runCode then return end
 
-	local player = getNearestPlayer(pf, followC)
-	pf.target = player and player.mo
-	
+	pf.target = getNearestPlayer(pf, followC)
 	if pf.target then
 		pf.skindata.behaviour(pf)
 	else
@@ -118,9 +125,7 @@ local function PFTouchSpecial(pf, pmo)
 		src = pf.tracer
 		local p = pf.tracer.player
 
-		if p.ptv3 and (p.ptv3.camper
-					or p.ptv3.pizzaface_teleporting
-					or p.ptv3.stun) then
+		if p.ptv3 and (p.ptv3.camper or p.ptv3.stun) then
 			return
 		end
 	end
@@ -200,7 +205,7 @@ function PTV3:pizzafaceSpawn(skin)
 		pf.tracer = self.pizzaface.mo
 
 		self.pizzaface.ptv3.pizzaMobj = pf
-		S_StartSound(nil, self.pizzaface.ptv3.pizzaMobj_skindata.laughsound)
+		S_StartSound(nil, self.pizzaface.ptv3.pizzaMobj_skindata.laughsound[self.pizzatime] ~= nil and self.pizzaface.ptv3.pizzaMobj_skindata.laughsound[self.pizzatime] or self.pizzaface.ptv3.pizzaMobj_skindata.laughsound[1])
 	end
 
 	table.insert(self.currentchasers, self.pizzaface)

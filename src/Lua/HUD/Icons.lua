@@ -241,7 +241,7 @@ local function drawChaserIcon(v,dp,c, chaser, norenderdetails)
 		p = (chaser.tracer and chaser.tracer.valid) and chaser.tracer.player
 	end
 
-	if p and p.ptv3 and p.ptv3.pizzaface_teleporting then return end
+	if p and p.ptv3 then return end
 
 	if not result.onScreen then
 		local playerResult = SG_ObjectTracking(v,dp,c,dp.mo)

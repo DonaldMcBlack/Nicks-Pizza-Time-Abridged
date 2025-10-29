@@ -12,12 +12,15 @@ freeslot("MT_PTV3_PIZZAFACE",
 	"SPR_PZHY",
 	"SPR_PZLH",
 	"SPR_PZHW",
+	"SPR_PZAK",
 	"S_PTV3_PIZZAFACE",
 	"S_PTV3_PIZZAMAD",
 	"S_PTV3_PIZZATROLL",
 	"S_PTV3_PIZZAHAPPY",
 	"S_PTV3_PIZZALAUGHING",
 	"S_PTV3_PIZZAHAYWIRE",
+	"S_PTV3_PIZZAFACE_SUMMON1", "S_PTV3_PIZZAFACE_SUMMON2", "S_PTV3_PIZZAFACE_SUMMON3",
+	"S_PTV3_PIZZARAM",
 	"sfx_pflgh",
 	"sfx_fplgh",
 	"sfx_pizmov",
@@ -102,6 +105,36 @@ states[S_PTV3_PIZZAHAYWIRE] = {
 	var1 = 7,
 	var2 = 2,
 	nextstate = S_PTV3_PIZZAHAYWIRE
+}
+
+states[S_PTV3_PIZZAFACE_SUMMON1] = {
+	sprite = SPR_PZSN,
+	frame = FF_ANIMATE|A,
+	action = nil,
+	tics = TICRATE,
+	var1 = 7,
+	var2 = 2,
+	nextstate = S_PTV3_PIZZAFACE_SUMMON2
+}
+
+states[S_PTV3_PIZZAFACE_SUMMON2] = {
+	sprite = SPR_PZSN,
+	frame = H,
+	action = function(pf) P_SpawnMobjFromMobj(pf, 0, 0, 0, PTV3.enemylist[P_RandomRange(0, #PTV3.enemylist)]) end,
+	tics = 1,
+	var1 = 0,
+	var2 = 0,
+	nextstate = S_PTV3_PIZZAFACE_SUMMON3
+}
+
+states[S_PTV3_PIZZAFACE_SUMMON3] = {
+	sprite = SPR_PZSN,
+	frame = FF_ANIMATE|I,
+	action = nil,
+	tics = TICRATE,
+	var1 = 4,
+	var2 = 2,
+	nextstate = S_PTV3_PIZZAFACE
 }
 
 --- SNICK /// -----------------------------------------------

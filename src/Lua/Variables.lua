@@ -250,6 +250,47 @@ local synced_variables = {
 	['hud_secret'] = -1
 }
 
+PTV3.enemylist = {
+	MT_BLUECRAWLA,
+	MT_REDCRAWLA,
+	-- MT_GFZFISH,
+	MT_GOLDBUZZ,
+	MT_REDBUZZ,
+	MT_JETTBOMBER,
+	MT_JETTGUNNER,
+	MT_CRAWLACOMMANDER,
+	MT_DETON,
+	-- MT_SKIM,
+	-- MT_TURRET,
+	-- MT_POPUPTURRET,
+	MT_SPINCUSHION,
+	MT_CRUSHSTACEAN,
+	MT_BANPYURA,
+	MT_BANPSPRING,
+	MT_JETJAW,
+	MT_SNAILER,
+	MT_VULTURE,
+	MT_POINTY,
+	MT_ROBOHOOD,
+	MT_FACESTABBER,
+	MT_EGGGUARD,
+	MT_GSNAPPER,
+	MT_MINUS,
+	MT_SPRINGSHELL,
+	MT_YELLOWSHELL,
+	MT_UNIDUS,
+	MT_CANARIVORE,
+	MT_PYREFLY,
+	MT_PTERABYTE,
+	MT_DRAGONBOMBER,
+	MT_PENGUINATOR,
+	MT_POPHAT,
+	MT_HIVEELEMENTAL,
+	MT_BUMBLEBORE,
+	MT_SPINBOBERT,
+	-- MT_HANGSTER
+}
+
 -- functions
 
 local function spawnSector(t)
@@ -324,16 +365,6 @@ function PTV3:player(player)
 		['chasertype'] = "pizzaface",
 		['chasermovetime'] = 0,
 		['chaservertmovetime'] = 0,
-
-		['pizzaface_chasedown'] = 0,
-		['pizzaface_chasedowncool'] = 0,
-		['pizzaface_teleporting'] = false,
-		['pizzaface_tpsidemove'] = 0,
-		['pizzaface_tpselection'] = 1,
-		['pizzaface_teleportingcool'] = 0,
-
-		['snick_sonicmode'] = 0,
-		['snick_sonicmodecool'] = 0,
 
 		['specforce'] = false,
 		['extreme'] = false,

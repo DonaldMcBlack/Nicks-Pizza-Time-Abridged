@@ -427,7 +427,7 @@ function PTV3:extremeToggle(p)
 		self.extreme = true
 
 		P_SetSkyboxMobj(nil, false)
-		P_SetupLevelSky(34)
+		P_SetupLevelSky(1029)
 		S_StartSound(nil, P_RandomRange(41,43))
 		P_FlashPal(consoleplayer, 1, 15)
 

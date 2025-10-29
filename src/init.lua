@@ -41,6 +41,34 @@ rawset(_G, "L_SpeedCap", function(mo,limit,factor)
 	end
 end)
 
+local function getNearestPlayer(pos, conditions)
+	local x,y,z,pl,pm
+
+	for p in players.iterate do
+		if not p.mo then continue end
+		if conditions and not conditions(p) then continue end
+		
+		local newx = abs(p.mo.x - pos.x)
+		local newy = abs(p.mo.y - pos.y)
+		local newz = abs(p.mo.z - pos.z)
+
+		if (x == nil
+		or y == nil
+		or z == nil)
+		or (newx < x
+		and newy < y
+		and newz < z) then
+			x = newx
+			y = newy
+			z = newz
+			pl = p
+			pm = p.mo
+		end
+	end
+
+	return pl, pm
+end
+
 dofile "Freeslots"
 rawset(_G, "PTV3_SKINS", {
 	pizzaface = {
@@ -144,6 +172,7 @@ rawset(_G, "PTV3_SKINS", {
 			end,
 
 			active_ability = 0,
+			pizzaface_tpselection = 0,
 
 			abilities = {
 				[1] = {
@@ -159,7 +188,30 @@ rawset(_G, "PTV3_SKINS", {
 					can_cancel = true,
 					restrict = true,
 
-					action = function(p, pf)
+					action_start = function(p, pf)
+						-- CONS_Printf(p, "Ram Start")
+					end,
+					
+					action_behaviour = function(p, pf)
+						-- CONS_Printf(p, "Ram")
+
+						local player = getNearestPlayer(p.mo, function(p2)
+							return p2
+							and p2.mo
+							and p2.mo.health
+							and p2.ptv3
+							and not p2.ptv3.chaser
+						end)
+
+						if not player then
+							pf.abilities[1].actiontime = 0
+						else
+							P_FlyTo(p.mo, player.mo.x, player.mo.y, player.mo.z, 45*FU)
+						end
+					end,
+
+					action_end = function(p, pf)
+						-- CONS_Printf(p, "Ram End")
 					end
 				},
 				[2] = {
@@ -175,8 +227,40 @@ rawset(_G, "PTV3_SKINS", {
 					can_cancel = false,
 					restrict = true,
 
-					action = function(p, pf)
-						
+					action_start = function(p, pf)
+						p.ptv3.stun = 4*TICRATE
+						S_StartSound(p.mo, pf.laughsound[(PTV3.pizzatime or 1)])
+					end,
+
+					action_behaviour = function(p, pf)
+						-- CONS_Printf(p, "Teleport")
+
+						local pt_table = p.ptv3
+						p.ptv3.pizzaMobj.flags2 = $|MF2_DONTDRAW
+
+						if abs(p.cmd.sidemove) >= 25
+						and abs(pt_table.pizzaface_tpsidemove) < 25 then
+							local selIndex = p.cmd.sidemove >= 0 and 1 or -1
+
+							pf.pizzaface_tpselection = $+selIndex
+
+							if pf.pizzaface_tpselection > #PTV3.pizzafacetps then
+								pf.pizzaface_tpselection = 1
+							elseif pf.pizzaface_tpselection < 1 then
+								pf.pizzaface_tpselection = #PTV3.pizzafacetps
+							end
+						end
+						pt_table.pizzaface_tpsidemove = p.cmd.sidemove
+
+						local sel = PTV3.pizzafacetps[pf.pizzaface_tpselection]
+
+						P_SetOrigin(p.mo, sel.x, sel.y, sel.z)
+						p.mo.momx,p.mo.momy,p.mo.momz = 0,0,0
+					end,
+
+					action_end = function(p, pf)
+						-- CONS_Printf(p, "Teleport End")
+						p.ptv3.pizzaMobj.flags2 = $ & ~MF2_DONTDRAW
 					end
 				},
 				[3] = {
@@ -192,7 +276,16 @@ rawset(_G, "PTV3_SKINS", {
 					can_cancel = false,
 					restrict = false,
 
-					action = function(p, pf)
+					action_start = function(p, pf)
+						p.ptv3.pizzaMobj.state = S_PTV3_PIZZAFACE_SUMMON1
+					end,
+
+					action_behaviour = function(p, pf)
+						-- CONS_Printf(p, "Deploy")
+					end,
+
+					action_end = function(p, pf)
+						-- CONS_Printf(p, "Deploy End")
 					end
 				}
 			}
@@ -214,6 +307,28 @@ rawset(_G, "PTV3_SKINS", {
 			},
 
 			current_icon = 1,
+
+			touch = function(snick, pmo)
+				if (pmo.player.pflags & PF_JUMPED or pmo.player.pflags & PF_SPINNING or pmo.player.pflags & PF_STARTDASH) or pmo.player.powers[pw_invulnerability] then
+					local i = 0
+					while i < 20 do
+						local particle = P_SpawnMobjFromMobj(snick, 0, 0, 0, MT_ARIDDUST)
+						particle.momx = P_RandomRange(-10, 10)*FU
+						particle.momy = P_RandomRange(-10, 10)*FU
+						particle.momz = P_RandomRange(-10, 10)*FU
+						particle.scalespeed = FU/TICRATE
+						particle.destscale = 0
+						i = $+1
+					end
+					S_StartSound(nil, sfx_s1a3, pmo.player)
+					P_SetOrigin(snick, 0, 0, 0)
+					return
+				elseif (pmo.player.powers[pw_flashing] and pmo.player.panim == PA_PAIN) or pmo.player.ptv3.fake_exit then
+					return
+				end
+				
+				P_DamageMobj(pmo, snick, snick)
+			end,
 
 			behaviour = function(snick)
 				local dist = P_AproxDistance(snick.x - snick.target.x, snick.y - snick.target.y)
