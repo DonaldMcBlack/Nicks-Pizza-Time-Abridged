@@ -8,7 +8,7 @@ end)
 local function SpawnGateController(MaxTimeOpen)
 
 	if (leveltime > MaxTimeOpen and not PTV3.pizzatime)
-	or (PTV3.game_over >= 0 and PTV3.pizzatime) then
+	or (PTV3.game_over < 15*TICRATE and PTV3.pizzatime) then
 		if PTV3.spawnGate._frame ~= A then
 			S_StartSound(PTV3.spawnGate, sfx_doorsh)
 			P_StartQuake(FU*5, TICRATE/2)
@@ -27,32 +27,13 @@ end
 addHook('PostThinkFrame', function()
 	if not PTV3:isPTV3() then return end
 	if displayplayer then
-		local skin = displayplayer.mo and displayplayer.mo.skin or displayplayer.skin
-
-		if skin == "takisthefox" then
-			customhud.disable("PTV3_Timer")
-			customhud.disable("PTV3_Pizzaface Timer")
-			customhud.disable("PTV3_Pizza Time")
-		else
-			customhud.enable("PTV3_Timer")
-			customhud.enable("PTV3_Pizzaface Timer")
-			customhud.enable("PTV3_Pizza Time")
-			hud.enable("rings")
-			hud.enable("score")
-		end
-
 		if ((displayplayer.pflags & PF_FINISHED) or displayplayer.exiting) then
 			displayplayer.exiting = 0
 			displayplayer.pflags = $ & ~(PF_FINISHED | PF_FULLSTASIS)
 		end
-
-		-- if ((p.pflags & PF_FINISHED) or p.exiting) then
-		-- 	p.exiting = 0
-		-- 	p.pflags = $ & ~(PF_FINISHED | PF_FULLSTASIS)
-		-- end
 	end
 
-	if multiplayer then G_SetCustomExitVars(M_MapNumber("PT")) end
+	if multiplayer and gamemap ~= M_MapNumber("PT") then G_SetCustomExitVars(M_MapNumber("PT")) end
 
 	if #PTV3.tplist > 0 then
 		for _, tps in pairs(PTV3.tplist) do
@@ -99,8 +80,8 @@ addHook('PostThinkFrame', function()
 	end
 
 	if PTV3.spawnGate and PTV3.spawnGate.valid then
-		cutsceneTime = PTV3.titlecards[gamemap] and PTV3.maxTitlecardTime+(2*TICRATE) or 2*TICRATE
-		if PTV3.titlecards[gamemap] then
+		cutsceneTime = PTV3.has_titlecard and PTV3.maxTitlecardTime+(2*TICRATE) or 2*TICRATE
+		if PTV3.has_titlecard then
 			SpawnGateController(PTV3.maxTitlecardTime+TICRATE)
 		else
 			SpawnGateController(TICRATE)
@@ -111,12 +92,7 @@ addHook('PostThinkFrame', function()
 		end
 	end
 
-	if PTV3.game_over > -1 then
-		if leveltime - PTV3.game_over > 5*TICRATE then
-			G_ExitLevel()
-		end
-		return
-	end
+	if PTV3.game_over <= 0 then return end
 
 	-- Everything that's controlled when the timer starts is in here.
 	if PTV3.pizzatime then
@@ -166,14 +142,6 @@ addHook('PostThinkFrame', function()
 
 	local alive, pizzafaces, finished, unfinished, alive_2, total = PTV3:playerCount()
 
-	if gametype == GT_PTV3DM
-	and not PTV3.overtime
-	and PTV3.pizzatime
-	and #total > 2
-	and #alive <= 2 then
-		PTV3:overtimeToggle()
-	end
-
 	if (PTV3.pizzaface or PTV3.snick)
 	and multiplayer
 	and #alive == 0 then
@@ -198,26 +166,21 @@ addHook('PostThinkFrame', function()
 		end
 	end
 
-	if gametype == GT_PTV3DM
-	and PTV3.pizzaface
-	and PTV3.pizzaface.valid then
-		local increase = (FU/(TICRATE*18))
-		if not PTV3.overtime then
-			PTV3.pizzaface.intspeed = $+increase
-		else
-			PTV3.pizzaface.intspeed = $+FixedMul(increase, FU+FU/3)
-		end
-	end
+	if gametype == GT_PTV3DM then
 
-	if HAPPY_HOUR then -- happy hour support
-		local hh = HAPPY_HOUR
-		hh.othergt = PTV3:isPTV3()
-		hh.happyhour = abs(PTV3.pizzatime) --and (PTSR.gameover == false)
-		hh.timelimit = PTV3.maxtime
-		hh.timeleft = PTV3.time
-		hh.time = PTV3.pizzatime and leveltime-PTV3.hud_pt or 0
-		hh.overtime = PTV3.overtime
-		hh.gameover = PTV3.game_over > 0
+		if not PTV3.overtime and PTV3.pizzatime
+		and #total > 2 and #alive <= 2 then
+			PTV3:overtimeToggle()
+		end
+
+		if PTV3.pizzaface and PTV3.pizzaface.valid then
+			local increase = (FU/(TICRATE*18))
+			if not PTV3.overtime then
+				PTV3.pizzaface.intspeed = $+increase
+			else
+				PTV3.pizzaface.intspeed = $+FixedMul(increase, FU+FU/3)
+			end
+		end
 	end
 end)
 
@@ -227,34 +190,3 @@ addHook("MobjDeath", function(t,i,s)
 
 	s.player.score = $+15
 end, MT_RING)
-
-addHook("MobjDamage", function(t,i,s)
-	if not PTV3:isPTV3() then return end
-	if not (t and t.player) then return end
-
-	t.player.score = max(0, $-350)
-end, MT_PLAYER)
-
-addHook("PlayerCmd", function(p, cmd)
-	if not PTV3:isPTV3() then return end
-	if not (PTV3.game_over > 0) then return end
-
-	cmd.buttons = 0
-	cmd.forwardmove = 0
-	cmd.sidemove = 0
-end)
-
-addHook("MobjDeath", function(t,i,s)
-	if not PTV3:isPTV3() then return end
-	if not (i and i.valid and (i.type == MT_PTV3_PIZZAFACE or i.type == MT_PLAYER)) then return end
-	if not (t and t.player and t.player.ptv3) then return end
-
-	if t.player.ptv3.swapModeFollower then
-		local mo = t.player.ptv3.swapModeFollower
-
-		mo.player.ptv3.swapModeFollower = nil
-		mo.player.ptv3.isSwap = nil
-	end
-	t.player.ptv3.isSwap = nil
-	t.player.ptv3.swapModeFollower = nil
-end, MT_PLAYER)

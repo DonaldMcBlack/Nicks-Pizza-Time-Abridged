@@ -14,14 +14,21 @@ end
 
 return function(v)
 	if not PTV3:isPTV3() then return end
-	if not (PTV3.titlecards[gamemap]) then return end
+	if not PTV3.has_titlecard then return end
+	
+	local map_keyword = mapheaderinfo[gamemap].keywords
+	local titlecard = v.patchExists(map_keyword.."TC") and v.cachePatch(map_keyword.."TC")
+	local titlecard_name = v.patchExists(map_keyword.."TT") and v.cachePatch(map_keyword.."TT")
+
+	if not (titlecard or titlecard_name) then PTV3.has_titlecard = false return end
+
+	local x = (mapheaderinfo[gamemap].ptv3_titlecard_x or 0)*FU
+	local y = (mapheaderinfo[gamemap].ptv3_titlecard_y or 0)*FU
+	local snap = mapheaderinfo[gamemap].ptv3_titlecard_snap or nil
 
 	-- fade the screen
 	local tweenTime = min(
-		FixedDiv(
-			max(0, leveltime-PTV3.maxTitlecardTime),
-			fadeTime
-		),
+		FixedDiv(max(0, leveltime-PTV3.maxTitlecardTime), fadeTime),
 		FU
 	)
 
@@ -31,9 +38,6 @@ return function(v)
 	if fadeStuff == 32 then
 		v.drawFill()
 	end
-
-	local titlecard = v.cachePatch(PTV3.titlecards[gamemap].bg)
-	local titlecard_name = PTV3.titlecards[gamemap].title
 
 	local scale = FixedDiv(v.height()/v.dupy(), titlecard.height)
 
@@ -54,11 +58,11 @@ return function(v)
 		if gametype == GT_PTV3DM then
 			color = v.getColormap(TC_RAINBOW, SKINCOLOR_RED)
 		end
-		v.drawStretched(160*FU-(titlecard.width*(scale/2)),0, scale, scale, titlecard, flags, color)
+		v.drawStretched(140*FU-(titlecard.width*(scale/2)),0, FU/16+scale, scale, titlecard, flags, color)
 
-		flags = titlecard_name.snap ~= nil and $|GetSnap(titlecard_name.snap)
+		flags = $|GetSnap(snap)
 
-		v.drawStretched((titlecard_name.pos_x+shakeX)-(titlecard.width*(scale/2)), titlecard_name.pos_y+shakeY, FU/3+(scale/8), FU/3+(scale/8), v.cachePatch(titlecard_name.graphic), flags, color)
+		v.drawStretched((x+shakeX)-(titlecard.width*(scale/2)), y+shakeY, FU/3+(scale/8), FU/3+(scale/8), titlecard_name, flags, color)
 
 		if gametype == GT_PTV3DM then
 			shakeX, shakeY = v.RandomRange(-2*FU, 2*FU), v.RandomRange(-2*FU, 2*FU)

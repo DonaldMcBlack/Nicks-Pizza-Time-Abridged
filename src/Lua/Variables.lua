@@ -204,9 +204,47 @@ COM_AddCommand('PTV3_endgame', function(p)
 
 	PTV3:endGame()
 end, COM_ADMIN)
+COM_AddCommand('PTV3_rollgates', function(p)
+	for _, gate in pairs(PTV3_HUB.gates) do
+		PTV3_HUB.gates[gate.map] = nil
+
+		local mapsChosen = {}
+		local foundMaps = {}
+		local hasChosenMap = false
+
+		for map = 1, 1035 do
+			local data = mapheaderinfo[map]
+		
+			if data
+			and data.typeoflevel & TOL_COOP
+			and data.bonustype <= 0 then
+				table.insert(foundMaps, map)
+			end
+		end
+
+		for _,gate in pairs(PTV3_HUB.gates) do
+			mapsChosen[gate.map] = true
+		end
+
+		while not hasChosenMap do
+			local map = foundMaps[P_RandomRange(1,#foundMaps)]
+			if not mapsChosen[map] then
+				hasChosenMap = true
+				gate.map = map
+			end
+		end
+	end
+end, COM_ADMIN)
+
+COM_AddCommand("PTV3_havetogorapidini", function(p)
+	p.powers[pw_sneakers] = 100*TICRATE
+
+end)
 
 -- vars
-local synced_variables = {
+PTV3.maxTitlecardTime = 3*TICRATE
+
+PTV3.synced_variables = {
 	['pizzatime'] = 0,
 	['total_laps'] = 1,
 	['spawn'] = {x=0,y=0,z=0},
@@ -230,8 +268,10 @@ local synced_variables = {
 	['overtime'] = false,
 	['overtimeStart'] = 0,
 	['pizzafacetps'] = {},
+	['pizzaposts'] = {},
 	['time'] = 600*TICRATE,
 	['maxtime'] = 600*TICRATE,
+	['votetime'] = 20*TICRATE,
 	['pftime'] = 30*TICRATE,
 	['spawnGate'] = false,
 	['__fadedmus'] = false,
@@ -240,10 +280,11 @@ local synced_variables = {
 	['maxotTime'] = (120+29)*TICRATE,
 	['secrets'] = {},
 	['secret_count'] = 0,
- 	['game_over'] = -1,
+ 	['game_over'] = 15*TICRATE,
 	['maxrankrequirement'] = 1500,
 	['hud_pt'] = -1,
 	['matchLog'] = {},
+	['has_titlecard'] = false,
 
 	-- not net
 	['hud_lap'] = -1,
@@ -291,71 +332,14 @@ PTV3.enemylist = {
 	-- MT_HANGSTER
 }
 
--- functions
-
-local function spawnSector(t)
-	if t.type ~= 1 then return end
-
-	local sec = R_PointInSubsector(t.x*FU, t.y*FU).sector
-
-	PTV3.spawn = {
-		x = t.x*FU,
-		y = t.y*FU,
-		z = sec.floorheight + (t.z*FU),
-		a = t.angle*ANG1
-	}
-
-	local a = PTV3.spawn.a
-
-	PTV3.spawnGate = R_PointInSubsectorOrNil(PTV3.spawn.x+(-230*cos(a)), PTV3.spawn.y+(-230*sin(a))) and P_SpawnMobj(PTV3.spawn.x+(-230*cos(a)), PTV3.spawn.y+(-230*sin(a)), PTV3.spawn.z, MT_PTV3_SPAWNGATE) or
-												P_SpawnMobj(PTV3.spawn.x, PTV3.spawn.y, PTV3.spawn.z, MT_PTV3_SPAWNGATE)
-	PTV3.spawnGate.angle = a
-
-	PTV3.spawnsector = sec
-end
-local function endSector(t)
-	if t.type ~= 501 then return end
-
-	local sec = R_PointInSubsector(t.x*FU, t.y*FU).sector
-
-	PTV3.endpos = {
-		x = t.x*FU,
-		y = t.y*FU,
-		z = sec.floorheight + (t.z*FU),
-		a = t.angle*ANG1
-	}
-	PTV3.endsec = sec
-
-	local john = P_SpawnMobj(PTV3.endpos.x, PTV3.endpos.y, PTV3.endpos.z, MT_PTV3_PILLARJOHN)
-
-	john.angle = PTV3.endpos.a
-end
-
-local function cloneTable(table)
-	if type(table) ~= "table" then
-		return table
-	end
-
-	local clone = {}
-
-	for k,v in pairs(table) do
-		if type(table) == "table" then
-			clone[k] = cloneTable(v)
-			continue
-		end
-
-		clone[k] = v
-	end
-
-	return clone
-end
-
 function PTV3:player(player)
 	local isSwap = player.ptv3 and player.ptv3.isSwap
 	local swapModeFollower = player.ptv3 and player.ptv3.swapModeFollower
 
 	player.ptv3 = {
 		["buttons"] = player.cmd.buttons,
+		['forwardmove'] = 0,
+		['sidemove'] = 0,
 		['laps'] = 0,
 
 		['ragdoll'] = 0,
@@ -395,6 +379,7 @@ function PTV3:player(player)
 		
 		['movementData'] = {},
 		['currentTeleportDest'] = {},
+		['pizzapost_id'] = nil,
 		
 		['rank'] = 1,
 		['rank_changetime'] = -1,
@@ -441,29 +426,6 @@ function PTV3:player(player)
 	PTV3.callbacks('PlayerInit', player)
 end
 
-local has_inited = false
-function PTV3:init()
-	if has_inited then return end
-	for _,i in pairs(synced_variables) do
-		self[_] = cloneTable(i)
-	end
-
-	for _,i in pairs(CV_PTV3) do
-		self[_] = i.value
-	end
-
-	for player in players.iterate do
-		player.ptv3 = nil
-	end
-	
-	if PTV3.callbacks then --ahaaaa got cha now error
-		PTV3.callbacks('VariableInit')
-	end
-	has_inited = true
-end
-
-PTV3:init()
-
 -- hooks
 
 addHook('NetVars', function(n)
@@ -491,6 +453,7 @@ addHook('NetVars', function(n)
 		"overtimeStart",
 		"time",
 		"maxtime",
+		"votetime",
 		"pftime",
 		"maxpftime",
 		"spawnGate",
@@ -501,6 +464,7 @@ addHook('NetVars', function(n)
 		"secrets",
 		"secret_count",
 		"pizzafacetps",
+		"pizzaposts",
 		"game_over",
 		"hud_pt",
 		"matchLog",
@@ -508,7 +472,8 @@ addHook('NetVars', function(n)
 		"max_elaps",
 		"max_erings",
 		"ai_pizzaface",
-		"maxrankrequirement"
+		"maxrankrequirement",
+		"has_titlecard"
 	}
 
 	for _,i in pairs(net) do
@@ -516,72 +481,7 @@ addHook('NetVars', function(n)
 	end
 end)
 
-addHook('MapChange', function()
-	has_inited = false
-	PTV3:init()
-end)
-
-local function PreparePizzaTimer(minutes, seconds)
-	if not seconds then return end
-
-	PTV3.time = seconds*TICRATE
-
-	if not minutes then return end
-
-	PTV3.time = $+minutes*TICRATE*60
-end
-
-addHook('MapLoad', function(map)
-	PTV3:init()
-	-- one more for safety
-	for p in players.iterate do
-		p.ptv3 = nil
-	end
-
-	if not PTV3:isPTV3() then
-		hud.enable('lives')
-		return
-	end
-	hud.disable('lives')
-
-	for thing in mapthings.iterate do
-		spawnSector(thing)
-		endSector(thing)
-	end
-
-	PTV3.setJohnBlocks()
-
-	for i, v in ipairs(PTV3.secrets) do
-		if PTV3.secrets[i-1] ~= nil and PTV3.secrets[i-1].sgroup == v.sgroup then continue
-		else
-			PTV3.secret_count = $+1
-		end
-	end
-
-	local alive, pizzafaces, total = PTV3.playerCount and PTV3:playerCount()
-
-	PreparePizzaTimer(mapheaderinfo[map].pizzatimelimit_mins ~= nil and tonumber(mapheaderinfo[map].pizzatimelimit_mins) or CV_PTV3['time'].value, mapheaderinfo[map].pizzatimelimit_secs ~= nil and tonumber(mapheaderinfo[map].pizzatimelimit_secs) or 1)
-
-	PTV3.overtime_time = multiplayer and (120+29)*TICRATE or TICRATE*60
-	PTV3.maxtime = PTV3.time
-	PTV3.pftime = 30*TICRATE
-	PTV3.maxpftime = PTV3.pftime
-
-	if not titlemapinaction then
-		PTV3.skinIndex.pizzaface = P_RandomRange(0, #PTV3_SKINS.pizzaface)
-		PTV3.skinIndex.snick = P_RandomRange(0, #PTV3_SKINS.snick)
-		PTV3.skinIndex.johnGhost = P_RandomRange(0, #PTV3_SKINS.johnGhost)
-
-		CONS_Printf(consoleplayer, "Pizzaface is... "..PTV3_SKINS.pizzaface[PTV3.skinIndex.pizzaface].name)
-		CONS_Printf(consoleplayer, "Snick is... "..PTV3_SKINS.snick[PTV3.skinIndex.snick].name)
-		CONS_Printf(consoleplayer, "John is... "..PTV3_SKINS.johnGhost[PTV3.skinIndex.johnGhost].name)
-	end
-	
-	if gametype == GT_PTV3DM
-	and not PTV3.titlecards[gamemap] then
-		PTV3:pizzafaceSpawn()
-	end
-end)
-
 -- I don't care if it's not there in the actual gametype, I want it gone.
-addHook("MobjThinker", function(sign) if sign and sign.valid then P_RemoveMobj(sign) end end, MT_SIGN)
+addHook("MobjThinker", function(sign)
+	if PTV3:isPTV3() and sign and sign.valid then P_RemoveMobj(sign) end
+end, MT_SIGN)

@@ -1,7 +1,6 @@
 local ReduceHUD = dofile "HUD/Remove Score"
 local InventoryHUD = dofile "HUD/Inventory"
 local PizzaTimeHUD = dofile "HUD/Pizza Time"
-local MinusWorldHUD = dofile "HUD/Minus World"
 local OvertimeHUD = dofile "HUD/Overtime Text"
 local LapHUD = dofile "HUD/Laps"
 local SecretHUD = dofile "HUD/Secrets"
@@ -14,9 +13,10 @@ local PizzaRageHUD = dofile "HUD/Pizza Rage"
 local PizzafaceTimerHUD = dofile "HUD/Pizzaface Timer"
 local TimerHUD = dofile "HUD/Normal Timer"
 local WarTimerHUD = dofile "HUD/WAR Timer"
-local EndHUD = dofile "HUD/Overtime End"
+local EndHUD = dofile "HUD/Time's Up"
 local RankHUD = dofile "HUD/Ranks"
 local ComboHUD = dofile "HUD/Combo"
+local HubHUD = dofile "HUD/Hub"
 local DresserHUD = dofile "HUD/Dresser Menu"
 local IconHUD = dofile "HUD/Icons"
 local TitlecardHUD = dofile "HUD/Titlecards"
@@ -50,7 +50,6 @@ customhud.SetupItem("PTV3_Reduce Score",    "ptv3", ReduceHUD,         "game")
 customhud.SetupItem("PTV3_Inventory",       "ptv3", InventoryHUD,      "game", 1)
 customhud.SetupItem("PTV3_Laps",            "ptv3", LapHUD,            "game", 1)
 customhud.SetupItem("PTV3_Pizza Time",      "ptv3", PizzaTimeHUD,      "game", 1)
-customhud.SetupItem("PTV3_Minus World",     "ptv3", MinusWorldHUD,     "game", 1)
 customhud.SetupItem("PTV3_Overtime",        "ptv3", OvertimeHUD,       "game", 1)
 customhud.SetupItem("PTV3_Pizza Rage",      "ptv3", PizzaRageHUD,      "game", 1)
 customhud.SetupItem("PTV3_Pizzaface Timer", "ptv3", PizzafaceTimerHUD, "game", 1)
@@ -65,6 +64,7 @@ customhud.SetupItem("PTV3_Snick",           "ptv3", SnickHUD,          "game", 2
 customhud.SetupItem("PTV3_Controls",        "ptv3", ControlsHUD,       "game", 2)
 customhud.SetupItem("PTV3_Can Lap",         "ptv3", CanLapHUD,         "game", 2)
 customhud.SetupItem("PTV3_ELap Notif",      "ptv3", ExtremeNHUD,       "game", 3)
+customhud.SetupItem("PTV3_Hub",             "ptv3", HubHUD,            "game", 3)
 customhud.SetupItem("PTV3_Dresser Menu",    "ptv3", DresserHUD,        "game", 3)
 customhud.SetupItem("PTV3_Titlecards",      "ptv3", TitlecardHUD,      "gameandscores", 4)
 customhud.SetupItem("Version",              "ptv3", VersionHUD,        "gameandscores", 5)

@@ -1,3 +1,5 @@
+local time = 0
+
 return function(v)
 	if not PTV3:isPTV3() then return end
 	if not PTV3.wartimer then return end
@@ -5,7 +7,7 @@ return function(v)
 	if PTV3.overtime then
 		-- explosion
 		local expFrames = 17
-		local expTime = min((leveltime-PTV3.overtimeStart)/3, expFrames)
+		local expTime = min((leveltime-PTV3.wartimerStart)/3, expFrames)
 		if expTime ~= expFrames then
 			local b = v.cachePatch("PIZZABAR")
 			local explode = v.cachePatch("EXPLODE"..expTime)
@@ -19,9 +21,18 @@ return function(v)
 	end
 
 	-- war timer
-	local time = PTV3.overtime_time
-	local tweenTime = PTV3.HUD_returnTime(PTV3.wartimerStart, TICRATE, TICRATE, true)
+	if not time or time > PTV3.overtime_time then time = PTV3.overtime_time end
+
+	local timer_colour = SKINCOLOR_RED
 	local timer = v.cachePatch("WARALAR1")
+
+	if time < PTV3.overtime_time then
+		time = min($+24, PTV3.overtime_time) or $
+		timer_colour = SKINCOLOR_GREEN
+		timer = v.cachePatch("WARALAR2")
+	end
+	local tweenTime = PTV3.HUD_returnTime(PTV3.wartimerStart, TICRATE, TICRATE, true)
+	
 
 	local scale = FU/3
 	local tweenY = ease.linear(tweenTime, 0, -timer.height*scale)
@@ -57,6 +68,6 @@ return function(v)
 		V_SNAPTOBOTTOM,
 		"left",
 		scale,
-		SKINCOLOR_RED
+		timer_colour
 	)
 end

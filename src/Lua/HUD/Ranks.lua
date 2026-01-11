@@ -1,6 +1,7 @@
 return function(v,p)
 	if not p.ptv3 then return end
 	if p.ptv3.chaser then return end
+	if gamemap == M_MapNumber("PT") then return end
 	local rank = PTV3.ranks[p.ptv3.rank]
 	local rank_patch = gametype == GT_PTV3DM and "DM_"..rank.rank.."RANK" or "PT_"..rank.rank.."RANK"
 	local rankfill_patch = gametype == GT_PTV3DM and "DM_"..rank.rank.."FILL" or "PT_"..rank.rank.."FILL"

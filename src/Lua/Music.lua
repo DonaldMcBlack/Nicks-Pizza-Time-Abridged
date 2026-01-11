@@ -15,14 +15,14 @@ local function playPizzaTimeMusic()
 	if not PTV3:isPTV3() then return end
 	if not (displayplayer and displayplayer.ptv3) then return end
 	if gametype ~= GT_PTV3DM and not PTV3.pizzatime then return end
-	if PTV3.titlecards[gamemap] and leveltime < PTV3.maxTitlecardTime then return end
+	if PTV3.has_titlecard and leveltime < PTV3.maxTitlecardTime then return end
 
 	return true
 end
 
 local usesongs = CV_RegisterVar({
 	name = "PTV3_customsongs",
-	defaultvalue = "Yes",
+	defaultvalue = "No",
 	flags = CV_NETVAR,
 	PossibleValue = CV_YesNo
 })
@@ -40,16 +40,24 @@ addHook('PostThinkFrame', function()
 	local modsongs = data[skins[displayplayer and displayplayer.skin or "sonic"].name] or data["Default"]
 	local secretmusic = modsongs["Secret"] or "SECRET"
 
+	if PTV3.game_over <= 10*TICRATE then
+		S_ChangeMusic(displayplayer.ptv3.specforce and "ERANK" or PTV3.ranks[displayplayer.ptv3.rank].music, false, displayplayer)
+		return
+	end
+
 	if displayplayer and displayplayer.ptv3 and not playPizzaTimeMusic() then
-		if PTV3.titlecards[gamemap] and leveltime <= PTV3.maxTitlecardTime then
+		if PTV3.has_titlecard and leveltime <= PTV3.maxTitlecardTime then
+
+			local mapTM = mapheaderinfo[gamemap].keywords.."TM"
+
 			if leveltime < PTV3.maxTitlecardTime
-			and mapmusname ~= PTV3.titlecards[gamemap].mus then
-				mapmusname = PTV3.titlecards[gamemap].mus
+			and mapmusname ~= mapTM then
+				mapmusname = mapTM
 				S_ChangeMusic(mapmusname, false)
 			end
 		
 			if leveltime == PTV3.maxTitlecardTime
-			and mapmusname == PTV3.titlecards[gamemap].mus then
+			and mapmusname == mapTM then
 				mapmusname = mapheaderinfo[gamemap].musname
 				S_ChangeMusic(mapmusname, true)
 			end
@@ -82,7 +90,7 @@ addHook('PostThinkFrame', function()
 	end
 
 	if gametype == GT_PTV3DM then
-		if not PTV3.titlecards[gamemap]
+		if not PTV3.has_titlecard
 		or leveltime > PTV3.maxTitlecardTime then
 			song = "AOTKPS"
 		end

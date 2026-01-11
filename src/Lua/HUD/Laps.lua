@@ -27,6 +27,7 @@ return function(v,p)
 	local time = ((leveltime - p.ptv3.lap_time)*(FU))/35
 
 	if time > FU*5 then return end
+	local lapflag = v.cachePatch('PTFLAG')
 	local lapgraph = v.patchExists('PTLAP'..p.ptv3.laps) and v.cachePatch('PTLAP'..p.ptv3.laps) or v.cachePatch('PTLAP')
 
 	local scale = FU/3
@@ -42,17 +43,22 @@ return function(v,p)
 	x = $+v.RandomRange(-3*scale,3*scale)
 	y = $+v.RandomRange(-3*scale,3*scale)
 
-	v.drawScaled(x,y,scale,lapgraph,V_SNAPTOTOP)
+	v.drawScaled(x,y,scale,lapflag,V_SNAPTOTOP)
+	v.drawScaled(x+10*FU,y+(FU+FU/2),scale,lapgraph,V_SNAPTOTOP)
+
+	x = $ + (145*scale)
 
 	if not v.patchExists('PTLAP'..p.ptv3.laps) then
 		local patches = getPatchesFromNum(v, "PTLAP", p.ptv3.laps)
 		local fx = 0
 		for _,patch in ipairs(patches) do
-			local x = x + (155*scale)
-			local fy = (91-patch.height)*scale
-			
+			local fy = (75-patch.height)*scale
 			v.drawScaled(x+fx,y+fy,scale,patch,V_SNAPTOTOP)
 			fx = $+FixedDiv(patch.width*scale, FU)
 		end
+	elseif v.patchExists('PTLAP_'..p.ptv3.laps) then
+		local patch = v.cachePatch('PTLAP_'..p.ptv3.laps)
+		local fy = (75-patch.height)*scale
+		v.drawScaled(x,y+fy,scale,patch, V_SNAPTOTOP)
 	end
 end

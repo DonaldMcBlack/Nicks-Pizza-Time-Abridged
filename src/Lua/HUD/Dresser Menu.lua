@@ -28,11 +28,8 @@ local ContextPage = {
 	{text = "Inventory"}
 }
 
-return function(v,p)
-    if not p.ptv3 then return end
-    if not p.ptv3.menumode.inmenu or p.ptv3.menumode.menutype ~= "dresser" then return end
-
-    drawScrollingBG(v,v.cachePatch('OPTIONBG'),FU/3)
+local function drawPage_Dresser(v, p)
+    if p.ptv3.menumode.menutype ~= "dresser" then return end
     
     for i, sel in ipairs(ContextPage) do
         customhud.CustomFontString(v,
@@ -45,4 +42,53 @@ return function(v,p)
             SKINCOLOR_WHITE
         )
     end
+end
+
+local function drawPage_Skins(v, p)
+    if p.ptv3.menumode.menutype ~= "skins" then return end
+
+    local screenWidth = v.width() * FU / v.dupx()
+	local screenHeight = v.height() * FU / v.dupy()
+
+    local chaserlist = {}
+
+    for i, chaser in ipairs(PTV3_SKINS) do
+        print(chaser[0].name)
+        chaserlist[i] = chaser[0].name
+    end
+
+    local list_x = 32*FU
+	local list_y = screenHeight/5
+	local scale = FU-(FU/9)
+	
+	local intensity = 2*FU
+	local shakeX = v.RandomRange(-intensity, intensity)
+	local shakeY = v.RandomRange(-intensity, intensity)
+
+    local chaser_portrait = v.cachePatch("CS_PIZZAFACE")
+    local chaser_portY = chaser_portrait.height
+	
+	v.drawFill(25, 0, chaser_portrait.width, screenHeight, 35|V_SNAPTOLEFT|V_SNAPTOTOP)
+	v.drawFill(0, 80, v.width(), chaser_portrait.height, 35|V_SNAPTOLEFT|V_SNAPTOTOP)
+
+    v.drawScaled(list_x, list_y, scale, chaser_portrait, V_SNAPTOLEFT)
+    customhud.CustomFontString(v,
+        (list_x+(chaser_portrait.width/2)*scale)+shakeX, (list_y+(chaser_portrait.height)*scale)+shakeY,
+        "Pizzaface",
+        "PTFNT",
+        V_SNAPTOLEFT,
+        "center",
+        FU/2,
+        SKINCOLOR_WHITE
+    )
+end
+
+return function(v,p)
+    if not p.ptv3 then return end
+    if not p.ptv3.menumode.inmenu then return end
+
+    drawScrollingBG(v,v.cachePatch('OPTIONBG'),FU/3)
+
+    drawPage_Dresser(v, p)
+    drawPage_Skins(v, p)
 end

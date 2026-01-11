@@ -6,7 +6,7 @@ states[freeslot "S_PTV3_WALKANIM"] = {
 }
 
 local function cutscene(p)
-	local cutsceneTime = PTV3.titlecards[gamemap] and PTV3.maxTitlecardTime+(2*TICRATE) or PTV3.maxTitlecardTime
+	local cutsceneTime = PTV3.has_titlecard and PTV3.maxTitlecardTime+(2*TICRATE) or PTV3.maxTitlecardTime
 
 	if leveltime < cutsceneTime
 	and PTV3.spawnGate and PTV3.spawnGate.valid
@@ -53,7 +53,10 @@ local function cutscene(p)
 end
 
 local function precutscene(p)
-	local cutsceneTime = PTV3.titlecards[gamemap] and PTV3.maxTitlecardTime+(2*TICRATE) or 2*TICRATE
+
+	PTV3.has_titlecard = mapheaderinfo[gamemap].ptv3_titlecard == "true" and true or false
+
+	local cutsceneTime = PTV3.has_titlecard and PTV3.maxTitlecardTime+(2*TICRATE) or 2*TICRATE
 
 	if leveltime < cutsceneTime
 	and PTV3.spawnGate and PTV3.spawnGate.valid then

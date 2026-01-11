@@ -106,6 +106,8 @@ addHook("PlayerThink", function(p)
 	end
 
 	p.ptv3.buttons = p.cmd.buttons
+	p.ptv3.forwardmove = p.cmd.forwardmove and $+1 or 0
+	p.ptv3.sidemove = p.cmd.sidemove and $+1 or 0
 end)
 
 local function DoNotTheChaser(t, return_value)
@@ -118,3 +120,34 @@ end
 addHook("ShouldDamage", function(t,i,s) return DoNotTheChaser(t, false) end, MT_PLAYER)
 addHook("MobjDeath",    function(t,i,s) return DoNotTheChaser(t, true)  end, MT_PLAYER)
 addHook("MobjDamage",   function(t,i,s) return DoNotTheChaser(t, true)  end, MT_PLAYER)
+
+addHook("PlayerCmd", function(p, cmd)
+	if not PTV3:isPTV3() then return end
+	if not (PTV3.game_over < 15*TICRATE) or not (p.ptv3 and p.ptv3.menumode.inmenu) then return end
+
+	cmd.buttons = 0
+	cmd.forwardmove = 0
+	cmd.sidemove = 0
+end)
+
+addHook("MobjDamage", function(t,i,s)
+	if not PTV3:isPTV3() then return end
+	if not (t and t.player) then return end
+
+	t.player.score = max(0, $-350)
+end, MT_PLAYER)
+
+addHook("MobjDeath", function(t,i,s)
+	if not PTV3:isPTV3() then return end
+	if not (i and i.valid and (i.type == MT_PTV3_PIZZAFACE or i.type == MT_PLAYER)) then return end
+	if not (t and t.player and t.player.ptv3) then return end
+
+	if t.player.ptv3.swapModeFollower then
+		local mo = t.player.ptv3.swapModeFollower
+
+		mo.player.ptv3.swapModeFollower = nil
+		mo.player.ptv3.isSwap = nil
+	end
+	t.player.ptv3.isSwap = nil
+	t.player.ptv3.swapModeFollower = nil
+end, MT_PLAYER)

@@ -26,171 +26,13 @@ local function getAllVarNames(array, ...)
 	return values
 end
 
---[[
-* l_supertextfont.lua
-* (sprkizard)
-* (May 29, 2020 12:42)
-* Desc: Custom font drawer
-
-* Usage: TODO
-]]
-
-
--- Copy of the creditwidth function in-source, but accounting for any given font type
--- https://github.com/STJr/SRB2/blob/225095afa2fb1c61d12cf96c1b7c56cb4dbb4350/src/v_video.c#L3211
-local function GetInternalFontWidth(str, font)
-	-- No string
-	if not (str) then return 0 end
-
-	local width = 0
-
-	for i=1,#str do
-		-- Spaces before fonts
-		if str:sub(i):byte() == 32 then
-			width = $1+2
-			continue
-		end
-
-		-- TODO: count special characters?
-		if str:sub(i):byte() >= 200 then
-			width = $1+8
-			continue
-		end
-
-		-- (Using patch width by the way)
-		if (font == "STCFN") then -- default font
-			width = $1+8
-		elseif (font == "TNYFN") then
-			width = $1+7
-		elseif (font == "LTFNT") then
-			width = $1+20
-		elseif (font == "TTL") then
-			width = $1+29
-		elseif (font == "CRFNT" or font == "NTFNT") then -- TODO: Credit font centers wrongly
-			width = $1+16
-		elseif (font == "NTFNO") then
-			width = $1+20
-		elseif (font == "PCFNT") then
-			width = $1+5
-		else
-			width = $1+8
-		end
-	end
-	return width*FU
-end
-
-local fonts = {
-	['Combo'] = "PTCMB",
-	['Credits'] = "PCFNT",
-	['Lap'] = "PTLAP",
-	['Old'] = "PTFNT",
-	['War'] = "WARFN"
-}
-
-function PTV3.drawText(v, x, y, str, parms)
-
-	-- Scaling
-	local scale = (parms and parms.scale) or 1*FRACUNIT
-	local hscale = (parms and parms.hscale) or 0
-	local vscale = (parms and parms.vscale) or 0
-	local yscale = (8*(FRACUNIT-scale))
-	-- Spacing
-	local xspacing = (parms and parms.xspace) or 0 -- Default: 8
-	local yspacing = (parms and parms.yspace) or 4
-	-- Text Font
-	local font = (parms and parms.font) or "Old"
-	local color = (parms and parms.color) or v.getColormap(nil, SKINCOLOR_WHITE)
-	local uppercs = (parms and parms.uppercase) or false
-	local align = (parms and parms.align) or nil
-	local flags = (parms and parms.flags) or 0
-
-	local drawscale = FU/3
-	font = fonts[font] or "PTFNT"
-
-	-- Split our string into new lines from line-breaks
-	local lines = {}
-
-	for ls in str:gmatch("[^\r\n]+") do
-		table.insert(lines, ls)
+function PTV3:isPTV3(dontCheckState)
+	if not dontCheckState
+	and gamestate ~= GS_LEVEL then
+		return false
 	end
 
-	-- For each line, set some stuff up
-	for seg=1,#lines do
-		
-		local line = lines[seg]
-		-- Fixed Position
-		local fx = x
-		local fy = y
-		-- Offset position
-		local off_x = 0
-		local off_y = 0
-		-- Current character & font patch (we assign later later instead of local each char)
-		local char
-		local charpatch
-
-		-- Alignment options
-		if (align) then
-			-- TODO: not working correctly for CRFNT
-			if (align == "center") then
-				fx = $1-FixedMul( (GetInternalFontWidth(line, font)/2), scale) -- accs for scale
-			elseif (align == "right") then
-				fx = $1-FixedMul( (GetInternalFontWidth(line, font)), scale)
-			end
-		end
-
-		-- Go over each character in the line
-		for strpos=1,#line do
-
-			-- get our character step by step
-			char = line:sub(strpos, strpos)
-
-			-- TODO: custom skincolors will make a mess of this since the charlimit is 255
-			-- Set text color, inputs, and more through special characters
-			-- Referencing skincolors https://wiki.srb2.org/wiki/List_of_skin_colors
-
-			-- TODO: effects?
-			-- if (char:byte() == 161) then
-			-- 	continue
-			-- end
-			-- print(strpos<<27)
-			-- off_x = (cos(v.RandomRange(ANG1, ANG10)*leveltime))
-			-- off_y = (sin(v.RandomRange(ANG1, ANG10)*leveltime))
-			-- local step = strpos%3+1
-			-- print(step)
-			-- off_x = cos(ANG10*leveltime)*step
-			-- off_y = sin(ANG10*leveltime)*step
-
-			-- Skip and replace non-existent space graphics
-			if not char:byte() or char:byte() == 32 then
-				fx = $1+2*scale
-				continue
-			end
-
-			-- Unavoidable non V_ALLOWLOWERCASE flag toggle (exclude specials above 210)
-			if (uppercs or (font == "CRFNT" or font == "NTFNT"))
-			and not (char:byte() >= 210) then
-				char = tostring(char):upper()
-			end
-
-			-- transform the char to byte to a font patch
-			charpatch = v.cachePatch( string.format("%s%03d", font, string.byte(char)) )
-
-			local _xs = charpatch.width
-			if font == "PCFNT" then _xs = 5*3 end
-
-			-- Draw char patch
-			v.drawStretched(
-				fx+off_x, fy+off_y+yscale,
-				FixedMul(drawscale, scale+hscale), FixedMul(drawscale, scale+vscale), charpatch, flags, color)
-			-- Sets the space between each character using font width
-			fx = $1+(xspacing+_xs)*FixedMul(drawscale, scale+hscale)
-			--fy = $1+yspacing*scale
-			--fy = $1+yspacing*scale
-		end
-
-		-- Break new lines by spacing and patch width for semi-accurate spacing
-		y = $1+(yspacing+charpatch.height)*scale 
-	end
+	return gametype == GT_PTV3 or gametype == GT_PTV3DM or not multiplayer
 end
 
 function PTV3:logEvent(text, type)
@@ -203,6 +45,46 @@ function PTV3:logEvent(text, type)
 		
 	print(notifer..text)
 end
+
+rawset(_G, "P_FlyTo", function(mo, fx, fy, fz, sped, addques)
+	local z = mo.z+(mo.height/2)
+    if mo.valid then
+        local flyto = P_AproxDistance(P_AproxDistance(fx - mo.x, fy - mo.y), fz - z)
+        if flyto < 1 then
+            flyto = 1
+        end
+		
+        if addques then
+            mo.momx = $ + FixedMul(FixedDiv(fx - mo.x, flyto), sped)
+            mo.momy = $ + FixedMul(FixedDiv(fy - mo.y, flyto), sped)
+            mo.momz = $ + FixedMul(FixedDiv(fz - z, flyto), sped)
+        else
+            mo.momx = FixedMul(FixedDiv(fx - mo.x, flyto), sped)
+            mo.momy = FixedMul(FixedDiv(fy - mo.y, flyto), sped)
+            mo.momz = FixedMul(FixedDiv(fz - z, flyto), sped)
+        end
+    end
+end)
+
+rawset(_G,'L_DoBrakes', function(mo,factor)
+	mo.momx = FixedMul($,factor)
+	mo.momy = FixedMul($,factor)
+	mo.momz = FixedMul($,factor)
+end)
+
+rawset(_G, "L_SpeedCap", function(mo,limit,factor)
+	local spd_xy = R_PointToDist2(0,0,mo.momx,mo.momy)
+	local spd, ang =
+		R_PointToDist2(0,0,spd_xy,mo.momz),
+		R_PointToAngle2(0,0,mo.momx,mo.momy)
+	if spd > limit then
+		if factor == nil then
+			factor = FixedDiv(limit,spd)
+		end
+		L_DoBrakes(mo,factor)
+		return factor
+	end
+end)
 
 local function getRandomPlayer(conditions)
 	local p
@@ -345,7 +227,8 @@ function PTV3:canLap(p)
 	return 0
 end
 
-
+--- Force the player to lap under certain conditions.
+--- @param p player_t
 function PTV3:forceLap(p)
 	if p.ptv3.chaser then return false end
 
@@ -361,6 +244,7 @@ function PTV3:forceLap(p)
 	return false
 end
 
+--- Can the game switch to Overtime?
 function PTV3:canOvertime()
 	local alive, pizzafaces, finished, unfinished, alive_2, total = PTV3:playerCount()
 	local normalLappers = {}
@@ -387,10 +271,11 @@ function PTV3:canOvertime()
 	return false
 end
 
+--- Ends the game.
 function PTV3:endGame()
-	if PTV3.game_over >= 0 then return end
+	if PTV3.game_over <= 0 then return end
 
-	PTV3.game_over = leveltime
+	PTV3.game_over = max($-1, 0)
 	for p in players.iterate do
 		if p.mo then
 			if (not p.ptv3.fake_exit) then
@@ -403,11 +288,14 @@ function PTV3:endGame()
 	PTV3.callbacks("EndGame")
 end
 
+--- Can enter the Exit Gate?
+---@param p player_t
 function PTV3:canExit(p)
 	if (p and p.ptv3 and p.ptv3.chaser) then return false end
 	return true
 end
 
+---@param p player_t
 function PTV3:doPlayerExit(p)
 	if not (p and p.ptv3 and not p.ptv3.fake_exit) then return end
 
@@ -420,7 +308,8 @@ function PTV3:doPlayerExit(p)
 	p.ptv3.fake_exit = true
 end
 
--- Enters Extreme Mode.
+--- Enters Extreme Mode.
+---@param p player_t
 function PTV3:extremeToggle(p)
 	p.ptv3.extreme = true
 	if not self.extreme then
@@ -437,7 +326,7 @@ function PTV3:extremeToggle(p)
 	end
 end
 
--- Enters Overtime
+--- Enters Overtime.
 function PTV3:overtimeToggle()
 	if self.overtime then return end
 	self.overtime = true
@@ -465,6 +354,8 @@ function PTV3:overtimeToggle()
 end
 
 -- Sets a teleport to a specified set of coordinates. Mainly used by Lap Portals, transitions, and John.
+---@param p player_t
+---@param relative boolean
 function PTV3:queueTeleport(p, coords, relative, src)
 	if not p or not p.mo then return end
 
@@ -480,6 +371,8 @@ function PTV3:queueTeleport(p, coords, relative, src)
 end
 
 -- Enters a new lap for the player who entered a Lap Portal.
+---@param p player_t
+---@param int number
 function PTV3:newLap(p, int)
 	if not (self.pizzatime or self.minusworld) then return end
 	if not (self:canLap(p)) then return end
@@ -552,13 +445,15 @@ function PTV3:newLap(p, int)
 		-- Spawn Snick
 		if abs(p.ptv3.laps) >= 4 then
 			if not (self.snick and self.snick.valid) then self:snickSpawn() end
+
 			if not self.wartimer and not multiplayer then
 				self.wartimer = true
 				self.wartimerStart = leveltime
+			else
+				self.overtime_time = multiplayer and $+(120+29)*TICRATE or $+TICRATE*60
+				S_StartSound(nil, sfx_wartup, p)
 			end
 		end
-
-		if self.wartimer then self.overtime_time = TICRATE*60 end
 
 		-- Spawn John Ghost
 		if abs(p.ptv3.laps) >= 5 and not (self.johnGhost and self.johnGhost.valid) then
@@ -570,6 +465,9 @@ function PTV3:newLap(p, int)
 	PTV3.callbacks('NewLap', p)
 end
 
+--- Starts either Pizza Time or Minus World given that int is defined, else defaults to Pizza Time. P is the player who triggered it.
+---@param p player_t
+---@param int number
 function PTV3:startPizzaTime(p, int)
 	int = $ > 0 and 1 or -1
 
@@ -644,25 +542,6 @@ function PTV3:startPizzaTime(p, int)
 
 	PTV3.switchJohnBlocks()
 	PTV3.callbacks(callback_string, p)
-end
-
-// for the funny
-function PTV3:returnPizzaface()
-	if PTV3.pftime then
-		return false
-	end
-
-	if PTV3.pizzaface.type ~= MT_PTV3_PIZZAFACE then
-		if PTV3.pizzaface.ptv3.pizzaMobj
-		and PTV3.pizzaface.ptv3.pizzaMobj.valid then
-			return PTV3.pizzaface.ptv3.pizzaMobj
-		end
-	elseif PTV3.pizzaface
-	and PTV3.pizzaface.valid then
-		return PTV3.pizzaface
-	end
-
-	return false
 end
 
 function PTV3:initSwapMode(p, p2)

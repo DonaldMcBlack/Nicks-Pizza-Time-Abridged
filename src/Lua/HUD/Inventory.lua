@@ -1,6 +1,7 @@
 return function(v,p)
 	if not p.mo then return end
 	if not p.ptv3 then return end
+	if gamemap == M_MapNumber("PT") then return end
 
 	local x = 16*FU
 	local y = (42+16)*FU

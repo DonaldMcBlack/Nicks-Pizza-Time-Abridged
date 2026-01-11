@@ -1,8 +1,21 @@
+freeslot("TOL_PTV3")
+rawset(_G, "PTV3", {})
+rawset(_G, "CV_PTV3", {})
+rawset(_G, "PTV3_HUB", { gates = {} })
+
 sfxinfo[freeslot("sfx_winer")].caption = "You won!"
 
 sfxinfo[freeslot "sfx_wartim"].caption = "Beep!"
+sfxinfo[freeslot "sfx_wartup"].caption = "Beepeepbeepeep!"
 sfxinfo[freeslot "sfx_timexp"].caption = "BOOM!"
 sfxinfo[freeslot "sfx_doorsh"].caption = "SLAM!"
+
+states[freeslot "S_PTV3_PANIC"] = {
+	sprite = SPR_PLAY,
+	frame = SPR2_CNT1,
+	tics = 4,
+	nextstate = S_PTV3_PANIC
+}
 
 --- PIZZAFACE /// -----------------------------------------------
 freeslot("MT_PTV3_PIZZAFACE",
@@ -227,3 +240,34 @@ states[S_PTV3_JONATHANPHANTOM] = {
 	var2 = 2,
 	nextstate = S_PTV3_JONATHANPHANTOM
 }
+
+
+-- MISC /// ---
+-- Actions
+
+--Escape Spawner from Pizza Tower
+--The Spawning Action
+function A_PizzaTowerEscapeSpawn(actor, var1, var2)
+	A_PlaySeeSound(actor,var1,var2)
+	local z = actor.z
+
+	if actor.eflags&MFE_VERTICALFLIP then
+		z = $1+FixedMul(actor.info.height-mobjinfo[actor.health].height,actor.scale)
+	end
+
+	local enemy = P_SpawnMobj(actor.x,actor.y,z,actor.health)
+
+	if actor.eflags&MFE_VERTICALFLIP then
+		enemy.eflags = $1|MFE_VERTICALFLIP
+		enemy.flags2 = $1|MF2_OBJECTFLIP
+	end
+	enemy.scale = actor.scale
+
+	P_MoveOrigin(enemy,actor.x,actor.y,z)
+
+	if P_SupermanLook4Players(enemy) then
+		A_FaceTarget(enemy,0,0)
+	end
+
+	actor.target = enemy
+end

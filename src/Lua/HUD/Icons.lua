@@ -312,6 +312,61 @@ local function SortChasersByDistance(pmo, prevChaser, nextChaser)
 	return dist < dist2
 end
 
+local function drawGateName(v, dp, c, gate)
+	if not (dp and dp.ptv3) then return end
+	if not (gate and gate.valid) then return end
+
+	local result = SG_ObjectTracking(v, dp, c, gate)
+
+	if not result.onScreen then return end
+
+	local dist = R_PointToDist2(0, 0, R_PointToDist2(dp.mo.x, dp.mo.y, gate.x, gate.y), dp.mo.z-gate.z)
+	if dist > 8000*FU then return end
+
+	local scale = max(FU/4, FixedMul(result.scale, FU))
+
+	local p = nil
+	local color = SKINCOLOR_WHITE
+
+	result.y = $-FixedMul(gate.height, result.scale)
+
+	customhud.CustomFontString(v,
+	result.x, result.y,
+	mapheaderinfo[gate.map].lvlttl,
+	"PTFNT",
+	nil,
+	"center",
+	scale,
+	color)
+
+	if multiplayer then
+		local voteresult_y = result.y-FixedMul(gate.height/2, result.scale)
+		customhud.CustomFontString(v,
+			result.x, voteresult_y,
+			tostring(#gate.votes),
+			"PTFNT",
+			nil,
+			"center",
+			scale,
+			color
+		)
+	end
+
+	if not mapheaderinfo[gate.map].actnum then return end
+
+	result.y = $+FixedMul(gate.height/2, result.scale)
+
+	customhud.CustomFontString(v,
+	result.x, result.y,
+	"Act "..mapheaderinfo[gate.map].actnum,
+	"PTFNT",
+	nil,
+	"center",
+	scale,
+	color)
+
+end
+
 return function(v,dp,c)
 	if not PTV3:isPTV3() then return end
 	if not (dp and dp.mo) then return end
@@ -321,6 +376,10 @@ return function(v,dp,c)
 	for p in players.iterate do
 		if not (p and p.mo and p.mo.health) then continue end
 		drawPlayerIcon(v,dp,p,c)
+	end
+
+	for _, gate in ipairs(PTV3_HUB.gates) do
+		drawGateName(v, dp, c, gate)
 	end
 
 	for _,chaser in ipairs(PTV3.currentchasers) do

@@ -60,7 +60,7 @@ end
 return function(v)
 	if not PTV3:isPTV3() then return end
 	if not PTV3.pizzatime then return end
-	if PTV3.overtime then return end
+	if PTV3.overtime or PTV3.game_over <= 0 then return end
 
 	local time = nil
 	local maxtime = PTV3.maxtime
@@ -93,7 +93,7 @@ return function(v)
 
 	if time <= 5*TICRATE
 	and not PTV3.overtime
-	and not (PTV3.game_over > -1)
+	and not (PTV3.game_over <= 0)
 	and multiplayer then
 		local maxTime = min(maxtime, 5*TICRATE)
 		local shakePerc = FixedDiv(maxTime-time, maxTime)*6
@@ -122,10 +122,14 @@ return function(v)
 	v.drawScaled(x+j_prog, y-(3*scale), scale, j, V_SNAPTOBOTTOM)
 
 	local text = string.format("%d:%02d", G_TicsToMinutes(PTV3.time), G_TicsToSeconds(PTV3.time))
-	PTV3.drawText(v, x+(b.width*(scale/2)), y+(6*scale), text, {
-		--scale = scale*3+(scale/3),
-		align = "center",
-		flags = V_SNAPTOBOTTOM}
+	customhud.CustomFontString(v,
+		x+(b.width*(scale/2)), y+(6*scale),
+		text,
+		"PTFNT",
+		V_SNAPTOBOTTOM,
+		"center",
+		scale,
+		SKINCOLOR_WHITE
 	)
 
 	local p

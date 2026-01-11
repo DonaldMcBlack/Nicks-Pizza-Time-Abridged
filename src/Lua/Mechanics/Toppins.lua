@@ -102,8 +102,7 @@ local function __think(tpn)
 		local trgt = tpn.target
 
 		if not (trgt
-		and trgt.player
-		and trgt.player.ptv3) then
+		and trgt.player and trgt.player.ptv3) then
 			tpn.target = nil
 			return
 		end
@@ -115,7 +114,7 @@ local function __think(tpn)
 
 		local angle = R_PointToAngle2(0,0, data.momx, data.momy)
 		if FixedHypot(data.momx,data.momy) then
-			 tpn.angle = angle
+			tpn.angle = angle
 		end
 
 		tpn.t_offx = FixedMul(FixedMul(-trgt.radius, (FU*5/4)*tpn.collectOffset), cos(tpn.angle))
@@ -138,11 +137,11 @@ local function __think(tpn)
 end
 
 addHook("MobjThinker", function(tpn)
-	if not (tpn.target
-	and tpn.target.valid) then
+	if not (tpn.target and tpn.target.valid) then
 		P_RemoveMobj(tpn)
 		return
 	end
+
 	if tpn.state ~= toppins[tpn.toppinType].intro
 	and tpn.toppinState == "intro" then
 		changeToppinState(tpn, "idle")
@@ -150,11 +149,7 @@ addHook("MobjThinker", function(tpn)
 
 	__think(tpn)
 
-	if tpn.target.flags2 & MF2_DONTDRAW then
-		tpn.flags2 = $|MF2_DONTDRAW
-	else
-		tpn.flags2 = $ & ~MF2_DONTDRAW
-	end
+	tpn.flags2 = (tpn.target.flags2 & MF2_DONTDRAW) and $|MF2_DONTDRAW or $ & ~MF2_DONTDRAW
 	tpn.offx = $+FixedMul(tpn.t_offx-$, tpn.offMult)
 	tpn.offy = $+FixedMul(tpn.t_offy-$, tpn.offMult)
 
@@ -173,8 +168,8 @@ local toppinTypes = {
 	"sausage",
 	"pineapple"
 }
-addHook("NetVars", function(n) toppinAmount = net($) end)
-addHook("MapChange", do toppinAmount = 1 end)
+addHook("NetVars", function(net) toppinAmount = net($) end)
+addHook("MapChange", function() toppinAmount = 1 end)
 
 addHook("MapThingSpawn", function(mo)
 	if not PTV3:isPTV3() then return end
@@ -184,9 +179,7 @@ addHook("MapThingSpawn", function(mo)
 	tpn.toppinType = toppinTypes[toppinAmount]
 	
 	toppinAmount = $+1
-	if toppinAmount > 5 then
-		toppinAmount = 1
-	end
+	if toppinAmount > 5 then toppinAmount = 1 end
 	
 	P_RemoveMobj(mo)
 end, MT_EMBLEM)

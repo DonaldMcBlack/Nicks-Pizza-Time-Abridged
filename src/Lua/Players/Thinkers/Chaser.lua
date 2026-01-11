@@ -15,12 +15,6 @@ addHook("PostThinkFrame", function()
 	end
 end)
 
-addHook("MapThingSpawn", function(mo)
-	if not PTV3:isPTV3() then return end
-
-	table.insert(PTV3.pizzafacetps, {x=mo.x, y=mo.y, z=mo.z})
-end, MT_STARPOST)
-
 local function PerformAction(p, pizztable, chaser)
 	if chaser.abilities[1] ~= nil and (p.cmd.buttons & BT_CUSTOM1) and not (pizztable.buttons & BT_CUSTOM1)
 		and not chaser.abilities[1].cooldown then

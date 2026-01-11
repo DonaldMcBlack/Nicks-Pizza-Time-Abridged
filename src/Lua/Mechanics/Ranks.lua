@@ -45,6 +45,8 @@ for i = 1,5 do
 	sfxinfo[freeslot("sfx_rad"..i)].caption = "Ranked down!"
 end
 
+---@param p player_t
+---@param rank string
 function PTV3:canGet(p, rank)
 	if not (p and p.ptv3) then return end
 
@@ -66,6 +68,7 @@ function PTV3:canGet(p, rank)
 	return true
 end
 
+---@param p player_t
 function PTV3:returnNextRankPercent(p)
 	if not p.ptv3 then return end
 
@@ -106,6 +109,7 @@ local sounds = {
 	},
 }
 
+---@param p player_t
 function PTV3:checkRank(p)
 	if self:canGet(p, p.ptv3.rank+1) then
 		if PTV3.ranks[p.ptv3.rank+1].rank == "P"

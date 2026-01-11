@@ -88,6 +88,7 @@ addHook('MapThingSpawn', function(secret, thing)
 	end
 
 	table.insert(PTV3.secrets, secret)
+	print(#PTV3.secrets)
 end, MT_PTV3_SECRET)
 
 addHook('MobjSpawn', function(secret)
@@ -113,6 +114,7 @@ addHook("MobjThinker", function(secret)
 end, MT_PTV3_SECRET)
 
 local function FindSecretEye(entered, group)
+	---@type mobj_t
 	for _, v in ipairs(PTV3.secrets) do
 		if v.sgroup ~= entered.sgroup then continue end
 
@@ -123,9 +125,16 @@ local function FindSecretEye(entered, group)
 	end
 end
 
+-- function PTV3:SetSecrets()
+-- 	for mobj in mobjs.iterate() do
+-- 		if mobj.type == MT_PTV3_SECRET then
+			
+-- 		end
+-- 	end
+-- end
+
 addHook('TouchSpecial', function(secret,mo)
-	if secret.stype == 1
-	or secret.hidden
+	if secret.stype == 1 or secret.hidden
 	or not (mo and mo.valid and mo.player)
 	or (PTV3.overtime and not (mo.player and mo.player.ptv3 and mo.player.ptv3.insecret))
 	or secret.teleported[mo.player] then return true end
@@ -161,6 +170,8 @@ addHook('TouchSpecial', function(secret,mo)
 	return true
 end, MT_PTV3_SECRET)
 
+--- Forces the player to exit the secret they are in.
+---@param p player_t
 function PTV3:exitSecret(p)
 	if not (p and p.ptv3 and p.ptv3.insecret) then return end
 

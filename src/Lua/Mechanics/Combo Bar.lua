@@ -22,6 +22,9 @@ addHook('MobjDamage', function(t,i,s)
 	end
 end, MT_PLAYER)
 
+---@param p player_t
+---@param type number
+---@param increase number
 function PTV3:increaseCombo(p, type, increase)
 	if type == 1 then
 		p.ptv3.combo_pos = PTV3.MAX_COMBO_TIME

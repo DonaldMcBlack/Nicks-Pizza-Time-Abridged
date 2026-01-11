@@ -19,12 +19,19 @@ rawset(_G, "L_FixedDecimal", function(str,maxdecimal)
 	return str_polarity..str_whole..'.'..str_decimal
 end)
 
+local x = -15*FU
+
 return function(v)
 	if not PTV3:isPTV3() then return end
-	if not (PTV3.pizzatime and PTV3.extreme) then return end
+
+	if not (PTV3.pizzatime and PTV3.extreme) then
+		x = ease.linear(FU, 15*FU, -15*FU)
+		return
+	end
+
 	if not PTV3.pizzaface then return end
 
-	local x = ease.linear(FU, -15*FU, 15*FU)
+	x = ease.outcubic(5*FU, -50*FU, 15*FU)
 	local y = 150*FU
 
 	local intensity = FU

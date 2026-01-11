@@ -91,10 +91,14 @@ return function(v)
 	v.drawScaled(x+j_prog, y-(3*scale), scale, j, V_SNAPTOBOTTOM)
 
 	local text = string.format("%d:%02d", G_TicsToMinutes(PTV3.pftime), G_TicsToSeconds(PTV3.pftime))
-	PTV3.drawText(v, x+(b.width*(scale/2)), y+(6*scale), text, {
-		--scale = scale*3+(scale/3),
-		align = "center",
-		flags = V_SNAPTOBOTTOM}
+	customhud.CustomFontString(v,
+		x+(b.width*(scale/2)), y+(6*scale),
+		text,
+		"PTFNT",
+		V_SNAPTOBOTTOM,
+		"center",
+		scale,
+		SKINCOLOR_WHITE
 	)
 
 	--PTV3.drawText(v, x+(bwidth/2), y-(16*FU), "WILL ADD SMTH HERE LATER")
