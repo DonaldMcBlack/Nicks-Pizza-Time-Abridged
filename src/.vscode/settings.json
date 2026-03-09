@@ -1,0 +1,6 @@
+{
+    "Lua.diagnostics.disable": [
+        "miss-symbol",
+        "missing-parameter"
+    ]
+}

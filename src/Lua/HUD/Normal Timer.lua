@@ -60,7 +60,7 @@ end
 return function(v)
 	if not PTV3:isPTV3() then return end
 	if not PTV3.pizzatime then return end
-	if PTV3.overtime or PTV3.game_over <= 0 then return end
+	if PTV3.overtime or PTV3.game_over < PTV3.ranktransitiontime then return end
 
 	local time = nil
 	local maxtime = PTV3.maxtime

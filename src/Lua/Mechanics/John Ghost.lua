@@ -1,58 +1,4 @@
-local function followC(p)
-	return p.mo.health and p.ptv3 and not p.ptv3.chaser and not (p.ptv3.fake_exit)
-end
-
-local function getNearestPlayer(pos, conditions)
-	local x,y,z,pl
-
-	for p in players.iterate do
-		if not p.mo then continue end
-		if conditions and not conditions(p) then continue end
-		
-		local newx = abs(p.mo.x - pos.x)
-		local newy = abs(p.mo.y - pos.y)
-		local newz = abs(p.mo.z - pos.z)
-
-		-- unlike pf, get the furthest player
-		-- the winners need to suffer
-		if (x == nil
-		or y == nil
-		or z == nil)
-		or (newx < x
-		and newy < y
-		and newz < z) then
-			x = newx
-			y = newy
-			z = newz
-			pl = p
-		end
-	end
-
-	return pl
-end
-
-function PTV3:LoadSkin_JohnGhost(properties)
-	if not properties then error("One of John's skins were not found.") return end
-	if type(properties) ~= "table" then error("One of John's skins is not a table.") return end
-
-	local default_struct = PTV3_SKINS.johnGhost[0]
-
-	for i,v in pairs(default_struct) do
-		if properties[i] == nil or type(properties[i]) ~= type(default_struct[i]) then
-			properties[i] = default_struct[i]
-		end
-	end
-
-	table.insert(PTV3_SKINS.johnGhost, properties)
-end
-
-local function ApplySkin(john_skindata, selectedskin)
-	local default_struct = PTV3_SKINS.johnGhost[0]
-
-	for i, v in pairs(default_struct) do
-		if john_skindata[i] ~= selectedskin[i] then john_skindata[i] = selectedskin[i] end
-	end
-end
+local function followC(p) return p.mo.health and p.PTRound and not p.PTRound.chaser and not (p.PTRound.fake_exit) end
 
 addHook('MobjSpawn', function(john)
 	john.skindata = {}
@@ -75,7 +21,7 @@ addHook('MobjThinker', function(john)
 		end
 	end
 
-	local player = getNearestPlayer(PTV3.spawn, followC)
+	local player = PTV3:getNearestPlayer(PTV3.spawn, followC, "player_t")
 	john.target = player and player.mo
 
 	if john.target then
@@ -86,37 +32,33 @@ addHook('MobjThinker', function(john)
 end, MT_PTV3_JOHNGHOST)
 
 addHook('TouchSpecial', function(john, pmo)
-	if (pmo and pmo.player and pmo.player.ptv3 and pmo.player.ptv3.chaser) then return end
+	if (pmo and pmo.player and pmo.player.PTRound and pmo.player.PTRound.chaser) then return end
 	
-	local skindata = john.tracer and john.tracer.player.ptv3.pizzaMobj_skindata or john.skindata
+	local skindata = john.tracer and john.tracer.player.PTRound.pizzaMobj_skindata or john.skindata
 	if skindata.touch then skindata.touch(john, pmo) end
 	return true
 end, MT_PTV3_JOHNGHOST)
 
-local function spawnmobj(s)
-	return P_SpawnMobj(s.x, s.y, s.z+(300*FU), MT_PTV3_JOHNGHOST)
-end
-
 function PTV3:johnGhostSpawn(skin)
-	local canSpawnAI = not (self.johnGhost and self.johnGhost.ptv3)
+	local canSpawnAI = not (self.johnGhost and self.johnGhost.PTRound)
 
 	if canSpawnAI then
 		if self.johnGhost and self.johnGhost.valid then return end
 
-		local position = {}
+		local pos = {}
 		local clonething = PTV3.pizzatime > 0 and PTV3.endpos or {x = 0, y = 0, z = 0, a = 0}
 
-		for _,i in pairs(clonething) do position[_] = i end
+		for _,i in pairs(clonething) do pos[_] = i end
 		
-		position.z = PTV3.pizzatime > 0 and $+(120*FU) or 0
-		self.johnGhost = spawnmobj(position)
+		pos.z = PTV3.pizzatime > 0 and $+(420*FU) or 0
+		self.johnGhost = P_SpawnMobj(pos.x, pos.y, pos.z, MT_PTV3_JOHNGHOST)
 
 		if skin then
 			for _,i in pairs(PTV3_SKINS.johnGhost) do
-				if skin == string.lower(PTV3_SKINS.johnGhost[_].name) then ApplySkin(self.johnGhost.skindata, PTV3_SKINS.johnGhost[_]) break end
+				if skin == string.lower(PTV3_SKINS.johnGhost[_].name) then PTV3:ApplyChaserSkin("johnGhost", self.johnGhost.skindata, PTV3_SKINS.johnGhost[_]) break end
 			end
 		else
-			ApplySkin(self.johnGhost.skindata, PTV3_SKINS.johnGhost[self.skinIndex.johnGhost])
+			PTV3:ApplyChaserSkin("johnGhost", self.johnGhost.skindata, PTV3_SKINS.johnGhost[self.skinIndex.johnGhost])
 		end
 
 		if not self.johnGhost.skindata then
@@ -124,25 +66,24 @@ function PTV3:johnGhostSpawn(skin)
 			self.johnGhost.skindata = PTV3_SKINS.johnGhost[0]
 		end
 	else
-		if self.johnGhost.ptv3
-		and self.johnGhost.ptv3.pizzaMobj and self.johnGhost.ptv3.pizzaMobj.valid then return end
+		if self.johnGhost.PTRound
+		and self.johnGhost.PTRound.pizzaMobj and self.johnGhost.PTRound.pizzaMobj.valid then return end
 
-		local john = spawnmobj(self.johnGhost.mo)
+		local john = P_SpawnMobj(self.johnGhost.mo.x, self.johnGhost.mo.y, self.johnGhost.mo.z, MT_PTV3_JOHNGHOST)
 
 		if skin then
 			for _,i in pairs(PTV3_SKINS.johnGhost) do
-				if skin == string.lower(PTV3_SKINS.johnGhost[_].name) then ApplySkin(self.johnGhost.ptv3.pizzaMobj_skindata, PTV3_SKINS.johnGhost[_]) break end
+				if skin == string.lower(PTV3_SKINS.johnGhost[_].name) then PTV3:ApplyChaserSkin("johnGhost", self.johnGhost.PTRound.pizzaMobj_skindata, PTV3_SKINS.johnGhost[_]) break end
 			end
 		else
 			error("Skin is null. Picking default skin.")
-			self.johnGhost.ptv3.pizzaMobj_skindata = PTV3_SKINS.johnGhost[0]
+			self.johnGhost.PTRound.pizzaMobj_skindata = PTV3_SKINS.johnGhost[0]
 		end
 
-		print(self.johnGhost.ptv3.pizzaMobj_skindata.name)
-		john.state = self.johnGhost.ptv3.pizzaMobj_skindata.states.normal
+		john.state = self.johnGhost.PTRound.pizzaMobj_skindata.states.normal
 		john.tracer = self.johnGhost.mo
 		
-		self.johnGhost.ptv3.pizzaMobj = john
+		self.johnGhost.PTRound.pizzaMobj = john
 	end
 
 	table.insert(self.currentchasers, self.johnGhost)

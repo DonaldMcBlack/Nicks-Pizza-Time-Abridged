@@ -2,13 +2,13 @@ local cutsceneTime
 
 addHook("ThinkFrame", function()
 	if not PTV3:isPTV3() then return end
-	if PTV3.pizzatime then P_StartQuake(PTV3.shakeintensity*FU, -1) end
+	if PTV3.pizzatime then P_StartQuake(PTV3.shakeintensity*FU, 2) end
 end)
 
 local function SpawnGateController(MaxTimeOpen)
 
 	if (leveltime > MaxTimeOpen and not PTV3.pizzatime)
-	or (PTV3.game_over < 15*TICRATE and PTV3.pizzatime) then
+	or (PTV3.game_over < (21*TICRATE)-10 and PTV3.pizzatime) then
 		if PTV3.spawnGate._frame ~= A then
 			S_StartSound(PTV3.spawnGate, sfx_doorsh)
 			P_StartQuake(FU*5, TICRATE/2)
@@ -24,76 +24,32 @@ local function SpawnGateController(MaxTimeOpen)
 	end
 end
 
-addHook('PostThinkFrame', function()
-	if not PTV3:isPTV3() then return end
-	if displayplayer then
-		if ((displayplayer.pflags & PF_FINISHED) or displayplayer.exiting) then
-			displayplayer.exiting = 0
-			displayplayer.pflags = $ & ~(PF_FINISHED | PF_FULLSTASIS)
+local function HUBThinker()
+	if not multiplayer then return end
+	
+	local countdown_active = false
+	local chosenMap = nil
+
+	for _, gate in ipairs(PTV3_HUB.gates) do
+		if gate.votes then countdown_active = true break end
+	end
+	
+	if countdown_active then PTV3.votetime = max(0, $-1) end
+	if PTV3.votetime then return end
+
+	local highestNum = 0
+	for _, gate in ipairs(PTV3_HUB.gates) do
+		if highestNum < gate.votes then
+			highestNum = gate.votes
+			chosenMap = gate.map
 		end
 	end
 
-	if multiplayer and gamemap ~= M_MapNumber("PT") then G_SetCustomExitVars(M_MapNumber("PT")) end
+	G_SetCustomExitVars(chosenMap, 2)
+	G_ExitLevel()
+end
 
-	if #PTV3.tplist > 0 then
-		for _, tps in pairs(PTV3.tplist) do
-			if not tps then continue end
-			
-			if tps.mo == nil or not (tps.mo and tps.mo.valid and tps.mo.player) then
-				table.remove(PTV3.tplist, tonumber(_))
-				continue
-			end
-
-			local p = tps.mo.player
-			P_SetOrigin(tps.mo, tps.coords.x, tps.coords.y, tps.coords.z)
-			p.mo.angle = tps.coords.a
-
-			if tps.relative then
-				P_InstaThrust(p.mo, tps.coords.a, p.speed)
-			else
-				tps.mo.momx, tps.mo.momy, tps.mo.momz = 0,0,0
-			end
-
-			if p.ptv3.lap_in then p.ptv3.lap_in = false end
-
-			p.ptv3.fake_exit = false
-			p.mo.flags2 = $ & ~MF2_DONTDRAW
-
-			if tps.source and tps.source.type == MT_PTV3_SECRET then
-				p.pflags = $|PF_SPINNING|PF_JUMPED
-				tps.mo.state = S_PLAY_ROLL
-				P_SetObjectMomZ(tps.mo, -12*FU, false)
-			end
-
-			if (PTV3.pizzaface and PTV3.pizzaface.valid)
-			and PTV3.pizzaface.target == (p and p.mo)
-			and tps.source ~= PTV3.johnGhost then
-				local pizza = PTV3.pizzaface
-				P_SetOrigin(pizza, tps.coords.x, tps.coords.y, tps.coords.z)
-				pizza.momx, pizza.momy, pizza.momz = 0, 0, 0
-				pizza.cooldown = 3*TICRATE
-			end
-			
-			p.ptv3.currentTeleportDest = tps.coords
-			table.remove(PTV3.tplist, tonumber(_))
-		end
-	end
-
-	if PTV3.spawnGate and PTV3.spawnGate.valid then
-		cutsceneTime = PTV3.has_titlecard and PTV3.maxTitlecardTime+(2*TICRATE) or 2*TICRATE
-		if PTV3.has_titlecard then
-			SpawnGateController(PTV3.maxTitlecardTime+TICRATE)
-		else
-			SpawnGateController(TICRATE)
-		end
-
-		if consoleplayer and not PTV3.pizzatime then
-			consoleplayer.realtime = max(0, leveltime-cutsceneTime)
-		end
-	end
-
-	if PTV3.game_over <= 0 then return end
-
+local function RoundThinker()
 	-- Everything that's controlled when the timer starts is in here.
 	if PTV3.pizzatime then
 		PTV3.time = max(0, $-1)
@@ -153,9 +109,9 @@ addHook('PostThinkFrame', function()
 		local canEnd = true
 
 		for p in players.iterate do
-			if not (p and p.mo and p.ptv3 and not p.ptv3.specforce) then continue end
+			if not (p and p.mo and p.PTRound and not p.PTRound.specforce) then continue end
 
-			if p.ptv3.canLap then
+			if p.PTRound.canLap then
 				canEnd = false
 				break
 			end
@@ -172,16 +128,81 @@ addHook('PostThinkFrame', function()
 		and #total > 2 and #alive <= 2 then
 			PTV3:overtimeToggle()
 		end
+	end
+end
 
-		if PTV3.pizzaface and PTV3.pizzaface.valid then
-			local increase = (FU/(TICRATE*18))
-			if not PTV3.overtime then
-				PTV3.pizzaface.intspeed = $+increase
-			else
-				PTV3.pizzaface.intspeed = $+FixedMul(increase, FU+FU/3)
-			end
+addHook('PostThinkFrame', function()
+	if not PTV3:isPTV3() then return end
+	if displayplayer then
+		if ((displayplayer.pflags & PF_FINISHED) or displayplayer.exiting) then
+			displayplayer.exiting = 0
+			displayplayer.pflags = $ & ~(PF_FINISHED | PF_FULLSTASIS)
 		end
 	end
+
+	if #PTV3.tplist > 0 then
+		for _, tps in pairs(PTV3.tplist) do
+			if not tps then continue end
+			
+			if tps.mo == nil or not (tps.mo and tps.mo.valid and tps.mo.player) then
+				table.remove(PTV3.tplist, tonumber(_))
+				continue
+			end
+
+			local p = tps.mo.player
+			P_SetOrigin(tps.mo, tps.coords.x, tps.coords.y, tps.coords.z)
+			if not p.mo.valid then continue end
+			p.mo.angle = tps.coords.a
+
+			if tps.relative then
+				P_InstaThrust(p.mo, tps.coords.a, p.speed)
+			else
+				tps.mo.momx, tps.mo.momy, tps.mo.momz = 0,0,0
+			end
+
+			if p.PTRound.lap_in then p.PTRound.lap_in = false end
+
+			p.PTRound.fake_exit = false
+			p.mo.flags2 = $ & ~MF2_DONTDRAW
+
+			if tps.source and tps.source.type == MT_PTV3_SECRET then
+				p.pflags = $|PF_SPINNING|PF_JUMPED
+				tps.mo.state = S_PLAY_ROLL
+				P_SetObjectMomZ(tps.mo, -12*FU, false)
+			end
+
+			if (PTV3.pizzaface and PTV3.pizzaface.valid)
+			and PTV3.pizzaface.target == (p and p.mo)
+			and tps.source ~= PTV3.johnGhost then
+				local pizza = PTV3.pizzaface
+				P_SetOrigin(pizza, tps.coords.x, tps.coords.y, tps.coords.z)
+				pizza.momx, pizza.momy, pizza.momz = 0, 0, 0
+				pizza.cooldown = 3*TICRATE
+			end
+			
+			p.PTRound.currentTeleportDest = tps.coords
+			table.remove(PTV3.tplist, tonumber(_))
+		end
+	end
+
+	if PTV3.spawnGate and PTV3.spawnGate.valid then
+		cutsceneTime = PTV3.has_titlecard and PTV3.maxTitlecardTime+(2*TICRATE) or 2*TICRATE
+		if PTV3.has_titlecard then
+			SpawnGateController(PTV3.maxTitlecardTime+TICRATE)
+		else
+			SpawnGateController(TICRATE)
+		end
+
+		if consoleplayer and not PTV3.pizzatime then
+			consoleplayer.realtime = max(0, leveltime-cutsceneTime)
+		end
+	end
+
+	if gamemap == M_MapNumber("PT") then HUBThinker() return end
+	if PTV3.game_over <= 0 then return end
+
+	RoundThinker()
+
 end)
 
 addHook("MobjDeath", function(t,i,s)

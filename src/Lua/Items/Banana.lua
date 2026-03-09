@@ -50,11 +50,11 @@ item.ammo = 1
 addHook('TouchSpecial', function(mo, pmo)
 	if not mo.valid then return true end
 	if pmo == mo.target then return true end
-	if not (pmo and pmo.player and pmo.player.ptv3 and not pmo.player.ptv3.swapModeFollower) then return true end
+	if not (pmo and pmo.player and pmo.player.PTRound) then return true end -- and not pmo.player.PTRound.swapModeFollower
 
 	local p = pmo.player
 
-	p.ptv3.ragdoll = TICRATE
+	p.PTRound.ragdoll = TICRATE
 	P_InstaThrust(pmo, R_PointToAngle2(pmo.x, pmo.y, mo.x, mo.y), p.speed)
 	pmo.momz = 8*(FU*P_MobjFlip(pmo))
 	S_StartSound(pmo, sfx_bslip)

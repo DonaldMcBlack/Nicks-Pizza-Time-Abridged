@@ -32,8 +32,8 @@ return function(v)
 	local visible = max(first_visible, second_visible)
 
 	local text = string.format('You found %d secret%s out of %d',
-		consoleplayer.ptv3.secretsfound,
-		consoleplayer.ptv3.secretsfound > 1 and "s" or "",
+		consoleplayer.PTRound.secretsfound,
+		consoleplayer.PTRound.secretsfound > 1 and "s" or "",
 		PTV3.secret_count,
 		"!"
 	)

@@ -1,5 +1,5 @@
 local function ManageItemPos(p, mo, set)
-    local rawitem = PTV3.items[p.ptv3.curItem]
+    local rawitem = PTV3.items[p.PTGlobal.curItem]
 
     local tpfunc = set and P_SetOrigin or P_MoveOrigin
 
@@ -65,36 +65,36 @@ local function ManageItemPos(p, mo, set)
 end
 
 return function(p)
-    local item = p.ptv3.curItem
+    local item = p.PTGlobal.curItem
     if not item then return end
 
-    if PTV3.items[item].equipable and not p.ptv3.curItem_mobj then
-        p.ptv3.curItem_mobj = PTV3:MakeItemMobj(p.mo, item)
+    if PTV3.items[item].equipable and not p.PTRound.curItem_mobj then
+        p.PTRound.curItem_mobj = PTV3:MakeItemMobj(p.mo, item)
     end
 
-    local item_mobj = p.ptv3.curItem_mobj
+    local item_mobj = p.PTRound.curItem_mobj
 
     if item_mobj and item_mobj.valid then
-        ManageItemPos(p, p.ptv3.curItem_mobj)
+        ManageItemPos(p, p.PTRound.curItem_mobj)
 
-        if p.ptv3.curItem_equipped then
-            p.ptv3.curItem_mobj.flags2 = $ & ~MF2_DONTDRAW
+        if p.PTRound.curItem_equipped then
+            p.PTRound.curItem_mobj.flags2 = $ & ~MF2_DONTDRAW
         else
-            p.ptv3.curItem_mobj.flags2 = $|MF2_DONTDRAW
+            p.PTRound.curItem_mobj.flags2 = $|MF2_DONTDRAW
         end
     end
 
     if item then
-        if (p.cmd.buttons & BT_CUSTOM1) and not (p.ptv3.buttons & BT_CUSTOM1) then
+        if (p.cmd.buttons & BT_CUSTOM1) and not (p.PTGlobal.buttons & BT_CUSTOM1) then
             if PTV3.items[item].equipable then
-                p.ptv3.curItem_equipped = not p.ptv3.curItem_equipped
-                if p.ptv3.curItem_equipped then S_StartSound(p.mo, PTV3.items[item].equip_sfx) end
+                p.PTRound.curItem_equipped = not p.PTRound.curItem_equipped
+                if p.PTRound.curItem_equipped then S_StartSound(p.mo, PTV3.items[item].equip_sfx) end
             else
                 PTV3:InstantUseItem(p)
             end
         end
 
-        if p.ptv3.curItem_equipped and (p.cmd.buttons & BT_FIRENORMAL) and not (p.ptv3.buttons & BT_FIRENORMAL) then
+        if p.PTRound.curItem_equipped and (p.cmd.buttons & BT_FIRENORMAL) and not (p.PTGlobal.buttons & BT_FIRENORMAL) then
             PTV3:UseEquipableItem(p)
         end
     end

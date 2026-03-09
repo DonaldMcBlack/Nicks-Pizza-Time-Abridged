@@ -1,25 +1,10 @@
 return function(v,p)
-	if not PTV3:isPTV3() or not (p and p.ptv3 and p.ptv3.chaser) then return end
+	if not PTV3:isPTV3() or not (p and p.PTRound and p.PTRound.chaser) then return end
 
-	local chaser = p.ptv3.pizzaMobj_skindata
+	local chaser = p.PTRound.pizzaMobj_skindata
 
 	local screenWidth = (v.width()/v.dupx())*FU
 	local screenHeight = (v.height()/v.dupy())*FU
-
-	local ability_2 = v.cachePatch("ACTION_NULL")
-	local ability_3 = v.cachePatch("ACTION_NULL")
-
-	-- v.drawScaled(12*FU, screenHeight-42*FU, FU/4, v.cachePatch("ACTION_NULL"), V_SNAPTOLEFT|V_SNAPTOBOTTOM)
-	-- v.drawScaled(36*FU, screenHeight-42*FU, FU/4, v.cachePatch("ACTION_NULL"), V_SNAPTOLEFT|V_SNAPTOBOTTOM)
-	-- v.drawScaled(60*FU, screenHeight-42*FU, FU/4, v.cachePatch("ACTION_NULL"), V_SNAPTOLEFT|V_SNAPTOBOTTOM)
-
-	-- local time = FixedDiv(max(0, min(PTV3.maxpftime-PTV3.pftime, 2*TICRATE)), 2*TICRATE)
-	-- local endtime = FixedDiv(max(0, min(PTV3.pftime, 2*TICRATE)), 2*TICRATE)
-
-	-- local startTween = ease.linear(time, 200*FU, 180*FU)
-	-- local endTween = ease.linear(FU-endtime, 180*FU, 200*FU)
-
-	-- local y = max(startTween, endTween)
 
 	if not chaser.abilities then return end
 

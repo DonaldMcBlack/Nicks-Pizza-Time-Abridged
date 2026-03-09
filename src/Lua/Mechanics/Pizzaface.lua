@@ -1,55 +1,4 @@
-local function followC(p) return p.mo.health and p.ptv3 and not p.ptv3.chaser and not (p.ptv3.fake_exit) end
-
-local function getNearestPlayer(pos, conditions)
-	local x,y,z,pl,pm
-
-	for p in players.iterate do
-		if not p.mo then continue end
-		if conditions and not conditions(p) then continue end
-		
-		local newx = abs(p.mo.x - pos.x)
-		local newy = abs(p.mo.y - pos.y)
-		local newz = abs(p.mo.z - pos.z)
-
-		if (x == nil
-		or y == nil
-		or z == nil)
-		or (newx < x
-		and newy < y
-		and newz < z) then
-			x = newx
-			y = newy
-			z = newz
-			pl = p
-			pm = p.mo
-		end
-	end
-
-	return pm
-end
-
-function PTV3:LoadSkin_Pizzaface(properties)
-	if not properties then error("One of Pizzaface's skins were not found.") return end
-	if type(properties) ~= "table" then error("One of Pizzaface's skins is not a table.") return end
-
-	-- local default_struct = PTV3_SKINS.pizzaface[0]
-
-	-- for i,v in pairs(default_struct) do
-	-- 	if properties[i] == nil or type(properties[i]) ~= type(default_struct[i]) then
-	-- 		properties[i] = default_struct[i]
-	-- 	end
-	-- end
-
-	table.insert(PTV3_SKINS.pizzaface, properties)
-end
-
-local function ApplySkin(pf_skindata, selectedskin)
-	local default_struct = PTV3_SKINS.pizzaface[0]
-
-	for i, v in pairs(default_struct) do
-		if pf_skindata[i] ~= selectedskin[i] then pf_skindata[i] = selectedskin[i] end
-	end
-end
+local function followC(p) return p.mo.health and p.PTRound and not p.PTRound.chaser and not (p.PTRound.fake_exit) end
 
 addHook('MobjSpawn', function(pf)
 	pf.destscale = (FU/2)*5/4
@@ -68,13 +17,13 @@ addHook('MobjRemoved', function(t,i,s)  return true end, MT_PTV3_PIZZAFACE)
 addHook('MobjDeath', function(t,i,s)    return true end, MT_PTV3_PIZZAFACE)
 
 local function ProcessSkindata(pf)
-	local skindata = pf.player and pf.player.ptv3.pizzaMobj_skindata or pf.skindata
+	local skindata = pf.player and pf.player.PTRound.pizzaMobj_skindata or pf.skindata
 	if not S_SoundPlaying(pf, skindata.movesound[(PTV3.pizzatime or 1)]) then S_StartSound(pf, skindata.movesound[(PTV3.pizzatime or 1)]) end
 
 	if not (leveltime % 8) then
 		if (pf.momx ~= 0 or pf.momy ~= 0 or pf.momz ~= 0) then
 			if pf.player then
-				PTV3:doEffect(pf.player.ptv3.pizzaMobj, skindata.effect)
+				PTV3:doEffect(pf.player.PTRound.pizzaMobj, skindata.effect)
 			else
 				PTV3:doEffect(pf, skindata.effect)
 			end
@@ -104,7 +53,7 @@ addHook('MobjThinker', function(pf)
 
 	if not runCode then return end
 
-	pf.target = getNearestPlayer(pf, followC)
+	pf.target = PTV3:getNearestPlayer(pf, followC)
 	if pf.target then
 		pf.skindata.behaviour(pf)
 	else
@@ -125,13 +74,13 @@ local function PFTouchSpecial(pf, pmo)
 		src = pf.tracer
 		local p = pf.tracer.player
 
-		if p.ptv3 and (p.ptv3.camper or p.ptv3.stun) then
+		if p.PTRound and (p.PTRound.camper or p.PTRound.stun) then
 			return
 		end
 	end
 	
 	if victim.powers[pw_invulnerability]
-	or (victim.ptv3 and (victim.ptv3.fake_exit or victim.ptv3.chaser)) then
+	or (victim.PTRound and (victim.PTRound.fake_exit or victim.PTRound.chaser)) then
 		return
 	end
 	
@@ -145,32 +94,28 @@ addHook('TouchSpecial', function(pf, pmo)
 	return true
 end, MT_PTV3_PIZZAFACE)
 
-local function spawnmobj(s)
-	return P_SpawnMobj(s.x, s.y, s.z, MT_PTV3_PIZZAFACE)
-end
-
 -- Spawns Pizzaface.
 function PTV3:pizzafaceSpawn(skin)
-	local canSpawnAI = not (self.pizzaface and self.pizzaface.ptv3)
+	local canSpawnAI = not (self.pizzaface and self.pizzaface.PTRound)
 
 	if canSpawnAI then
 		if self.pizzaface and self.pizzaface.valid then return end
+		
 
-		local position = {}
-		local clonething = (gametype == GT_PTV3DM or PTV3.pizzatime < 0) and self.spawn or self.endpos
+		local alive = PTV3:playerCount()
 
-		for _,i in pairs(clonething) do
-			position[_] = i
-		end
+		local randomplayer = players[P_RandomRange(0, #alive)]
 
-		self.pizzaface = spawnmobj(position)
+		local pos = (gametype == GT_PTV3DM or PTV3.pizzatime < 0) and self.spawn or randomplayer.mo
+
+		self.pizzaface = P_SpawnMobj(pos.x, pos.y, pos.z, MT_PTV3_PIZZAFACE)
 
 		if skin then
 			for _,i in pairs(PTV3_SKINS.pizzaface) do
-				if skin == string.lower(PTV3_SKINS.pizzaface[_].name) then ApplySkin(self.pizzaface.skindata, PTV3_SKINS.pizzaface[_]) break end
+				if skin == string.lower(PTV3_SKINS.pizzaface[_].name) then PTV3:ApplyChaserSkin("pizzaface", self.pizzaface.skindata, PTV3_SKINS.pizzaface[_]) break end
 			end
 		else
-			ApplySkin(self.pizzaface.skindata, PTV3_SKINS.pizzaface[self.skinIndex.pizzaface])
+			PTV3:ApplyChaserSkin("pizzaface", self.pizzaface.skindata, PTV3_SKINS.pizzaface[self.skinIndex.pizzaface])
 		end
 
 		if not self.pizzaface.skindata then
@@ -187,25 +132,25 @@ function PTV3:pizzafaceSpawn(skin)
 		self.pizzaface.angry = false
 		S_StartSound(nil, self.pizzaface.skindata.laughsound[self.pizzatime] ~= nil and self.pizzaface.skindata.laughsound[self.pizzatime] or self.pizzaface.skindata.laughsound[1])
 	else
-		if self.pizzaface.ptv3
-		and self.pizzaface.ptv3.pizzaMobj and self.pizzaface.ptv3.pizzaMobj.valid then return end
+		if self.pizzaface.PTRound
+		and self.pizzaface.PTRound.pizzaMobj and self.pizzaface.PTRound.pizzaMobj.valid then return end
 
-		local pf = spawnmobj(self.pizzaface.mo)
+		local pf = P_SpawnMobj(self.pizzaface.mo.x, self.pizzaface.mo.y, self.pizzaface.mo.z, MT_PTV3_PIZZAFACE)
 
 		if skin then
 			for _,i in pairs(PTV3_SKINS.pizzaface) do
-				if skin == string.lower(PTV3_SKINS.pizzaface[_].name) then ApplySkin(self.pizzaface.ptv3.pizzaMobj_skindata, PTV3_SKINS.pizzaface[_]) break end
+				if skin == string.lower(PTV3_SKINS.pizzaface[_].name) then PTV3:ApplyChaserSkin("pizzaface", self.pizzaface.PTRound.pizzaMobj_skindata, PTV3_SKINS.pizzaface[_]) break end
 			end
 		else
 			error("Skin is null. Picking default skin.")
-			ApplySkin(self.pizzaface.ptv3.pizzaMobj_skindata, PTV3_SKINS.pizzaface[0])
+			PTV3:ApplyChaserSkin("pizzaface", self.pizzaface.PTRound.pizzaMobj_skindata, PTV3_SKINS.pizzaface[0])
 		end
 
-		pf.state = self.pizzaface.ptv3.pizzaMobj_skindata.states.normal
+		pf.state = self.pizzaface.PTRound.pizzaMobj_skindata.states.normal
 		pf.tracer = self.pizzaface.mo
 
-		self.pizzaface.ptv3.pizzaMobj = pf
-		S_StartSound(nil, self.pizzaface.ptv3.pizzaMobj_skindata.laughsound[self.pizzatime] ~= nil and self.pizzaface.ptv3.pizzaMobj_skindata.laughsound[self.pizzatime] or self.pizzaface.ptv3.pizzaMobj_skindata.laughsound[1])
+		self.pizzaface.PTRound.pizzaMobj = pf
+		S_StartSound(nil, self.pizzaface.PTRound.pizzaMobj_skindata.laughsound[self.pizzatime] ~= nil and self.pizzaface.PTRound.pizzaMobj_skindata.laughsound[self.pizzatime] or self.pizzaface.PTRound.pizzaMobj_skindata.laughsound[1])
 	end
 
 	table.insert(self.currentchasers, self.pizzaface)

@@ -1,11 +1,11 @@
 return function(v,p)
 	if not PTV3:isPTV3() then return end
-	if not (p.ptv3 and p.ptv3.canLap and not (p.ptv3.extremeNotif)) then return end
+	if not (p.PTRound and p.PTRound.canLap and not (p.PTRound.extremeNotif)) then return end
 
-	local time = (5*TICRATE)-p.ptv3.canLap
+	local time = (5*TICRATE)-p.PTRound.canLap
 
 	local startTime = min(FixedDiv(time, TICRATE), FU)
-	local endTime = min(FixedDiv(p.ptv3.canLap, TICRATE), FU)
+	local endTime = min(FixedDiv(p.PTRound.canLap, TICRATE), FU)
 
 	local tweenTime = min(startTime, endTime)
 

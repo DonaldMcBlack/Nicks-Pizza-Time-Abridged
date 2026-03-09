@@ -4,8 +4,8 @@ local function canPVP(pmo, pmo2)
 	or pmo2.player.powers[pw_invulnerability]
 	or pmo2.player.pflags & PF_CANCARRY
 	or P_PlayerInPain(pmo2.player)
-	or (pmo2.player.ptv3
-	and pmo2.player.ptv3.fake_exit) then
+	or (pmo2.player.PTRound
+	and pmo2.player.PTRound.fake_exit) then
 		return 0
 	end
 	
@@ -40,9 +40,9 @@ local function hurtPlayer(pmo, mo2, value)
 
 	local scoreAdd = min(mo2.player.score, 250)
 	pmo.player.score = $+scoreAdd
-	pmo.player.ptv3.pvpCooldown = 5
+	pmo.player.PTRound.pvpCooldown = 5
 	mo2.player.score = $-scoreAdd
-	mo2.player.ptv3.pvpCooldown = 5
+	mo2.player.PTRound.pvpCooldown = 5
 
 	if value == 1 then
 		mo2.player.drawangle = R_PointToAngle2(mo2.x, mo2.y, pmo.x, pmo.y)
@@ -69,15 +69,15 @@ local function choose(...)
 end
 
 addHook("PlayerThink", function(p)
-	if not (p and p.ptv3) then return end
+	if not (p and p.PTRound) then return end
 
-	p.ptv3.pvpCooldown = max(0, $-1)
+	p.PTRound.pvpCooldown = max(0, $-1)
 end)
 
 addHook('MobjMoveCollide', function(pmo, mo2)
 	if mo2.type ~= MT_PLAYER then return end
-	if (mo2 and mo2.player and mo2.player.ptv3 and (mo2.player.ptv3.pizzaface or mo2.player.ptv3.pvpCooldown)) then return end
-	if (pmo and pmo.player and pmo.player.ptv3 and (pmo.player.ptv3.pizzaface or mo2.player.ptv3.pvpCooldown)) then return end
+	if (mo2 and mo2.player and mo2.player.PTRound and (mo2.player.PTRound.pizzaface or mo2.player.PTRound.pvpCooldown)) then return end
+	if (pmo and pmo.player and pmo.player.PTRound and (pmo.player.PTRound.pizzaface or mo2.player.PTRound.pvpCooldown)) then return end
 	if pmo.z > mo2.z+mo2.height then return end
 	if mo2.z > pmo.z+pmo.height then return end
 

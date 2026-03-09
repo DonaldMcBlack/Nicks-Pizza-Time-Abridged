@@ -29,7 +29,7 @@ local ContextPage = {
 }
 
 local function drawPage_Dresser(v, p)
-    if p.ptv3.menumode.menutype ~= "dresser" then return end
+    if p.PTGlobal.menumode.menutype ~= "dresser" then return end
     
     for i, sel in ipairs(ContextPage) do
         customhud.CustomFontString(v,
@@ -45,7 +45,7 @@ local function drawPage_Dresser(v, p)
 end
 
 local function drawPage_Skins(v, p)
-    if p.ptv3.menumode.menutype ~= "skins" then return end
+    if p.PTGlobal.menumode.menutype ~= "skins" then return end
 
     local screenWidth = v.width() * FU / v.dupx()
 	local screenHeight = v.height() * FU / v.dupy()
@@ -84,8 +84,8 @@ local function drawPage_Skins(v, p)
 end
 
 return function(v,p)
-    if not p.ptv3 then return end
-    if not p.ptv3.menumode.inmenu then return end
+    if not p.PTRound then return end
+    if not p.PTGlobal.menumode.inmenu then return end
 
     drawScrollingBG(v,v.cachePatch('OPTIONBG'),FU/3)
 

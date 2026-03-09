@@ -5,14 +5,14 @@ local function canPVP(p1, p2)
 	or p2.powers[pw_invulnerability]
 	or p2.pflags & PF_CANCARRY
 	or P_PlayerInPain(p2)
-	or (p2.ptv3 and p2.ptv3.fake_exit) then
+	or (p2.PTRound and p2.PTRound.fake_exit) then
 		return 0
 	end
 	
-	if (p1.ptv3 and p1.ptv3.swapModeFollower)
-	or (p2.ptv3 and p2.ptv3.swapModeFollower) then
-		return 0
-	end
+	-- if (p1.PTRound and p1.PTRound.swapModeFollower)
+	-- or (p2.PTRound and p2.PTRound.swapModeFollower) then
+	-- 	return 0
+	-- end
 	
 	-- Return values:
 	-- 0 = None
@@ -43,9 +43,9 @@ local function hurtPlayer(p1, p2, value)
 
 	local scoreAdd = min(p2.score, 250)
 	p1.score = $+scoreAdd
-	p1.ptv3.pvpCooldown = 5
+	p1.PTRound.pvpCooldown = 5
 	p2.score = $-scoreAdd
-	p2.ptv3.pvpCooldown = 5
+	p2.PTRound.pvpCooldown = 5
 
 	local p1mo, p2mo = p1.mo, p2.mo
 
@@ -75,8 +75,8 @@ end
 
 addHook('MobjMoveCollide', function(pmo, mo2)
 	if mo2.type ~= MT_PLAYER then return end
-	if (mo2 and mo2.player and mo2.player.ptv3 and (mo2.player.ptv3.pizzaMobj or mo2.player.ptv3.pvpCooldown)) then return end
-	if (pmo and pmo.player and pmo.player.ptv3 and (pmo.player.ptv3.pizzaMobj or mo2.player.ptv3.pvpCooldown)) then return end
+	if (mo2 and mo2.player and mo2.player.PTRound and (mo2.player.PTRound.pizzaMobj or mo2.player.PTRound.pvpCooldown)) then return end
+	if (pmo and pmo.player and pmo.player.PTRound and (pmo.player.PTRound.pizzaMobj or mo2.player.PTRound.pvpCooldown)) then return end
 	if pmo.z > mo2.z+mo2.height then return end
 	if mo2.z > pmo.z+pmo.height then return end
 

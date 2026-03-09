@@ -33,3 +33,14 @@ NoZone = 1
 Hidden = 0
 LevelSelect = 0
 SaveGame = true
+
+Level Z0
+LevelName = The Runner Up
+TypeOfLevel = Singleplayer
+Act = 0
+Music = FNICI
+NextLevel = TITLE
+Weather = 0
+NoZone = 1
+Hidden = 1
+LevelSelect = 0

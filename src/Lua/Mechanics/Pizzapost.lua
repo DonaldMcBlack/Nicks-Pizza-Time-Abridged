@@ -1,5 +1,6 @@
 freeslot("SPR_PIPT")
 freeslot("MT_PTV3_PIZZAPOST", "S_PTV3_PIZZAPOST_IDLE", "S_PTV3_PIZZAPOST_FLASH", "S_PTV3_PIZZAPOST_EXTEND")
+sfxinfo[freeslot "sfx_pizpst"].caption = "Pizzapost"
 
 states[S_PTV3_PIZZAPOST_IDLE] = {
 	sprite = SPR_PIPT,
@@ -50,15 +51,15 @@ addHook("MobjSpawn", function(mo)
 end, MT_STARPOST)
 
 addHook("TouchSpecial", function(post, mo)
-    if not mo.player and mo.player.ptv3 then return true end
+    if not mo.player and mo.player.PTRound then return true end
 
     local p = mo.player
 
-    if p.ptv3.pizzapost_id == post then return true end
+    if p.PTRound.pizzapost_id == post then return true end
 
-    p.ptv3.pizzapost_id = post
+    p.PTRound.pizzapost_id = post
     post.state = S_PTV3_PIZZAPOST_EXTEND
-    S_StartSound(post, sfx_strpst)
+    S_StartSound(post, sfx_pizpst)
 
     return true
 end, MT_PTV3_PIZZAPOST)
@@ -69,8 +70,8 @@ addHook("ShouldDamage", function(target, inflictor, source, damage, damagetype)
 	if damagetype == DMG_CRUSHED or damagetype == DMG_DEATHPIT then
 		local player = target.player
 		if player.playerstate == PST_LIVE then
-            if player.ptv3.pizzapost_id then
-                local post = player.ptv3.pizzapost_id
+            if player.PTRound.pizzapost_id then
+                local post = player.PTRound.pizzapost_id
                 P_SetOrigin(target, post.x, post.y, post.z)
                 target.angle = post.angle
             else return true

@@ -43,7 +43,7 @@ local function cutscene(p)
 		else
 			p.mo.state = S_PLAY_STND
 			p.mo.angle = PTV3.spawnGate.angle
-			p.ptv3.currentTeleportDest = PTV3.spawn
+			p.PTRound.currentTeleportDest = PTV3.spawn
 		end
 
 		return true

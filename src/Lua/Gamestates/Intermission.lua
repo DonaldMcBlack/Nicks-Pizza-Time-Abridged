@@ -15,9 +15,13 @@ local rankTexts = {
 
 addHook("NetVars", function(n) inttime = n($) end)
 
-addHook("MapLoad", do
+addHook("MapLoad", function()
 	inttime = 0
-	hud.enable "intermissiontally"
+
+	if PTV3:isPTV3() then return end
+
+	hud.enable("rankings")
+	hud.enable("intermissiontally")
 end)
 
 local rotationTable = {
@@ -38,30 +42,36 @@ local function hAndHTween(startTween, endTween, time, start, half, finish)
 end
 
 addHook("ThinkFrame", function()
-	if PTV3.game_over > 10*TICRATE then return end
-	G_SetCustomExitVars(nil, 1)
-	print("Time til end of intermission: "..PTV3.game_over.." Intermission Time: "..inttime)
-	if inttime >= 500 then G_ExitLevel() end
+	if PTV3.game_over > PTV3.ranktransitiontime then return end
+
+	if multiplayer then G_SetCustomExitVars(M_MapNumber("PT")) else
+		G_SetCustomExitVars(nil, 1)
+	end
+	
+	print("Time til end of intermission: "..PTV3.game_over)
+	if not PTV3.game_over then G_ExitLevel() end
 
 end)
 
 addHook("HUD", function(v)
-	if PTV3.game_over > 10*TICRATE then return end
+	if not PTV3:isPTV3() then return end
+	if PTV3.game_over > PTV3.ranktransitiontime then return end
 
-	hud.disable "intermissiontally"
+	hud.disable("rankings")
+	hud.disable("intermissiontally")
 
 	v.drawFill(nil, nil, nil, nil, 0)
 
 	local p = consoleplayer
-	if not (p and p.valid and p.ptv3) then return end
+	if not (p and p.valid and p.PTRound) then return end
 
 	local color = v.getColormap(p.skin, p.skincolor)
 
 	local screenWidth =  FixedDiv(v.width()*FU, v.dupx()*FU)
 	local screenHeight = FixedDiv(v.height()*FU, v.dupy()*FU)
 
-	local rank = PTV3.ranks[p.ptv3.rank].rank
-	if p.ptv3.specforce then
+	local rank = PTV3.ranks[p.PTRound.rank].rank
+	if p.PTRound.specforce then
 		rank = "E"
 	end
 

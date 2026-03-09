@@ -13,12 +13,12 @@ addHook('MobjDamage', function(t,i,s)
 	if not (t.player) then return end
 	local p = t.player
 
-	if not (p.ptv3.combo_pos) then return end
+	if not (p.PTRound.combo_pos) then return end
 
-	if p.ptv3.combo_pos > PTV3.MAX_COMBO_TIME/2 then
-		p.ptv3.combo_pos = PTV3.MAX_COMBO_TIME/2
+	if p.PTRound.combo_pos > PTV3.MAX_COMBO_TIME/2 then
+		p.PTRound.combo_pos = PTV3.MAX_COMBO_TIME/2
 	else
-		p.ptv3.combo_pos = 0
+		p.PTRound.combo_pos = 0
 	end
 end, MT_PLAYER)
 
@@ -27,23 +27,23 @@ end, MT_PLAYER)
 ---@param increase number
 function PTV3:increaseCombo(p, type, increase)
 	if type == 1 then
-		p.ptv3.combo_pos = PTV3.MAX_COMBO_TIME
-		if not (p.ptv3.combo) then
-			p.ptv3.combo_start_time = leveltime
-			p.ptv3.started_combo = true
+		p.PTRound.combo_pos = PTV3.MAX_COMBO_TIME
+		if not (p.PTRound.combo) then
+			p.PTRound.combo_start_time = leveltime
+			p.PTRound.started_combo = true
 		end
-		p.ptv3.combo = $+1
+		p.PTRound.combo = $+1
 	elseif type == 2 then
-		p.ptv3.combo_pos = min($+increase, PTV3.MAX_COMBO_TIME)
+		p.PTRound.combo_pos = min($+increase, PTV3.MAX_COMBO_TIME)
 	elseif type == 3 then
-		p.ptv3.combo_pos = PTV3.MAX_COMBO_TIME
+		p.PTRound.combo_pos = PTV3.MAX_COMBO_TIME
 	end
 end
 
 addHook('MobjDamage', function(t,i,s)
 	if not PTV3:isPTV3() then return end
 	if not (s and s.type == MT_PLAYER) then return end
-	if not (s.player.ptv3 and s.player.ptv3.combo) then return end
+	if not (s.player.PTRound and s.player.PTRound.combo) then return end
 	if not (t.flags & MF_ENEMY) then return end
 	
 	PTV3:increaseCombo(s.player, 3)
@@ -71,63 +71,63 @@ local function IncrementByFive(combo)
 end
 
 PTV3:insertCallback("PlayerThink", function(p)
-	if p.ptv3.combo_offtime then
-		local time = min(((leveltime - p.ptv3.combo_offtime)*(FU*2))/35, FU+1)
+	if p.PTRound.combo_offtime then
+		local time = min(((leveltime - p.PTRound.combo_offtime)*(FU*2))/35, FU+1)
 		if time > FU then
-			p.ptv3.combo_offtime = nil
+			p.PTRound.combo_offtime = nil
 		end
 	end
-	if not (p.ptv3.combo) then return end
+	if not (p.PTRound.combo) then return end
 
 	if not (p.exiting) then
-		p.ptv3.combo_pos = $-(FU/TICRATE)
+		p.PTRound.combo_pos = $-(FU/TICRATE)
 	end
 
-	p.ptv3.combo_display = $ + ((p.ptv3.combo_pos-p.ptv3.combo_display)/2)
+	p.PTRound.combo_display = $ + ((p.PTRound.combo_pos-p.PTRound.combo_display)/2)
 
-	local combo = p.ptv3.combo
+	local combo = p.PTRound.combo
 	local very
 
 	local rank_increment = IncrementByFive(combo)
 
 	if combo >= 80 then very = true end
 
-	p.ptv3.combo_rank.very = very
+	p.PTRound.combo_rank.very = very
 
-	if (p.ptv3.combo_pos > 0) then
+	if (p.PTRound.combo_pos > 0) then
 		if rank_increment and combo >= ranks[rank_increment]
-		and p.ptv3.combo_rank.rank ~= ranks[rank_increment] then -- Replace oldrank in Combo.lua
-			p.ptv3.combo_rank.rank = ranks[rank_increment]
-			p.ptv3.combo_rank.rankn = rank_increment
-			p.ptv3.combo_rank.time = leveltime
+		and p.PTRound.combo_rank.rank ~= ranks[rank_increment] then -- Replace oldrank in Combo.lua
+			p.PTRound.combo_rank.rank = ranks[rank_increment]
+			p.PTRound.combo_rank.rankn = rank_increment
+			p.PTRound.combo_rank.time = leveltime
 			S_StartSound(nil, P_RandomRange(sfx_combo1, sfx_combo3), p)
 		end
 	else -- Reset
-		p.ptv3.combo = 0
-		p.ptv3.combo_pos = 0
-		p.ptv3.combo_display = 0
-		p.ptv3.combo_offtime = leveltime
-		p.ptv3.combo_dropped = true
+		p.PTRound.combo = 0
+		p.PTRound.combo_pos = 0
+		p.PTRound.combo_display = 0
+		p.PTRound.combo_offtime = leveltime
+		p.PTRound.combo_dropped = true
 		
 		for _,i in ipairs(ranks) do
 			if combo >= i then
-				p.ptv3.combo_rank.rank = i
-				p.ptv3.combo_rank.rankn = _
+				p.PTRound.combo_rank.rank = i
+				p.PTRound.combo_rank.rankn = _
 			else
 				break
 			end
 		end
-		p.ptv3.combo_rank.time = leveltime
+		p.PTRound.combo_rank.time = leveltime
 	end
 	
-	if p.ptv3.isSwap
-	and p.ptv3.isSwap.valid then
-		local p2 = p.ptv3.isSwap
-		p2.ptv3.combo = p.ptv3.combo
-		p2.ptv3.combo_pos = p.ptv3.combo_pos
-		p2.ptv3.combo_display = p.ptv3.combo_display
-		p2.ptv3.combo_offtime = p.ptv3.combo_offtime
-		p2.ptv3.combo_dropped = p.ptv3.combo_dropped
-		p2.ptv3.combo_rank = p.ptv3.combo_rank
+	if p.PTRound.isSwap
+	and p.PTRound.isSwap.valid then
+		local p2 = p.PTRound.isSwap
+		p2.PTRound.combo = p.PTRound.combo
+		p2.PTRound.combo_pos = p.PTRound.combo_pos
+		p2.PTRound.combo_display = p.PTRound.combo_display
+		p2.PTRound.combo_offtime = p.PTRound.combo_offtime
+		p2.PTRound.combo_dropped = p.PTRound.combo_dropped
+		p2.PTRound.combo_rank = p.PTRound.combo_rank
 	end
 end)

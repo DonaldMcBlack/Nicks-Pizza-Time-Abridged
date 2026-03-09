@@ -37,7 +37,7 @@ addHook("MobjThinker", function(gate)
 	gate.frame = gate._frame
 
 	for p in players.iterate do
-		if not (p and p.mo and p.ptv3.fake_exit) then continue end
+		if not (p and p.mo and p.PTRound.fake_exit) then continue end
 		if not gate.lappers[p] then continue end
 
 		if PTV3:forceLap(p) then
@@ -52,14 +52,14 @@ end, MT_PTV3_SPAWNGATE)
 
 addHook("TouchSpecial", function(gate, pmo)
 	if not (gate and gate.valid
-	and pmo and pmo.valid and pmo.player and pmo.player.ptv3) then
+	and pmo and pmo.valid and pmo.player and pmo.player.PTRound) then
 		return true
 	end
 	if not PTV3.pizzatime then return true end
 
 	local p = pmo.player
 	
-	if p.ptv3.fake_exit then return true end
+	if p.PTRound.fake_exit then return true end
 	if gate.lappers[p] == true then return true end
 
 	gate.lappers[p] = true

@@ -41,7 +41,7 @@ addHook("MapThingSpawn", function(mo, mt)
 		end
 	end
 
-	if multiplayer then mo.votes = {} end
+	if multiplayer then mo.votes = 0 end
 
 	table.insert(PTV3_HUB.gates, mo)
 	print(mapheaderinfo[mo.map].lvlttl)
@@ -52,18 +52,22 @@ addHook("MapChange", function(map)
 end)
 
 addHook("MobjThinker", function(mo)
-
 	searchBlockmap("objects", function(refmobj, foundmobj)
 		if foundmobj and foundmobj.valid and foundmobj.player then
 			local p = foundmobj.player
 
-			if p.ptv3.forwardmove == 1 then
+			if p.PTGlobal.forwardmove == 1 then
 				if multiplayer then
+					if p.PTRound.gate_vote then
+						p.PTRound.gate_vote.votes = $-1
+						if p.PTRound.gate_vote == mo then p.PTRound.gate_vote = nil return end
 
-					if not mo.votes[p] then table.insert(mo.votes, p)
-					else table.remove(mo.votes, p) end
-					
-					print(mo.votes[p])
+						p.PTRound.gate_vote = mo
+						p.PTRound.gate_vote.votes = $+1
+					else
+						p.PTRound.gate_vote = mo
+						mo.votes = $+1
+					end
 				else
 					G_SetCustomExitVars(mo.map, 2)
 					G_ExitLevel()

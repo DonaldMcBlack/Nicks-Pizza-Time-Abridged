@@ -11,9 +11,23 @@ local music = {
 	[5] = "MANIAC", -- 10
 }
 
+local jingle_blacklist = {
+	"_shoes",
+	"_inv",
+	"_1up"
+}
+
+addHook("MusicChange", function(old, new)
+	if PTV3.pizzatime then
+		for _, jingle in pairs(jingle_blacklist) do
+			if new == jingle then return true end
+		end
+	end
+end)
+
 local function playPizzaTimeMusic()
 	if not PTV3:isPTV3() then return end
-	if not (displayplayer and displayplayer.ptv3) then return end
+	if not (displayplayer and displayplayer.PTRound) then return end
 	if gametype ~= GT_PTV3DM and not PTV3.pizzatime then return end
 	if PTV3.has_titlecard and leveltime < PTV3.maxTitlecardTime then return end
 
@@ -40,12 +54,12 @@ addHook('PostThinkFrame', function()
 	local modsongs = data[skins[displayplayer and displayplayer.skin or "sonic"].name] or data["Default"]
 	local secretmusic = modsongs["Secret"] or "SECRET"
 
-	if PTV3.game_over <= 10*TICRATE then
-		S_ChangeMusic(displayplayer.ptv3.specforce and "ERANK" or PTV3.ranks[displayplayer.ptv3.rank].music, false, displayplayer)
+	if PTV3.game_over <= PTV3.ranktransitiontime then
+		S_ChangeMusic(displayplayer.PTRound.specforce and "ERANK" or PTV3.ranks[displayplayer.PTRound.rank].music, false, displayplayer)
 		return
 	end
 
-	if displayplayer and displayplayer.ptv3 and not playPizzaTimeMusic() then
+	if displayplayer and displayplayer.PTRound and not playPizzaTimeMusic() then
 		if PTV3.has_titlecard and leveltime <= PTV3.maxTitlecardTime then
 
 			local mapTM = mapheaderinfo[gamemap].keywords.."TM"
@@ -63,12 +77,12 @@ addHook('PostThinkFrame', function()
 			end
 		end
 
-		if displayplayer.ptv3.insecret and mapmusname ~= secretmusic then
+		if displayplayer.PTRound.insecret and mapmusname ~= secretmusic then
 			mapmusname = secretmusic
 			S_ChangeMusic(mapmusname, true)
 		end
 
-		if not displayplayer.ptv3.insecret and mapmusname == secretmusic then
+		if not displayplayer.PTRound.insecret and mapmusname == secretmusic then
 			mapmusname = mapheaderinfo[gamemap].musname
 			S_ChangeMusic(mapmusname, true)
 		end
@@ -77,16 +91,16 @@ addHook('PostThinkFrame', function()
 	if not playPizzaTimeMusic() then return end
 	local loop = true
 
-	if not (displayplayer and displayplayer.ptv3) then return end
+	if not (displayplayer and displayplayer.PTRound) then return end
 	local p = displayplayer
 	
 	local song = nil
 
 
 	if #modsongs > 0 and usesongs.value then
-		song = SwitchLapMusic(p.ptv3.laps, modsongs)
+		song = SwitchLapMusic(p.PTRound.laps, modsongs)
 	else
-		song = SwitchLapMusic(p.ptv3.laps, music)
+		song = SwitchLapMusic(p.PTRound.laps, music)
 	end
 
 	if gametype == GT_PTV3DM then

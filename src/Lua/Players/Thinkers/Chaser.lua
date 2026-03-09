@@ -5,9 +5,9 @@ addHook("PostThinkFrame", function()
 	if not PTV3:isPTV3() then return end
 
 	for p in players.iterate do
-		if not (p and p.mo and p.ptv3 and p.ptv3.pizzaMobj and p.ptv3.pizzaMobj.valid) then continue end
+		if not (p and p.mo and p.PTRound and p.PTRound.pizzaMobj and p.PTRound.pizzaMobj.valid) then continue end
 
-		P_MoveOrigin(p.ptv3.pizzaMobj,
+		P_MoveOrigin(p.PTRound.pizzaMobj,
 			p.mo.x,
 			p.mo.y,
 			p.mo.z
@@ -39,9 +39,9 @@ end
 
 local chaser = function(p)
 	local canMove = true
-	local pt_table = p.ptv3
-	local chasermo = p.ptv3.pizzaMobj
-	local chaserdata = p.ptv3.pizzaMobj_skindata
+	local pt_table = p.PTRound
+	local chasermo = p.PTRound.pizzaMobj
+	local chaserdata = p.PTRound.pizzaMobj_skindata
 
 	if not (chasermo and chasermo.valid) then return end
 

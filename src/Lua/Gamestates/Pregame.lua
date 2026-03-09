@@ -25,10 +25,6 @@ function PTV3:init()
 	for _,i in pairs(CV_PTV3) do
 		self[_] = i.value
 	end
-
-	for p in players.iterate do
-		p.ptv3 = nil
-	end
 	
 	if PTV3.callbacks then
 		PTV3.callbacks('VariableInit')
@@ -83,12 +79,9 @@ local function PreparePizzaTimer(minutes, seconds)
 	PTV3.time = $+minutes*TICRATE*60
 end
 
+local chasers = { "pizzaface", "snick", "johnGhost"}
 addHook('MapLoad', function(map)
 	PTV3:init()
-	
-	for p in players.iterate do
-		p.ptv3 = nil
-	end
 
 	if not PTV3:isPTV3() then
 		hud.enable('lives')
@@ -110,15 +103,13 @@ addHook('MapLoad', function(map)
 	PTV3.setJohnBlocks()
 
 	for i, v in ipairs(PTV3.secrets) do
-		print(i)
-		if PTV3.secrets[i-1] ~= nil and PTV3.secrets[i-1].sgroup == v.sgroup then continue
+		if not v.valid or PTV3.secrets[i-1] ~= nil and PTV3.secrets[i-1].sgroup == v.sgroup then continue
 		else
 			PTV3.secret_count = $+1
 		end
 	end
-
-	print(#PTV3.secrets)
-	print(PTV3.secret_count)
+	print("There are... "..PTV3.secret_count.." secrets.")
+	print("Level Gates: "..#PTV3_HUB.gates)
 
 	local alive, pizzafaces, total = PTV3.playerCount and PTV3:playerCount()
 
@@ -130,6 +121,13 @@ addHook('MapLoad', function(map)
 	PTV3.maxpftime = PTV3.pftime
 
 	if not titlemapinaction then
+		-- print(PTV3_SKINS['pizzaface'][0].name)
+		-- for i, v in ipairs(PTV3_SKINS) do
+		-- 	print(i)
+		-- 	local chaser_table = PTV3_SKINS[chasers[i]]
+		-- 	PTV3.skinIndex[i] = chaser_table[P_RandomRange(0, #chaser_table)]
+		-- 	CONS_Printf(consoleplayer, chaser_table[0].name.."is... "..chaser_table[PTV3.skinIndex[i]].name)
+		-- end
 		PTV3.skinIndex.pizzaface = P_RandomRange(0, #PTV3_SKINS.pizzaface)
 		PTV3.skinIndex.snick = P_RandomRange(0, #PTV3_SKINS.snick)
 		PTV3.skinIndex.johnGhost = P_RandomRange(0, #PTV3_SKINS.johnGhost)
@@ -140,11 +138,15 @@ addHook('MapLoad', function(map)
 	end
 	
 	if gametype == GT_PTV3DM
-	and not PTV3.has_titlecard then
+	and leveltime > 2*TICRATE then
 		PTV3:pizzafaceSpawn()
 	end
 end)
 
 addHook('MapChange', function()
 	PTV3:init()
+	
+	for _, v in ipairs(PTV3.secrets) do
+		PTV3.secrets[_] = nil
+	end
 end)

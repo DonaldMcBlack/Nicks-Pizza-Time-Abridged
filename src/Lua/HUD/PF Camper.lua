@@ -1,6 +1,6 @@
 return function(v,p)
 	if not PTV3:isPTV3() then return end
-	if not (p and p.ptv3 and p.ptv3.camper) then return end
+	if not (p and p.PTRound and p.PTRound.camper) then return end
 
 	local x = 160*FU
 	local y = 170*FU

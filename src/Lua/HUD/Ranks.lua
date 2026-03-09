@@ -1,8 +1,8 @@
 return function(v,p)
-	if not p.ptv3 then return end
-	if p.ptv3.chaser then return end
+	if not p.PTRound then return end
+	if p.PTRound.chaser then return end
 	if gamemap == M_MapNumber("PT") then return end
-	local rank = PTV3.ranks[p.ptv3.rank]
+	local rank = PTV3.ranks[p.PTRound.rank]
 	local rank_patch = gametype == GT_PTV3DM and "DM_"..rank.rank.."RANK" or "PT_"..rank.rank.."RANK"
 	local rankfill_patch = gametype == GT_PTV3DM and "DM_"..rank.rank.."FILL" or "PT_"..rank.rank.."FILL"
 
@@ -12,8 +12,8 @@ return function(v,p)
 	local y = (42+16+10)*FU
 	local s = FU/3
 	
-	if p.ptv3.rank_changetime >= 0 then
-		local time = PTV3.HUD_returnTime(p.ptv3.rank_changetime, FU/8)
+	if p.PTRound.rank_changetime >= 0 then
+		local time = PTV3.HUD_returnTime(p.PTRound.rank_changetime, FU/8)
 
 		if time < FU then
 			s = ease.linear(time, FU/2, FU/3)

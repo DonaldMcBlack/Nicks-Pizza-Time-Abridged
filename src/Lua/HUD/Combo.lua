@@ -35,22 +35,22 @@ end
 
 return function(v, p)
 	if not PTV3:isPTV3() then return end
-	if not p.ptv3 then return end
-	if p.ptv3.chaser then return end
+	if not p.PTRound then return end
+	if p.PTRound.chaser then return end
 
 	local rank_x = 240*FU
 	local rank_y = 60*FU
 	local rank_scale = FU/3
 
-	if p.ptv3.combo_rank.rankn > 0 and leveltime-p.ptv3.combo_rank.time < 5*TICRATE then
-		if p.ptv3.combo <= 4 then v.drawScaled(rank_x, rank_y, rank_scale, v.cachePatch('CRSTART'), V_SNAPTOTOP|V_SNAPTORIGHT) end
-		v.drawScaled(rank_x-(12*rank_scale), rank_y+(18*rank_scale), rank_scale, v.cachePatch('CR'..p.ptv3.combo_rank.rankn..'_'..leveltime % 2), V_SNAPTOTOP|V_SNAPTORIGHT)
-		if p.ptv3.combo_rank.very then
+	if p.PTRound.combo_rank.rankn > 0 and leveltime-p.PTRound.combo_rank.time < 5*TICRATE then
+		if p.PTRound.combo <= 4 then v.drawScaled(rank_x, rank_y, rank_scale, v.cachePatch('CRSTART'), V_SNAPTOTOP|V_SNAPTORIGHT) end
+		v.drawScaled(rank_x-(12*rank_scale), rank_y+(18*rank_scale), rank_scale, v.cachePatch('CR'..p.PTRound.combo_rank.rankn..'_'..leveltime % 2), V_SNAPTOTOP|V_SNAPTORIGHT)
+		if p.PTRound.combo_rank.very then
 			v.drawScaled(rank_x-(40*rank_scale), rank_y+(19*rank_scale), rank_scale, v.cachePatch('CRVERY'), V_SNAPTOTOP|V_SNAPTORIGHT)
 		end
 	end
 
-	if not (p.ptv3.combo or p.ptv3.combo_offtime) then return end
+	if not (p.PTRound.combo or p.PTRound.combo_offtime) then return end
 	
 	local x = 230*FU
 	local scale = FU/3
@@ -61,14 +61,14 @@ return function(v, p)
 		targety = 40*FU
 	end
 	local bar = v.cachePatch('COMBOBAR')
-	local time = min(((leveltime - p.ptv3.combo_start_time)*(FU*2))/35, FU+1)
+	local time = min(((leveltime - p.PTRound.combo_start_time)*(FU*2))/35, FU+1)
 	local y = ease.linear(time, -bar.height*scale, targety)
-	if p.ptv3.combo_offtime then
-		time = min(((leveltime - p.ptv3.combo_offtime)*(FU*2))/35, FU+1)
+	if p.PTRound.combo_offtime then
+		time = min(((leveltime - p.PTRound.combo_offtime)*(FU*2))/35, FU+1)
 		y = ease.linear(time, targety, -bar.height*scale)
 	else
-		if p.ptv3.combo_pos <= PTV3.MAX_COMBO_TIME/2 then
-			local time = (leveltime-p.ptv3.combo_start_time)*25
+		if p.PTRound.combo_pos <= PTV3.MAX_COMBO_TIME/2 then
+			local time = (leveltime-p.PTRound.combo_start_time)*25
 			y = $ - abs(FixedMul(6*scale, sin(time*ANG1)))
 		end
 	end
@@ -76,12 +76,12 @@ return function(v, p)
 	local start_point = 40*scale
 	local end_point = (bar.width*scale) - 30*scale
 	
-	local combopos = FixedDiv(p.ptv3.combo_display, PTV3.MAX_COMBO_TIME)
+	local combopos = FixedDiv(p.PTRound.combo_display, PTV3.MAX_COMBO_TIME)
 	
 	local pos = start_point + FixedMul(end_point-start_point, combopos)
 	local color
 
-	if not p.ptv3.combo_dropped then color = v.getColormap(TC_DEFAULT, SKINCOLOR_FIRSTCOMBO)
+	if not p.PTRound.combo_dropped then color = v.getColormap(TC_DEFAULT, SKINCOLOR_FIRSTCOMBO)
 	else color = v.getColormap(TC_DEFAULT, SKINCOLOR_DROPPEDCOMBO) end
 	
 	local pointer = v.cachePatch('COMBOGUY'..(leveltime % 8))
@@ -96,7 +96,7 @@ return function(v, p)
 
 	v.drawScaled(x, y, scale, bar, V_SNAPTORIGHT|V_SNAPTOTOP)
 	
-	local patches = getPatchesFromNum(v,"PTCMB",p.ptv3.combo)
+	local patches = getPatchesFromNum(v,"PTCMB",p.PTRound.combo)
 
 	for _,i in ipairs(patches) do
 		local add = (26*scale) * (#patches - _)

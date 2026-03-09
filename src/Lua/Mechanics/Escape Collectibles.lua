@@ -34,6 +34,10 @@ mobjinfo[MT_PT_ESCAPECLOCK] = {
 	--$Category "PTV3A"
 	--$Color 12
 	--$NotAngled
+	--$Arg0 Float?
+	--$Arg0Tooltip Makes the collectible float 24*FRACUNITS from the ground. On by default.
+	--$Arg0Type 11
+	--$Arg0Enum yesno
 	doomednum = 2114,
 	spawnstate = S_PT_ESCAPECLOCK,
 	radius = 16*FU,
@@ -47,13 +51,16 @@ mobjinfo[MT_PT_ESCAPEBELL] = {
 	--$Category "PTV3A"
 	--$Color 14
 	--$NotAngled
+	--$Arg0 Float?
+	--$Arg0Tooltip Makes the collectible float 24*FRACUNITS from the ground. On by default.
+	--$Arg0Type 11
+	--$Arg0Enum yesno
 	doomednum = 2115,
 	spawnstate = S_PT_ESCAPEBELL,
 	radius = 32*FU,
 	height = 48*FU,
 	flags = MF_SLIDEME|MF_SPECIAL|MF_NOGRAVITY|MF_NOCLIPHEIGHT,
 }
-
 
 states[S_PT_ESCAPECLOCK] = {
 	sprite = SPR_ESCK,
@@ -71,6 +78,9 @@ states[S_PT_ESCAPEBELL] = {
 	var2 = 2,
 }
 
+--- Gives combo points to the player.
+---@param esc_mo mobj_t
+---@param pmo mobj_t
 local function GivePoints(esc_mo, pmo)
 	if not (PTV3.pizzatime or PTV3.minusworld) then return true end
 
@@ -79,9 +89,9 @@ local function GivePoints(esc_mo, pmo)
 	if esc_mo and esc_mo.valid and pmo and pmo.valid then
 		if esc_mo.collect_list then
 			if esc_mo.collect_list[player] == nil
-			or esc_mo.collect_list[player] ~= player.ptv3.laps then
-				if player and player.valid and not player.ptv3.pizzaface then
-					esc_mo.collect_list[player] = player.ptv3.laps
+			or esc_mo.collect_list[player] ~= player.PTRound.laps then
+				if player and player.valid and not player.PTRound.pizzaface then
+					esc_mo.collect_list[player] = player.PTRound.laps
 
 					if esc_mo.type == MT_PT_ESCAPECLOCK then
 						S_StartSound(pmo, clocksoundlist[P_RandomRange(1,#clocksoundlist)])
@@ -109,7 +119,7 @@ local function Transparency(mo)
 	if displayplayer and displayplayer.valid then
 		if not (PTV3.pizzatime or PTV3.minusworld)
 		or (mo.collect_list[displayplayer]
-		and mo.collect_list[displayplayer] == displayplayer.ptv3.laps) then
+		and mo.collect_list[displayplayer] == displayplayer.PTRound.laps) then
 			mo.frame = $ | FF_TRANS50
 		else
 			mo.frame = $ & ~FF_TRANS50
@@ -120,12 +130,16 @@ end
 addHook("MobjThinker", Transparency, MT_PT_ESCAPECLOCK)
 addHook("MobjThinker", Transparency, MT_PT_ESCAPEBELL)
 
-local function SetupCollectList(mo)
+local function SetupCollectList(mo, mt)
 	mo.collect_list = {}
 	mo.shadowscale = mo.scale
-	-- local z = P_FloorzAtPos(mo.x*FU, mo.y*FU, 0*FU, 64*FU)+(mo.z*FU)
-	-- P_SetOrigin(mo, mo.x, mo.y, z)
+
+	if mt.args[0] == 0 then
+		local z = P_MobjFlip(mo) == -1 and mo.ceilingz or mo.floorz
+		local amount = P_MobjFlip(mo) == -1 and -24*FU or 24*FU
+		P_SetOrigin(mo, mo.x, mo.y, z+amount)
+	end
 end
 
-addHook("MobjSpawn", SetupCollectList, MT_PT_ESCAPECLOCK)
-addHook("MobjSpawn", SetupCollectList, MT_PT_ESCAPEBELL)
+addHook("MapThingSpawn", SetupCollectList, MT_PT_ESCAPECLOCK)
+addHook("MapThingSpawn", SetupCollectList, MT_PT_ESCAPEBELL)

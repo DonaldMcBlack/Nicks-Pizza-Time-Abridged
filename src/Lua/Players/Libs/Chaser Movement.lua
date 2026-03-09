@@ -44,7 +44,7 @@ return function(p, canMove, speed)
 
 		if p.cmd.forwardmove or p.cmd.sidemove then
 			moveAngle = cAngle(p)
-			p.ptv3.pizzaMobj.angle = moveAngle
+			p.PTRound.pizzaMobj.angle = moveAngle
 
 			Move(p, moveAngle, speed)
 			isMoving = true

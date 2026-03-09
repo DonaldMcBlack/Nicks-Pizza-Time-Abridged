@@ -23,12 +23,12 @@ local function getPatchesFromNum(v, font, num)
 end
 
 return function(v,p)
-	if not PTV3.pizzatime or not p.ptv3 or p.ptv3.lap_time < 0 then return end
-	local time = ((leveltime - p.ptv3.lap_time)*(FU))/35
+	if not PTV3.pizzatime or not p.PTRound or p.PTRound.lap_time < 0 then return end
+	local time = ((leveltime - p.PTRound.lap_time)*(FU))/35
 
 	if time > FU*5 then return end
 	local lapflag = v.cachePatch('PTFLAG')
-	local lapgraph = v.patchExists('PTLAP'..p.ptv3.laps) and v.cachePatch('PTLAP'..p.ptv3.laps) or v.cachePatch('PTLAP')
+	local lapgraph = v.patchExists('PTLAP'..p.PTRound.laps) and v.cachePatch('PTLAP'..p.PTRound.laps) or v.cachePatch('PTLAP')
 
 	local scale = FU/3
 	local x = (160*FU)-((lapgraph.width*scale)/2)
@@ -48,16 +48,16 @@ return function(v,p)
 
 	x = $ + (145*scale)
 
-	if not v.patchExists('PTLAP'..p.ptv3.laps) then
-		local patches = getPatchesFromNum(v, "PTLAP", p.ptv3.laps)
+	if not v.patchExists('PTLAP'..p.PTRound.laps) then
+		local patches = getPatchesFromNum(v, "PTLAP", p.PTRound.laps)
 		local fx = 0
 		for _,patch in ipairs(patches) do
 			local fy = (75-patch.height)*scale
 			v.drawScaled(x+fx,y+fy,scale,patch,V_SNAPTOTOP)
 			fx = $+FixedDiv(patch.width*scale, FU)
 		end
-	elseif v.patchExists('PTLAP_'..p.ptv3.laps) then
-		local patch = v.cachePatch('PTLAP_'..p.ptv3.laps)
+	elseif v.patchExists('PTLAP_'..p.PTRound.laps) then
+		local patch = v.cachePatch('PTLAP_'..p.PTRound.laps)
 		local fy = (75-patch.height)*scale
 		v.drawScaled(x,y+fy,scale,patch, V_SNAPTOTOP)
 	end

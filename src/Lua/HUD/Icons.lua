@@ -159,8 +159,8 @@ local function _iconShit(v,x,y,scale,patch,color,namecolor,...)
 end
 
 local function drawPlayerIcon(v,dp,p,c)
-	if not (dp and dp.ptv3 and dp.ptv3.chaser) then return end
-	if (p and p.ptv3 and p.ptv3.chaser) then return end
+	if not (dp and dp.PTRound and dp.PTRound.chaser) then return end
+	if (p and p.PTRound and p.PTRound.chaser) then return end
 
 	local result = SG_ObjectTracking(v,dp,c,p.mo)
 	local scale = max(FU/2, FixedMul(result.scale, FU))
@@ -212,7 +212,7 @@ local function drawPlayerIcon(v,dp,p,c)
 end
 
 local function drawChaserIcon(v,dp,c, chaser, norenderdetails)
-	if (dp and dp.ptv3 and dp.ptv3.chaser) then return end
+	if (dp and dp.PTRound and dp.PTRound.chaser) then return end
 	if not (chaser and chaser.valid) then return end
 
 	local result = SG_ObjectTracking(v,dp,c, chaser)
@@ -241,7 +241,7 @@ local function drawChaserIcon(v,dp,c, chaser, norenderdetails)
 		p = (chaser.tracer and chaser.tracer.valid) and chaser.tracer.player
 	end
 
-	if p and p.ptv3 then return end
+	if p and p.PTRound then return end
 
 	if not result.onScreen then
 		local playerResult = SG_ObjectTracking(v,dp,c,dp.mo)
@@ -284,7 +284,7 @@ local function drawChaserIcon(v,dp,c, chaser, norenderdetails)
 				color,
 				tostring(dist/FU).." FU",
 				p and p.name or chaser_name,
-				p and p.ptv3 and p.ptv3.camper and "CAMPER" or ""
+				p and p.PTRound and p.PTRound.camper and "CAMPER" or ""
 			)
 		end
 		return
@@ -301,7 +301,7 @@ local function drawChaserIcon(v,dp,c, chaser, norenderdetails)
 		color,
 		tostring(dist/FU).." FU",
 		p and p.name or chaser_name,
-		p and p.ptv3 and p.ptv3.pfcamper and "CAMPER" or ""
+		p and p.PTRound and p.PTRound.pfcamper and "CAMPER" or ""
 	)
 end
 
@@ -313,7 +313,7 @@ local function SortChasersByDistance(pmo, prevChaser, nextChaser)
 end
 
 local function drawGateName(v, dp, c, gate)
-	if not (dp and dp.ptv3) then return end
+	if not (dp and dp.PTRound) then return end
 	if not (gate and gate.valid) then return end
 
 	local result = SG_ObjectTracking(v, dp, c, gate)
@@ -343,7 +343,7 @@ local function drawGateName(v, dp, c, gate)
 		local voteresult_y = result.y-FixedMul(gate.height/2, result.scale)
 		customhud.CustomFontString(v,
 			result.x, voteresult_y,
-			tostring(#gate.votes),
+			tostring(gate.votes),
 			"PTFNT",
 			nil,
 			"center",

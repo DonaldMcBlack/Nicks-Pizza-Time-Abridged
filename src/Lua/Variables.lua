@@ -1,5 +1,4 @@
 -- Command Variables and Commands
-
 CV_PTV3['time'] = CV_RegisterVar({
 	name = "PTV3_time",
 	defaultvalue = 5,
@@ -61,10 +60,10 @@ end
 COM_AddCommand('PTV3_openmenu', function(p, menuname)
 	if not PTV3:isPTV3() then return end
 
-	p.ptv3.menumode.inmenu = true
-	p.ptv3.menumode.menutype = string.lower(menuname)
+	p.PTGlobal.menumode.inmenu = true
+	p.PTGlobal.menumode.menutype = string.lower(menuname)
 
-	CONS_Printf(p, "Entering: "..p.ptv3.menumode.menutype)
+	CONS_Printf(p, "Entering: "..p.PTGlobal.menumode.menutype)
 end)
 
 COM_AddCommand('PTV3_pizzatimenow', function(p, lap)
@@ -97,23 +96,23 @@ COM_AddCommand('PTV3_becomechaser', function(p, chaser)
 
 	local chasertype = chaser or "pizzaface"
 	
-	p.ptv3.chaser = true
-	p.ptv3.chasertype = string.lower(chasertype)
+	p.PTRound.chaser = true
+	p.PTRound.chasertype = string.lower(chasertype)
 
 
 	if chasertype == "pizzaface" then
 		PTV3.pizzaface = p
-		PTV3:pizzafaceSpawn(p.ptv3.pizzaface_skin)
+		PTV3:pizzafaceSpawn(p.PTGlobal.pizzaface_skin)
 	end
 
 	if chasertype == "snick" then
 		PTV3.snick = p
-		PTV3:snickSpawn(p.ptv3.snick_skin)
+		PTV3:snickSpawn(p.PTGlobal.snick_skin)
 	end
 
 	if chasertype == "johnghost" then
 		PTV3.johnGhost = p
-		PTV3:johnGhostSpawn(p.ptv3.johnghost_skin)
+		PTV3:johnGhostSpawn(p.PTGlobal.johnghost_skin)
 	end
 end, COM_ADMIN)
 
@@ -124,7 +123,7 @@ COM_AddCommand('PTV3_setchaserskin', function(p, skin)
 
 	for _,v in pairs(PTV3_SKINS.pizzaface) do
 		if skin_name == string.lower(PTV3_SKINS.pizzaface[_].name) then
-			p.ptv3.pizzaface_skin = string.lower(PTV3_SKINS.pizzaface[_].name)
+			p.PTGlobal.pizzaface_skin = string.lower(PTV3_SKINS.pizzaface[_].name)
 			CONS_Printf(p, "Your Pizzaface skin has been set to: "..PTV3_SKINS.pizzaface[_].name)
 			return
 		end
@@ -132,7 +131,7 @@ COM_AddCommand('PTV3_setchaserskin', function(p, skin)
 
 	for _,v in pairs(PTV3_SKINS.snick) do
 		if skin_name == string.lower(PTV3_SKINS.snick[_].name) then
-			p.ptv3.snick_skin = string.lower(PTV3_SKINS.snick[_].name)
+			p.PTGlobal.snick_skin = string.lower(PTV3_SKINS.snick[_].name)
 			CONS_Printf(p, "Your Snick skin has been set to: "..PTV3_SKINS.snick[_].name)
 			return
 		end
@@ -140,7 +139,7 @@ COM_AddCommand('PTV3_setchaserskin', function(p, skin)
 
 	for _,v in pairs(PTV3_SKINS.johnGhost) do
 		if skin_name == string.lower(PTV3_SKINS.johnGhost[_].name) then
-			p.ptv3.johnghost_skin = string.lower(PTV3_SKINS.johnGhost[_].name)
+			p.PTGlobal.johnghost_skin = string.lower(PTV3_SKINS.johnGhost[_].name)
 			CONS_Printf(p, "Your John Ghost skin has been set to: "..PTV3_SKINS.johnGhost[_].name)
 			return
 		end
@@ -238,7 +237,6 @@ end, COM_ADMIN)
 
 COM_AddCommand("PTV3_havetogorapidini", function(p)
 	p.powers[pw_sneakers] = 100*TICRATE
-
 end)
 
 -- vars
@@ -271,16 +269,16 @@ PTV3.synced_variables = {
 	['pizzaposts'] = {},
 	['time'] = 600*TICRATE,
 	['maxtime'] = 600*TICRATE,
-	['votetime'] = 20*TICRATE,
+	['votetime'] = 5*TICRATE,
 	['pftime'] = 30*TICRATE,
 	['spawnGate'] = false,
 	['__fadedmus'] = false,
 	['wartime'] = 1,
 	['overtime_time'] = TICRATE,
 	['maxotTime'] = (120+29)*TICRATE,
-	['secrets'] = {},
 	['secret_count'] = 0,
- 	['game_over'] = 15*TICRATE,
+ 	['game_over'] = (21*TICRATE)-10, --- 200
+	['ranktransitiontime'] = 15*TICRATE,
 	['maxrankrequirement'] = 1500,
 	['hud_pt'] = -1,
 	['matchLog'] = {},
@@ -291,6 +289,7 @@ PTV3.synced_variables = {
 	['hud_secret'] = -1
 }
 
+--- Enemies Pizzaface can spawn go here.
 PTV3.enemylist = {
 	MT_BLUECRAWLA,
 	MT_REDCRAWLA,
@@ -332,102 +331,7 @@ PTV3.enemylist = {
 	-- MT_HANGSTER
 }
 
-function PTV3:player(player)
-	local isSwap = player.ptv3 and player.ptv3.isSwap
-	local swapModeFollower = player.ptv3 and player.ptv3.swapModeFollower
-
-	player.ptv3 = {
-		["buttons"] = player.cmd.buttons,
-		['forwardmove'] = 0,
-		['sidemove'] = 0,
-		['laps'] = 0,
-
-		['ragdoll'] = 0,
-		['ragdoll_bounces'] = 0,
-
-		['chaser'] = false,
-		['chasertype'] = "pizzaface",
-		['chasermovetime'] = 0,
-		['chaservertmovetime'] = 0,
-
-		['specforce'] = false,
-		['extreme'] = false,
-		['fake_exit'] = false,
-		['insecret'] = false,
-		['secretsfound'] = 0,
-		['secret_tptoend'] = false,
-		['combo'] = 0,
-		['combo_pos'] = 0,
-		['combo_display'] = 0,
-		['combo_start_time'] = 0,
-		['started_combo'] = false,
-		['combo_offtime'] = false,
-		['combo_rank'] = { rank = nil, rankn = 0, very = false, time = 5*TICRATE},
-		['lap_time'] = -1,
-		['canLap'] = 0,
-
-		['toppins'] = {},
-
-		['curItem'] = false,
-		['curItem_equipped'] = false,
-		['curItem_mobj'] = nil,
-		['invItems'] = {},
-		['ringBank'] = 0,
-
-		['exitShield'] = SH_NONE,
-		['pvpCooldown'] = 0,
-		
-		['movementData'] = {},
-		['currentTeleportDest'] = {},
-		['pizzapost_id'] = nil,
-		
-		['rank'] = 1,
-		['rank_changetime'] = -1,
-		['extremeNotif'] = 0,
-
-		['scoreReduce'] = {time = false, by = 0},
-
-		['pizzaMobj'] = false,
-		['pizzaMobj_skindata'] = {},
-		['pizzaface_skin'] = "pizzaface",
-		['snick_skin'] = "snick",
-		['johnghost_skin'] = "john",
-		
-		['pfBoost'] = 0,
-		['maxPfBoost'] = 2*TICRATE,
-		
-		['isTaunting'] = false,
-		['tauntTime'] = 0,
-		['tauntmomx'] = 0,
-		['tauntmomy'] = 0,
-		['tauntmomz'] = 0,
-		['tauntlaststate'] = S_PLAY_STND,
-		['tauntsprite'] = SPR2_STND,
-		['tauntframe'] = A,
-
-		['stun'] = 0,
-
-		['camper'] = false,
-		['camper_area'] = {x=0, y=0},
-		['camper_radius'] = (40*24)*FU,
-		['camper_time'] = 0,
-
-		['menumode'] = { inmenu = false, menutype = nil }
-	}
-	
-	if self.pizzatime then
-		player.ptv3.specforce = true
-	end
-	player.score = 0
-	player.ptv3.swapModeFollower = swapModeFollower
-	player.ptv3.isSwap = isSwap
-	P_ResetPlayer(player)
-
-	PTV3.callbacks('PlayerInit', player)
-end
-
 -- hooks
-
 addHook('NetVars', function(n)
 	local net = {
 		"pizzatime",
@@ -466,6 +370,7 @@ addHook('NetVars', function(n)
 		"pizzafacetps",
 		"pizzaposts",
 		"game_over",
+		"ranktransitiontime",
 		"hud_pt",
 		"matchLog",
 		"max_laps",
@@ -480,8 +385,3 @@ addHook('NetVars', function(n)
 		PTV3[i] = n($)
 	end
 end)
-
--- I don't care if it's not there in the actual gametype, I want it gone.
-addHook("MobjThinker", function(sign)
-	if PTV3:isPTV3() and sign and sign.valid then P_RemoveMobj(sign) end
-end, MT_SIGN)

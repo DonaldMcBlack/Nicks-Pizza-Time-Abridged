@@ -55,7 +55,7 @@ local function killJohn(john, pmo)
 end
 
 addHook("TouchSpecial", function(john, pmo)
-	if not (pmo and pmo.player and pmo.player.ptv3) then return true end
+	if not (pmo and pmo.player and pmo.player.PTRound) then return true end
 	if not john.isAlive then return true end
 
 	killJohn(john, pmo)
@@ -63,7 +63,7 @@ addHook("TouchSpecial", function(john, pmo)
 end, MT_PTV3_PILLARJOHN)
 
 addHook("MobjDeath", function(john, i, s)
-	if not (s and s.player and s.player.ptv3) then return end
+	if not (s and s.player and s.player.PTRound) then return end
 
 	if not PTV3.pizzatime then
 		PTV3:startPizzaTime(s.player, 1)
@@ -84,3 +84,8 @@ addHook("MobjThinker", function(john)
 		end
 	end
 end, MT_PTV3_PILLARJOHN)
+
+-- I don't care if it's not there in the actual gametype, I want it gone.
+addHook("MobjThinker", function(sign)
+	if PTV3:isPTV3() and sign and sign.valid then P_RemoveMobj(sign) end
+end, MT_SIGN)

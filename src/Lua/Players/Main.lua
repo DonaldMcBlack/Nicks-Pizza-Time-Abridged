@@ -6,6 +6,8 @@ dofile(scriptPath.."PlayerSpawn")
 dofile(scriptPath.."PlayerDamage")
 dofile(scriptPath.."PVP")
 
+
+dofile(checksPath.."Init Player")
 local cutscene,precutscene = dofile(checksPath.."Cutscene")
 local exit = dofile(checksPath.."Exit")
 local gameover = dofile(checksPath.."Game Over")
@@ -21,13 +23,13 @@ local chaserthink = dofile(ThinkerPath.."Chaser")
 
 addHook("PreThinkFrame", function()
 	for p in players.iterate do
-		if not (p and p.mo and p.ptv3) then continue end
+		if not (p and p.mo and p.PTRound) then continue end
 
 		if not (p
 		and p.valid
 		and p.mo
 		and p.mo.valid
-		and p.ptv3) then continue end
+		and p.PTRound) then continue end
 
 		precutscene(p)
 		pretaunt(p)
@@ -41,7 +43,7 @@ local function runCode(p)
 	if exit(p)     then return end
 	if gameover(p) then return end
 
-	if not p.ptv3.chaser then
+	if not p.PTRound.chaser then
 		exithandler(p)
 		scoreremoval(p)
 		taunt(p)
@@ -62,35 +64,34 @@ local function runCode(p)
 end
 
 addHook("PlayerThink", function(p)
-	if not PTV3:isPTV3() then return end
-	if not p.ptv3 then PTV3:player(p) end
+	if not PTV3:isPTV3() or not p.PTRound then return end
 
-	p.spectator = p.ptv3.specforce
+	p.spectator = p.PTRound.specforce
 
 	runCode(p)
-	p.ptv3.canLap = max(0, $-1)
+	p.PTRound.canLap = max(0, $-1)
 
 	if p.spectator
 	and PTV3.snick
 	and PTV3.snick.valid
-	and not PTV3.snick.ptv3
+	and not PTV3.snick.PTRound
 	and p.cmd.buttons & BT_ATTACK then -- yea thats not a player, fill in snicks spot lol
 		p.spectator = false
 		p.playerstate = PST_LIVE
 
-		p.ptv3.specforce = false
-		p.ptv3.chaser = true
-		p.ptv3.chasertype = "snick"
+		p.PTRound.specforce = false
+		p.PTRound.chaser = true
+		p.PTRound.chasertype = "snick"
 		
 		PTV3.snick.tracer = p.mo
-		p.ptv3.pizzaMobj = PTV3.snick
+		p.PTRound.pizzaMobj = PTV3.snick
 		PTV3.snick = p
 		
 		P_ResetPlayer(p)
 	end
 
 	if p.mo then
-		table.insert(p.ptv3.movementData, {
+		table.insert(p.PTRound.movementData, {
 			x = p.mo.x,
 			y = p.mo.y,
 			z = p.mo.z,
@@ -100,18 +101,18 @@ addHook("PlayerThink", function(p)
 			momz = p.mo.momz
 		})
 
-		if #p.ptv3.movementData > (3*6) then
-			table.remove(p.ptv3.movementData, 1)
+		if #p.PTRound.movementData > (3*6) then
+			table.remove(p.PTRound.movementData, 1)
 		end
 	end
 
-	p.ptv3.buttons = p.cmd.buttons
-	p.ptv3.forwardmove = p.cmd.forwardmove and $+1 or 0
-	p.ptv3.sidemove = p.cmd.sidemove and $+1 or 0
+	p.PTGlobal.buttons = p.cmd.buttons
+	p.PTGlobal.forwardmove = p.cmd.forwardmove and $+1 or 0
+	p.PTGlobal.sidemove = p.cmd.sidemove and $+1 or 0
 end)
 
 local function DoNotTheChaser(t, return_value)
-	if t.valid and t.player and t.player.ptv3.chaser then 
+	if t.valid and t.player and t.player.PTRound.chaser then 
 		print(return_value)
 		return return_value 
 	end
@@ -123,11 +124,27 @@ addHook("MobjDamage",   function(t,i,s) return DoNotTheChaser(t, true)  end, MT_
 
 addHook("PlayerCmd", function(p, cmd)
 	if not PTV3:isPTV3() then return end
-	if not (PTV3.game_over < 15*TICRATE) or not (p.ptv3 and p.ptv3.menumode.inmenu) then return end
+	
+	if PTV3.game_over < (21*TICRATE)-10 or p.PTGlobal.menumode.inmenu then
 
-	cmd.buttons = 0
-	cmd.forwardmove = 0
-	cmd.sidemove = 0
+		p.PTGlobal.buttons = cmd.buttons
+		p.PTGlobal.forwardmove = cmd.forwardmove
+		p.PTGlobal.sidemove = cmd.sidemove
+
+		cmd.buttons = 0
+		cmd.forwardmove = 0
+		cmd.sidemove = 0
+	end
+end)
+
+-- No more game status.
+addHook("KeyDown", function(key)
+	if not PTV3:isPTV3() then return end
+	if PTV3.game_over > (21*TICRATE)-10 then return end
+
+	if key.num == input.gameControlToKeyNum(GC_SCORES) then return true end
+
+	return false
 end)
 
 addHook("MobjDamage", function(t,i,s)
@@ -140,14 +157,14 @@ end, MT_PLAYER)
 addHook("MobjDeath", function(t,i,s)
 	if not PTV3:isPTV3() then return end
 	if not (i and i.valid and (i.type == MT_PTV3_PIZZAFACE or i.type == MT_PLAYER)) then return end
-	if not (t and t.player and t.player.ptv3) then return end
+	if not (t and t.player and t.player.PTRound) then return end
 
-	if t.player.ptv3.swapModeFollower then
-		local mo = t.player.ptv3.swapModeFollower
+	-- if t.player.PTRound.swapModeFollower then
+	-- 	local mo = t.player.PTRound.swapModeFollower
 
-		mo.player.ptv3.swapModeFollower = nil
-		mo.player.ptv3.isSwap = nil
-	end
-	t.player.ptv3.isSwap = nil
-	t.player.ptv3.swapModeFollower = nil
+	-- 	mo.player.PTRound.swapModeFollower = nil
+	-- 	mo.player.PTRound.isSwap = nil
+	-- end
+	-- t.player.PTRound.isSwap = nil
+	-- t.player.PTRound.swapModeFollower = nil
 end, MT_PLAYER)

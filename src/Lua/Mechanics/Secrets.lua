@@ -88,7 +88,6 @@ addHook('MapThingSpawn', function(secret, thing)
 	end
 
 	table.insert(PTV3.secrets, secret)
-	print(#PTV3.secrets)
 end, MT_PTV3_SECRET)
 
 addHook('MobjSpawn', function(secret)
@@ -136,7 +135,7 @@ end
 addHook('TouchSpecial', function(secret,mo)
 	if secret.stype == 1 or secret.hidden
 	or not (mo and mo.valid and mo.player)
-	or (PTV3.overtime and not (mo.player and mo.player.ptv3 and mo.player.ptv3.insecret))
+	or (PTV3.overtime and not (mo.player and mo.player.PTRound and mo.player.PTRound.insecret))
 	or secret.teleported[mo.player] then return true end
 
 	local p = mo.player
@@ -148,8 +147,8 @@ addHook('TouchSpecial', function(secret,mo)
 		S_StartSound(p.mo, sfx_secexi)
 		PTV3.callbacks('ExitSecret', p)
 	else
-		p.ptv3.insecret = true
-		p.ptv3.secretsfound = $+1
+		p.PTRound.insecret = true
+		p.PTRound.secretsfound = $+1
 
 		S_StartSound(nil, sfx_secfou, p)
 		S_StartSound(p.mo, sfx_secent, p)
@@ -173,11 +172,11 @@ end, MT_PTV3_SECRET)
 --- Forces the player to exit the secret they are in.
 ---@param p player_t
 function PTV3:exitSecret(p)
-	if not (p and p.ptv3 and p.ptv3.insecret) then return end
+	if not (p and p.PTRound and p.PTRound.insecret) then return end
 
-	if p.ptv3.secret_tptoend then
+	if p.PTRound.secret_tptoend then
 		PTV3:queueTeleport(p)
-		p.ptv3.secret_tptoend = false
+		p.PTRound.secret_tptoend = false
 	end
 	if p == consoleplayer
 	and saved_sky then
@@ -194,5 +193,5 @@ function PTV3:exitSecret(p)
 
 		saved_sky = 0
 	end
-	p.ptv3.insecret = false
+	p.PTRound.insecret = false
 end

@@ -1,11 +1,11 @@
 return function(v,p)
 	if not PTV3:isPTV3() then return end
-	if not p.ptv3 then return end
-	if p.ptv3.scoreReduce.time ~= nil and type(p.ptv3.scoreReduce.time) ~= "number" then return end
+	if not p.PTRound then return end
+	if p.PTRound.scoreReduce.time ~= nil and type(p.PTRound.scoreReduce.time) ~= "number" then return end
 
-	local tweenTime = max(0, min(FixedDiv(leveltime-p.ptv3.scoreReduce.time, TICRATE), FU))
+	local tweenTime = max(0, min(FixedDiv(leveltime-p.PTRound.scoreReduce.time, TICRATE), FU))
 
-	local numstr = tostring(p.ptv3.scoreReduce.by)
+	local numstr = tostring(p.PTRound.scoreReduce.by)
 	local patchstr = {}
 	for i = 1, #numstr do -- Needs to be single integers or else it'd break
 		patchstr[i] = v.cachePatch("STTNUM"+numstr:sub(i, i))

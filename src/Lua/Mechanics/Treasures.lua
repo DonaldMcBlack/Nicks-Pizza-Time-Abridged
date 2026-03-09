@@ -75,12 +75,12 @@ addHook("TouchSpecial", function(mo, pmo)
 
 	if not (pmo.valid
 	and pmo.player
-	and pmo.player.ptv3
-	and not pmo.player.ptv3.swapModeFollower) then return true end
+	and pmo.player.PTRound
+	) then return true end -- and not pmo.player.PTRound.swapModeFollower
 
 	P_AddPlayerScore(pmo.player, 800)
-	if pmo.player.ptv3.combo then
-		pmo.player.ptv3.combo_pos = PTV3.MAX_COMBO_TIME
+	if pmo.player.PTRound.combo then
+		pmo.player.PTRound.combo_pos = PTV3.MAX_COMBO_TIME
 	end
 
 	mo.target = pmo

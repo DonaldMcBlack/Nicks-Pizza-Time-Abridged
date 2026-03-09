@@ -1,5 +1,5 @@
 freeslot("TOL_PTV3")
-rawset(_G, "PTV3", {})
+rawset(_G, "PTV3", { secrets = {} })
 rawset(_G, "CV_PTV3", {})
 rawset(_G, "PTV3_HUB", { gates = {} })
 
@@ -26,6 +26,7 @@ freeslot("MT_PTV3_PIZZAFACE",
 	"SPR_PZLH",
 	"SPR_PZHW",
 	"SPR_PZAK",
+	"SPR_PRTO",
 	"S_PTV3_PIZZAFACE",
 	"S_PTV3_PIZZAMAD",
 	"S_PTV3_PIZZATROLL",
@@ -34,6 +35,7 @@ freeslot("MT_PTV3_PIZZAFACE",
 	"S_PTV3_PIZZAHAYWIRE",
 	"S_PTV3_PIZZAFACE_SUMMON1", "S_PTV3_PIZZAFACE_SUMMON2", "S_PTV3_PIZZAFACE_SUMMON3",
 	"S_PTV3_PIZZARAM",
+	"S_PTV3_PROTOFACE",
 	"sfx_pflgh",
 	"sfx_fplgh",
 	"sfx_pizmov",
@@ -150,12 +152,25 @@ states[S_PTV3_PIZZAFACE_SUMMON3] = {
 	nextstate = S_PTV3_PIZZAFACE
 }
 
+states[S_PTV3_PROTOFACE] = {
+	sprite = SPR_PRTO,
+	frame = FF_ANIMATE|A,
+	action = nil,
+	tics = -1,
+	var1 = H,
+	var2 = 2,
+	nextstate = S_PTV3_PROTOFACE
+}
+
 --- SNICK /// -----------------------------------------------
 freeslot("MT_PTV3_SNICK",
 	"SPR_SNOR",
 	"SPR_SLUN",
+	"SPR_SHOR",
 	"S_PTV3_SNICK",
-	"S_PTV3_SNICK_LUNGE"
+	"S_PTV3_SNICK_LUNGE",
+	"S_PTV3_SHADE",
+	"S_PTV3_SHADE_LUNGE"
 )
 
 mobjinfo[MT_PTV3_SNICK] = {
@@ -186,6 +201,26 @@ states[S_PTV3_SNICK_LUNGE] = {
     var1 = 3,
     var2 = 2,
     nextstate = S_PTV3_SNICK_LUNGE
+}
+
+states[S_PTV3_SHADE] = {
+	sprite = SPR_SHOR,
+	frame = FF_ANIMATE|A,
+	tics = -1,
+	action = nil,
+	var1 = B,
+	var2 = 2,
+	nextstate = S_PTV3_SHADE
+}
+
+states[S_PTV3_SHADE_LUNGE] = {
+	sprite = SPR_SHOR,
+	frame = FF_ANIMATE|C,
+	tics = -1,
+	action = nil,
+	var1 = F,
+	var2 = 2,
+	nextstate = S_PTV3_SHADE_LUNGE
 }
 
 --- JOHN GHOST /// -----------------------------------------------

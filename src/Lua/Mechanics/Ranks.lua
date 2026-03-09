@@ -29,11 +29,11 @@ PTV3.ranks = {
 		music = "PRANK",
 		fill = false,
 		canGet = function(p)
-			if PTV3.pizzatime then return p.ptv3
-			and not p.ptv3.combo_dropped
-			and p.ptv3.started_combo
-			and abs(p.ptv3.laps) >= 2
-			and p.ptv3.secretsfound >= #PTV3.secrets
+			if PTV3.pizzatime then return p.PTRound
+			and not p.PTRound.combo_dropped
+			and p.PTRound.started_combo
+			and abs(p.PTRound.laps) >= 2
+			and p.PTRound.secretsfound >= #PTV3.secrets
 			end
 		end
 	}
@@ -48,7 +48,7 @@ end
 ---@param p player_t
 ---@param rank string
 function PTV3:canGet(p, rank)
-	if not (p and p.ptv3) then return end
+	if not (p and p.PTRound) then return end
 
 	if not self.ranks[rank] then
 		return false
@@ -70,20 +70,20 @@ end
 
 ---@param p player_t
 function PTV3:returnNextRankPercent(p)
-	if not p.ptv3 then return end
+	if not p.PTRound then return end
 
-	local depletion = PTV3.maxrankrequirement*(p.ptv3.rank-1)
+	local depletion = PTV3.maxrankrequirement*(p.PTRound.rank-1)
 
-	if not PTV3.ranks[p.ptv3.rank+1] then
+	if not PTV3.ranks[p.PTRound.rank+1] then
 		return 0
 	end
 
-	if PTV3.ranks[p.ptv3.rank+1].canGet
-	and not PTV3.ranks[p.ptv3.rank+1].canGet(p) then
+	if PTV3.ranks[p.PTRound.rank+1].canGet
+	and not PTV3.ranks[p.PTRound.rank+1].canGet(p) then
 		return 0
 	end
 
-	return FixedDiv((p.score-depletion)*FU, ((PTV3.maxrankrequirement*p.ptv3.rank)-depletion)*FU)
+	return FixedDiv((p.score-depletion)*FU, ((PTV3.maxrankrequirement*p.PTRound.rank)-depletion)*FU)
 end
 
 local sounds = {
@@ -111,18 +111,18 @@ local sounds = {
 
 ---@param p player_t
 function PTV3:checkRank(p)
-	if self:canGet(p, p.ptv3.rank+1) then
-		if PTV3.ranks[p.ptv3.rank+1].rank == "P"
-		and leveltime-p.ptv3.rank_changetime < 2*TICRATE then return end
-		S_StartSound(nil, sounds[p.ptv3.rank].up, p)
-		p.ptv3.rank = $+1
-		p.ptv3.rank_changetime = leveltime
+	if self:canGet(p, p.PTRound.rank+1) then
+		if PTV3.ranks[p.PTRound.rank+1].rank == "P"
+		and leveltime-p.PTRound.rank_changetime < 2*TICRATE then return end
+		S_StartSound(nil, sounds[p.PTRound.rank].up, p)
+		p.PTRound.rank = $+1
+		p.PTRound.rank_changetime = leveltime
 	end
 
-	if PTV3.ranks[p.ptv3.rank-1]
-	and not self:canGet(p, p.ptv3.rank) then
-		p.ptv3.rank = $-1
-		S_StartSound(nil, sounds[p.ptv3.rank].down, p)
-		p.ptv3.rank_changetime = leveltime
+	if PTV3.ranks[p.PTRound.rank-1]
+	and not self:canGet(p, p.PTRound.rank) then
+		p.PTRound.rank = $-1
+		S_StartSound(nil, sounds[p.PTRound.rank].down, p)
+		p.PTRound.rank_changetime = leveltime
 	end
 end

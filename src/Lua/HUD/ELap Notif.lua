@@ -1,7 +1,7 @@
 return function(v,p)
 	if not PTV3:isPTV3() then return end
-	if not p.ptv3 then return end
-	if not (p.ptv3.extremeNotif) then return end
+	if not p.PTRound then return end
+	if not (p.PTRound.extremeNotif) then return end
 
 	v.fadeScreen(0xFF00, 12)
 

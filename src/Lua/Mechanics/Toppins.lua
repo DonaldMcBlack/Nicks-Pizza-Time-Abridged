@@ -52,8 +52,8 @@ states[freeslot "S_PTV3_TOPPINCAGE"] = {
 }
 mobjinfo[freeslot "MT_PTV3_TOPPINCAGE"] = {
 	spawnstate = S_PTV3_TOPPINCAGE,
-	radius = 16*FU,
-	height = 16*FU,
+	radius = 20*FU,
+	height = 20*FU,
 	flags = MF_SPECIAL
 }
 
@@ -102,14 +102,14 @@ local function __think(tpn)
 		local trgt = tpn.target
 
 		if not (trgt
-		and trgt.player and trgt.player.ptv3) then
+		and trgt.player and trgt.player.PTRound) then
 			tpn.target = nil
 			return
 		end
 
 		local p = trgt.player
 
-		local sData = p.ptv3.movementData
+		local sData = p.PTRound.movementData
 		local data = sData[min(#sData, tpn.chaseOffset*(5-(tpn.collectOffset-1)))]
 
 		local angle = R_PointToAngle2(0,0, data.momx, data.momy)
@@ -185,7 +185,7 @@ addHook("MapThingSpawn", function(mo)
 end, MT_EMBLEM)
 
 addHook("TouchSpecial", function(gate, mo)
-	if not (mo and mo.player and mo.player.ptv3) then return true end
+	if not (mo and mo.player and mo.player.PTRound) then return true end
 
 	local p = mo.player
 
@@ -206,13 +206,13 @@ addHook("TouchSpecial", function(gate, mo)
 	tpn.toppinType = gate.toppinType
 	tpn.state = toppins[tpn.toppinType].intro
 
-	table.insert(p.ptv3.toppins, tpn)
+	table.insert(p.PTRound.toppins, tpn)
 
-	tpn.collectOffset = #p.ptv3.toppins
+	tpn.collectOffset = #p.PTRound.toppins
 
 	p.score = $+300
-	if p.ptv3.combo then
-		p.ptv3.combo_pos = PTV3.MAX_COMBO_TIME
+	if p.PTRound.combo then
+		p.PTRound.combo_pos = PTV3.MAX_COMBO_TIME
 	end
 
 	S_StartSound(tpn, sfx_gottpn)

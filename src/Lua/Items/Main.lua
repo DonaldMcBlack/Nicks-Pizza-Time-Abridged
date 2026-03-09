@@ -102,42 +102,42 @@ end
 
 -- Give a player an item of the specified ID. Returns false if invalid.
 function PTV3:GiveItem(p, item_input)
-	if not (p and p.valid and p.ptv3) then return end
+	if not (p and p.valid and p.PTRound) then return end
 
 	local input_valid = type(item_input) == "string" and true or false
 
 	if not item_input or (input_valid and item_input and not self.items[item_input]) then
 		return false
 	else
-		p.ptv3.curItem = item_input
+		p.PTGlobal.curItem = item_input
 	end
 end
 
 function PTV3:UseEquipableItem(p)
-	if not (p.mo and p.ptv3 and p.ptv3.curItem) then return end
-	if not (p.ptv3.curItem_mobj and p.ptv3.curItem_mobj.valid) then return end
+	if not (p.mo and p.PTRound and p.PTGlobal.curItem) then return end
+	if not (p.PTRound.curItem_mobj and p.PTRound.curItem_mobj.valid) then return end
 
-	local rawitem = self.items[p.ptv3.curItem]
+	local rawitem = self.items[p.PTGlobal.curItem]
 	if not rawitem.equipable then return end
 
 	if rawitem.use then
-		rawitem.use(p, p.ptv3.curItem_mobj)
+		rawitem.use(p, p.PTRound.curItem_mobj)
 	end
 	
 	if rawitem.ammo > 0 then
 		rawitem.ammo = $-1
 	elseif rawitem.ammo == -1 then return
 	else
-		P_RemoveMobj(p.ptv3.curItem_mobj)
-		p.ptv3.curItem = nil
-		p.ptv3.curItem_equipped = false
+		P_RemoveMobj(p.PTRound.curItem_mobj)
+		p.PTGlobal.curItem = nil
+		p.PTRound.curItem_equipped = false
 	end
 end
 
 function PTV3:InstantUseItem(p)
-	if not (p.mo and p.ptv3 and p.ptv3.curItem) then return end
+	if not (p.mo and p.PTRound and p.PTGlobal.curItem) then return end
 
-	local rawitem = self.items[p.ptv3.curItem]
+	local rawitem = self.items[p.PTGlobal.curItem]
 	if rawitem.equipable then return end
 
 	local item = P_SpawnMobjFromMobj(p.mo, 0,0,0, rawitem.mobj)
@@ -154,8 +154,8 @@ function PTV3:InstantUseItem(p)
 
 	PTV3:logEvent(p.name.." has used "..rawitem.displayname.."!")
 	
-	p.ptv3.curItem = nil
-	p.ptv3.curItem_equipped = false
+	p.PTGlobal.curItem = nil
+	p.PTRound.curItem_equipped = false
 end
 
 for _,i in ipairs(files) do

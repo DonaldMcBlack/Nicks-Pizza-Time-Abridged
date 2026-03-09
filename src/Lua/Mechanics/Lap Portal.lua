@@ -65,12 +65,12 @@ end, MT_PTV3_LAPPORTAL)
 
 local function CanEnterPortal(mo, pmo)
 	if not (mo and mo.valid) then return false end
-	if not (pmo and pmo.player and pmo.player.ptv3) then return false end
-	if pmo.player.ptv3.lap_in then return false end
+	if not (pmo and pmo.player and pmo.player.PTRound) then return false end
+	if pmo.player.PTRound.lap_in then return false end
 	if not (PTV3:canLap(pmo.player)) then return false end
 	if mo.type ~= MT_PTV3_MINUSLAPPORTAL and not PTV3.pizzatime then return false end
 
-	pmo.player.ptv3.lap_in = true
+	pmo.player.PTRound.lap_in = true
 	S_StartSound(nil, sfx_yuck34, pmo.player)
 	return true
 end
