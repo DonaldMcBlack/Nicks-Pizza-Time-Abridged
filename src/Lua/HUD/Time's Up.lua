@@ -1,14 +1,12 @@
 local frame = 1
-local tics = 0
 return function(v)
 	if not PTV3:isPTV3() then return end
-	if PTV3.game_over >= (21*TICRATE)-10 then tics = 0 return end
+	if PTV3.game_over >= (21*TICRATE)-10 then return end
 	
-	tics = $+1
 	local sw = FixedDiv(v.width()*FU, v.dupx()*FU)
 	local sh = FixedDiv(v.height()*FU, v.dupy()*FU)
 
-	local time = PTV3.HUD_returnTime(PTV3.game_over, TICRATE/2, TICRATE, true)
+	local time = PTV3.HUD_returnTime(PTV3.endtime, TICRATE, TICRATE, true)
 	local tween = ease.linear(time, -1*sh, sh/2-(4*FU))
 
 	if leveltime % 2 then

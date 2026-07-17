@@ -18,6 +18,10 @@ local function cloneTable(table)
 end
 
 function PTV3:init()
+	-- if not PTV3:isPTV3() then return end
+	
+	hud.disable("stagetitle")
+	
 	for _,i in pairs(PTV3.synced_variables) do
 		self[_] = cloneTable(i)
 	end
@@ -40,13 +44,13 @@ local function spawnSector(t)
 		x = t.x*FU,
 		y = t.y*FU,
 		z = sec.floorheight + (t.z*FU),
-		a = t.angle*ANG1
+		angle = t.angle*ANG1
 	}
 
-	local a = PTV3.spawn.a
+	local a = PTV3.spawn.angle
 
-	PTV3.spawnGate = R_PointInSubsectorOrNil(PTV3.spawn.x+(-230*cos(a)), PTV3.spawn.y+(-230*sin(a))) and P_SpawnMobj(PTV3.spawn.x+(-230*cos(a)), PTV3.spawn.y+(-230*sin(a)), PTV3.spawn.z, MT_PTV3_SPAWNGATE) or
-												P_SpawnMobj(PTV3.spawn.x, PTV3.spawn.y, PTV3.spawn.z, MT_PTV3_SPAWNGATE)
+	PTV3.spawnGate = R_PointInSubsectorOrNil(PTV3.spawn.x+(-230*cos(a)), PTV3.spawn.y+(-230*sin(a))) and 
+					 P_SpawnMobj(PTV3.spawn.x+(-230*cos(a)), PTV3.spawn.y+(-230*sin(a)), PTV3.spawn.z, MT_PTV3_SPAWNGATE) or P_SpawnMobj(PTV3.spawn.x, PTV3.spawn.y, PTV3.spawn.z, MT_PTV3_SPAWNGATE)
 	PTV3.spawnGate.angle = a
 
 	PTV3.spawnsector = sec
@@ -60,40 +64,33 @@ local function endSector(t)
 		x = t.x*FU,
 		y = t.y*FU,
 		z = sec.floorheight + (t.z*FU),
-		a = t.angle*ANG1
+		angle = t.angle*ANG1
 	}
 	PTV3.endsec = sec
 
 	local john = P_SpawnMobj(PTV3.endpos.x, PTV3.endpos.y, PTV3.endpos.z, MT_PTV3_PILLARJOHN)
 
-	john.angle = PTV3.endpos.a
+	john.angle = PTV3.endpos.angle
 end
 
-local function PreparePizzaTimer(minutes, seconds)
+local function PrepareTimer(minutes, seconds)
 	if not seconds then return end
 
-	PTV3.time = seconds*TICRATE
+	local timer = 0
+
+	timer = seconds*TICRATE
 
 	if not minutes then return end
 
-	PTV3.time = $+minutes*TICRATE*60
+	timer = $+minutes*TICRATE*60
+
+	return timer
 end
 
 local chasers = { "pizzaface", "snick", "johnGhost"}
 addHook('MapLoad', function(map)
+	if titlemapinaction then return end
 	PTV3:init()
-
-	if not PTV3:isPTV3() then
-		hud.enable('lives')
-		return
-	end
-
-	if gamemap ~= M_MapNumber("PT") then
-		hud.enable('time')
-	else
-		hud.disable('time')
-	end
-	hud.disable('lives')
 
 	for thing in mapthings.iterate do
 		spawnSector(thing)
@@ -113,34 +110,21 @@ addHook('MapLoad', function(map)
 
 	local alive, pizzafaces, total = PTV3.playerCount and PTV3:playerCount()
 
-	PreparePizzaTimer(mapheaderinfo[map].ptv3_pt_mins ~= nil and tonumber(mapheaderinfo[map].ptv3_pt_mins) or CV_PTV3['time'].value, mapheaderinfo[map].ptv3_pt_secs ~= nil and tonumber(mapheaderinfo[map].ptv3_pt_secs) or 1)
+	PTV3.time = PrepareTimer(mapheaderinfo[map].ptv3_pt_mins ~= nil and tonumber(mapheaderinfo[map].ptv3_pt_mins) or CV_PTV3['time'].value, mapheaderinfo[map].ptv3_pt_secs ~= nil and tonumber(mapheaderinfo[map].ptv3_pt_secs) or 1)
+	PTV3.overtime_time = PrepareTimer(mapheaderinfo[map].ptv3_ot_mins ~= nil and tonumber(mapheaderinfo[map].ptv3_ot_mins) or 1, mapheaderinfo[map].ptv3_ot_secs ~= nil and tonumber(mapheaderinfo[map].ptv3_ot_secs) or 0)
 
-	PTV3.overtime_time = multiplayer and (120+29)*TICRATE or TICRATE*60
 	PTV3.maxtime = PTV3.time
+	PTV3.maxottime = PTV3.overtime_time
 	PTV3.pftime = 30*TICRATE
 	PTV3.maxpftime = PTV3.pftime
-
-	if not titlemapinaction then
-		-- print(PTV3_SKINS['pizzaface'][0].name)
-		-- for i, v in ipairs(PTV3_SKINS) do
-		-- 	print(i)
-		-- 	local chaser_table = PTV3_SKINS[chasers[i]]
-		-- 	PTV3.skinIndex[i] = chaser_table[P_RandomRange(0, #chaser_table)]
-		-- 	CONS_Printf(consoleplayer, chaser_table[0].name.."is... "..chaser_table[PTV3.skinIndex[i]].name)
-		-- end
-		PTV3.skinIndex.pizzaface = P_RandomRange(0, #PTV3_SKINS.pizzaface)
-		PTV3.skinIndex.snick = P_RandomRange(0, #PTV3_SKINS.snick)
-		PTV3.skinIndex.johnGhost = P_RandomRange(0, #PTV3_SKINS.johnGhost)
-
-		CONS_Printf(consoleplayer, "Pizzaface is... "..PTV3_SKINS.pizzaface[PTV3.skinIndex.pizzaface].name)
-		CONS_Printf(consoleplayer, "Snick is... "..PTV3_SKINS.snick[PTV3.skinIndex.snick].name)
-		CONS_Printf(consoleplayer, "John is... "..PTV3_SKINS.johnGhost[PTV3.skinIndex.johnGhost].name)
-	end
 	
-	if gametype == GT_PTV3DM
-	and leveltime > 2*TICRATE then
-		PTV3:pizzafaceSpawn()
-	end
+	PTV3.skinIndex.pizzaface = P_RandomRange(0, #PTV3_SKINS.pizzaface)
+	PTV3.skinIndex.snick = P_RandomRange(0, #PTV3_SKINS.snick)
+	PTV3.skinIndex.johnGhost = P_RandomRange(0, #PTV3_SKINS.johnGhost)
+
+	CONS_Printf(consoleplayer, "Pizzaface is... "..PTV3_SKINS.pizzaface[PTV3.skinIndex.pizzaface].name)
+	CONS_Printf(consoleplayer, "Snick is... "..PTV3_SKINS.snick[PTV3.skinIndex.snick].name)
+	CONS_Printf(consoleplayer, "John is... "..PTV3_SKINS.johnGhost[PTV3.skinIndex.johnGhost].name)
 end)
 
 addHook('MapChange', function()

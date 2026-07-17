@@ -41,7 +41,7 @@ return function(v)
 	local y = (200*FU)+tweenY
 
 	if time <= 5*TICRATE then
-		local maxTime = min(PTV3.maxotTime, 5*TICRATE)
+		local maxTime = min(PTV3.maxottime, 5*TICRATE)
 		local shakePerc = FixedDiv(maxTime-time, maxTime)*6
 
 		if time > 0 then

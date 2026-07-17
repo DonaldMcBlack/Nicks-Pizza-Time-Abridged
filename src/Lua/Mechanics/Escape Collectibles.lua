@@ -97,12 +97,16 @@ local function GivePoints(esc_mo, pmo)
 						S_StartSound(pmo, clocksoundlist[P_RandomRange(1,#clocksoundlist)])
 						P_AddPlayerScore(player, 10)
 						PTV3:increaseCombo(player, 2, PTV3.MAX_COMBO_TIME/5)
+
+						player.rings = player.powers[pw_super] > 0 and $+1 or $
 					end
 
 					if esc_mo.type == MT_PT_ESCAPEBELL then
 						S_StartSound(pmo, bellsoundlist[P_RandomRange(1,#bellsoundlist)])
 						P_AddPlayerScore(player, 100)
 						PTV3:increaseCombo(player, 3)
+
+						player.rings = player.powers[pw_super] > 0 and $+5 or $
 					end
 				end
 			end

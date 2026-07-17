@@ -16,13 +16,10 @@ return function(v)
 	if not PTV3:isPTV3() then return end
 	
 	local map_keyword = mapheaderinfo[gamemap].keywords
-	local titlecard = v.patchExists(map_keyword.."TC") and v.cachePatch(map_keyword.."TC")
-	local titlecard_name = v.patchExists(map_keyword.."TT") and v.cachePatch(map_keyword.."TT")
+	local titlecard = v.cachePatch(map_keyword.."TC")
+	local titlecard_name = v.cachePatch(map_keyword.."TT")
 
-	if not (titlecard or titlecard_name) then PTV3.has_titlecard = false return end
-
-	if not PTV3.has_titlecard then return hud.enable("stagetitle") end
-	hud.disable("stagetitle")
+	if not PTV3.has_titlecard then return end
 
 	local x = (mapheaderinfo[gamemap].ptv3_titlecard_x or 0)*FU
 	local y = (mapheaderinfo[gamemap].ptv3_titlecard_y or 0)*FU

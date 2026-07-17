@@ -37,15 +37,24 @@ local function shotgunUse(p, shotgun)
 		vertical = true
 	end
 
-	z_dist = vertical == true and -80*FU or P_RandomRange(-5, 5)*FU
+	z_dist = vertical == true and -40*FU or P_RandomRange(-5, 5)*FU
 
 	searchBlockmap("objects", function(refmobj, foundmobj)
         if foundmobj and foundmobj.valid then
 			if PTV3.pizzaface or PTV3.johnGhost then return end
+			if not foundmobj.valid or foundmobj == p.mo then return end
 			if vertical and shotgun.z-z_dist < foundmobj.z then return end
 
-			if foundmobj.flags & MF_ENEMY then
+
+			local angletotarget = R_PointToAngle2(shotgun.x, shotgun.y, foundmobj.x, foundmobj.y) - shotgun.angle
+
+			print(angletotarget)
+			if foundmobj.flags & MF_ENEMY and vertical then
 				P_DamageMobj(foundmobj, shotgun, p.mo)
+			elseif foundmobj.flags & MF_ENEMY and not vertical then
+				if (angletotarget < ANGLE_45) or (angletotarget > -ANGLE_45) then
+					P_DamageMobj(foundmobj, shotgun, p.mo)
+				end
 			end
         end
     end, shotgun,

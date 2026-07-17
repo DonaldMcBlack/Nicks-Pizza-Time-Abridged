@@ -23,13 +23,23 @@ local chaserthink = dofile(ThinkerPath.."Chaser")
 
 addHook("PreThinkFrame", function()
 	for p in players.iterate do
-		if not (p and p.mo and p.PTRound) then continue end
+		if not p.PTRound then PTV3:InitPlayerChecks(p) end
 
-		if not (p
-		and p.valid
-		and p.mo
-		and p.mo.valid
-		and p.PTRound) then continue end
+		p.PTGlobal.lastbuttons = p.PTGlobal.buttons
+		p.PTGlobal.lastforwardmove = p.PTGlobal.forwardmove
+		p.PTGlobal.lastsidemove = p.PTGlobal.sidemove
+		
+		p.PTGlobal.buttons = p.cmd.buttons
+		p.PTGlobal.forwardmove = p.cmd.forwardmove
+		p.PTGlobal.sidemove = p.cmd.sidemove
+
+		if PTV3.game_over < (21*TICRATE)-10 or p.PTGlobal.menumode.inmenu then
+			p.cmd.buttons = 0
+			p.cmd.forwardmove = 0
+			p.cmd.sidemove = 0
+		end
+
+		if not (p.mo and p.mo.valid) continue end
 
 		precutscene(p)
 		pretaunt(p)
@@ -58,6 +68,12 @@ local function runCode(p)
 
 	itemequip(p)
 
+	if p.powers[pw_super] and not (leveltime % TICRATE) and not (p.mo.state >= S_PLAY_SUPER_TRANS1) and (p.mo.state <= S_PLAY_SUPER_TRANS6) then P_GivePlayerRings(p, 1) end
+
+	if skins[p.mo.skin].flags & SF_SUPER then
+		p.charflags = p.PTRound.combo >= 50 and $|SF_SUPER or $ & ~SF_SUPER
+	end
+
 	PTV3:checkRank(p)
 	PTV3:returnNextRankPercent(p)
 	PTV3.callbacks("PlayerThink", p)
@@ -72,10 +88,8 @@ addHook("PlayerThink", function(p)
 	p.PTRound.canLap = max(0, $-1)
 
 	if p.spectator
-	and PTV3.snick
-	and PTV3.snick.valid
-	and not PTV3.snick.PTRound
-	and p.cmd.buttons & BT_ATTACK then -- yea thats not a player, fill in snicks spot lol
+	and PTV3.snick and PTV3.snick.valid and not PTV3.snick.PTRound
+	and p.PTGlobal.buttons & BT_ATTACK then -- yea thats not a player, fill in snicks spot lol
 		p.spectator = false
 		p.playerstate = PST_LIVE
 
@@ -105,14 +119,10 @@ addHook("PlayerThink", function(p)
 			table.remove(p.PTRound.movementData, 1)
 		end
 	end
-
-	p.PTGlobal.buttons = p.cmd.buttons
-	p.PTGlobal.forwardmove = p.cmd.forwardmove and $+1 or 0
-	p.PTGlobal.sidemove = p.cmd.sidemove and $+1 or 0
 end)
 
 local function DoNotTheChaser(t, return_value)
-	if t.valid and t.player and t.player.PTRound.chaser then 
+	if t.valid and t.player and t.player.PTRound.chaser then
 		print(return_value)
 		return return_value 
 	end
@@ -121,21 +131,6 @@ end
 addHook("ShouldDamage", function(t,i,s) return DoNotTheChaser(t, false) end, MT_PLAYER)
 addHook("MobjDeath",    function(t,i,s) return DoNotTheChaser(t, true)  end, MT_PLAYER)
 addHook("MobjDamage",   function(t,i,s) return DoNotTheChaser(t, true)  end, MT_PLAYER)
-
-addHook("PlayerCmd", function(p, cmd)
-	if not PTV3:isPTV3() then return end
-	
-	if PTV3.game_over < (21*TICRATE)-10 or p.PTGlobal.menumode.inmenu then
-
-		p.PTGlobal.buttons = cmd.buttons
-		p.PTGlobal.forwardmove = cmd.forwardmove
-		p.PTGlobal.sidemove = cmd.sidemove
-
-		cmd.buttons = 0
-		cmd.forwardmove = 0
-		cmd.sidemove = 0
-	end
-end)
 
 -- No more game status.
 addHook("KeyDown", function(key)
@@ -153,6 +148,21 @@ addHook("MobjDamage", function(t,i,s)
 
 	t.player.score = max(0, $-350)
 end, MT_PLAYER)
+
+addHook("SpinSpecial", function(p)
+	if not PTV3:isPTV3() then return end
+	if not p.PTRound then return end
+	if multiplayer and p.powers[pw_emeralds] ~= 127 then return end
+	if not multiplayer and not All7Emeralds(emeralds) then return end
+
+	if p.pflags & PF_JUMPED and p.PTRound.combo >= 50 and p.charflags & SF_SUPER and not p.powers[pw_super] then
+		p.rings = $ == 0 and $+2 or $
+		P_DoSuperTransformation(p, false)
+		p.mo.state = S_PLAY_SUPER_TRANS1
+		return true
+	end
+	return false
+end)
 
 addHook("MobjDeath", function(t,i,s)
 	if not PTV3:isPTV3() then return end

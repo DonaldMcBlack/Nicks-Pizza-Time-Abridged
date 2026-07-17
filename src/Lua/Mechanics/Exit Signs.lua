@@ -9,6 +9,10 @@ mobjinfo[MT_PIZZATOWER_EXITSIGN_SPAWN] = {
 	--$Sprite GSSEA0
 	--$Color 17
 	--$Angled
+	--$Arg0 SpawnCondition
+	--$Arg0Tooltip "Spawns the Exit Sign whether it's Pizza Time or Minus World."
+	--$Arg0Type 11
+	--$Arg0Enum { -1="Minus Laps"; 1="Pizza Time";}
 	doomednum = 1263, //1-26-[202]3
 	spawnstate = S_EXITSPAWN_PLACEHOLDER,
 	spawnhealth = 1000,
@@ -234,6 +238,7 @@ addHook("MapThingSpawn",function(mo,mt)
 				sign.costume = exitsign.skins['Default']
 			end
 
+			sign.pizzatimecondition = mt.args[0]
 			sign.radius = exitsign.radius
 			sign.height = exitsign.height
 			sign.state = sign.costume.waitstate
@@ -257,7 +262,7 @@ local function ExitSignThinker(mo)
 		mo.flags2 = $|MF2_DONTDRAW
 		mo.flags = $|MF_NOGRAVITY
 
-		if PTV3.pizzatime then
+		if PTV3.pizzatime and PTV3.pizzatime == mo.pizzatimecondition then
 			local px = mo.x
 			local py = mo.y
 			local br = dist*mo.scale

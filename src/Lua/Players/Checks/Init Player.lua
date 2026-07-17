@@ -6,6 +6,12 @@
 --- @field forwardmove SINT8
 --- Sidemove for the player. Useful for menus.
 --- @field sidemove SINT8
+--- The last sidemove of the player. Useful for menus.
+--- @field lastsidemove SINT8
+--- The last forwardmove of the player. Useful for menus.
+--- @field lastforwardmove SINT8
+--- The last pressed buttons for the player. Useful for menus.
+--- @field lastbuttons UINT16
 --- The player's skin for when they play as Pizzaface. Interchangable in the dresser menu.
 --- @field pizzaface_skin string
 --- The player's skin for when they play as Snick. Interchangable in the dresser menu.
@@ -70,6 +76,7 @@ function PTV3:InitPlayerChecks(p)
 	end
 
 	PTV3:InitPlayerRound(p)
+
 end
 
 --- Initialises the player's global variables for in between rounds. Should only be called once.
@@ -80,6 +87,10 @@ function PTV3:InitPlayerGlobal(p)
 		forwardmove = 0,
 		sidemove = 0,
 
+		lastbuttons = 0,
+		lastforwardmove = 0,
+		lastsidemove = 0,
+
 		pizzaface_skin = "pizzaface",
 		snick_skin = "snick",
 		johnghost_skin = "john",
@@ -88,7 +99,7 @@ function PTV3:InitPlayerGlobal(p)
 		invItems = {},
 		ringBank = 0,
 
-		menumode = { inmenu = false, menutype = nil }
+		menumode = { inmenu = false, menutype = nil, selection = 1 }
 	}
 end
 
@@ -135,7 +146,7 @@ function PTV3:InitPlayerRound(p)
 		pvpCooldown = 0,
 		
 		movementData = {},
-		currentTeleportDest = {},
+		lastTeleportDest = nil,
 		pizzapost_id = nil,
 		
 		rank = 1,

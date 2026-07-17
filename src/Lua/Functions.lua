@@ -278,6 +278,8 @@ end
 --- Ends the game.
 function PTV3:endGame()
 	if PTV3.game_over <= 0 then return end
+	
+	if PTV3.endtime < 0 then PTV3.endtime = leveltime end
 
 	PTV3.game_over = max($-1, 0)
 	for p in players.iterate do
@@ -363,9 +365,11 @@ end
 function PTV3:queueTeleport(p, coords, relative, src)
 	if not p or not p.mo then return end
 
+	local start_or_end = PTV3.pizzatime > 0 and self.endpos or self.spawn
+
 	local mobjteleport = {
 		mo = p.mo,
-		coords = coords or self.endpos,
+		coords = coords or start_or_end,
 		relative = relative,
 		source = src
 	}
@@ -378,7 +382,7 @@ end
 ---@param p player_t
 ---@param int number
 function PTV3:newLap(p, int)
-	if not (self.pizzatime or self.minusworld) then return end
+	if not self.pizzatime then return end
 	if not (self:canLap(p)) then return end
 
 	-- if p.PTRound.isSwap and not p.PTRound.swapModeFollower then
@@ -453,8 +457,8 @@ function PTV3:newLap(p, int)
 			if not self.wartimer and not multiplayer then
 				self.wartimer = true
 				self.wartimerStart = leveltime
-			else
-				self.overtime_time = multiplayer and $+(120+29)*TICRATE or $+TICRATE*60
+			elseif self.wartimer and not multiplayer then
+				self.overtime_time = $+self.maxottime
 				S_StartSound(nil, sfx_wartup, p)
 			end
 		end
@@ -511,18 +515,18 @@ function PTV3:LoadChaserSkin(chaser, properties)
 	if not properties then error(chaser.." skin not found.") return end
 	if type(properties) ~= "table" then error(chaser.." skin is not a table.") return end
 
-	-- local default_struct = PTV3_SKINS.pizzaface[0]
+	local default_struct = PTV3_SKINS[chaser][0]
 
-	-- for i,v in pairs(default_struct) do
-	-- 	if properties[i] == nil or type(properties[i]) ~= type(default_struct[i]) then
-	-- 		properties[i] = default_struct[i]
-	-- 	end
-	-- end
+	for i,v in pairs(default_struct) do
+		if properties[i] == nil or type(properties[i]) ~= type(default_struct[i]) then
+			properties[i] = default_struct[i]
+		end
+	end
 
 	table.insert(PTV3_SKINS[chaser], properties)
 end
 
---- Applies a selected skin to a chaser
+--- Applies a selected skin to a chaser. Returns skin data.
 ---@param chaser string
 ---@param skindata table
 ---@param selectedskin table
@@ -532,6 +536,8 @@ function PTV3:ApplyChaserSkin(chaser, skindata, selectedskin)
 	for i, v in pairs(default_struct) do
 		if skindata[i] ~= selectedskin[i] then skindata[i] = selectedskin[i] end
 	end
+
+	return skindata
 end
 
 --- Starts either Pizza Time or Minus World given that int is defined, else defaults to Pizza Time. P is the player who triggered it.
@@ -549,7 +555,7 @@ function PTV3:startPizzaTime(p, int)
 	if self.pizzatime < 0 then
 		if PTV3.spawnGate and PTV3.spawnGate.valid then
 			P_SetOrigin(PTV3.spawnGate, PTV3.endpos.x, PTV3.endpos.y, PTV3.endpos.z)
-			PTV3.spawnGate.angle = PTV3.endpos.a
+			PTV3.spawnGate.angle = PTV3.endpos.angle
 		end
 
 		S_StartSound(nil, sfx_s3k9f)
@@ -593,16 +599,16 @@ function PTV3:startPizzaTime(p, int)
 		pfp.PTRound.chasertype = "pizzaface"
 		pfp.powers[pw_shield] = SH_NONE
 		pfp.powers[pw_invulnerability] = 0
-		if pfp.PTRound.isSwap then
-			if pfp.PTRound.swapModeFollower
-			and pfp.PTRound.swapModeFollower.valid then
-				local mo = pfp.PTRound.swapModeFollower
-				mo.player.PTRound.swapModeFollower = nil
-				mo.player.PTRound.isSwap = false
-			end
-			pfp.PTRound.swapModeFollower = nil
-			pfp.PTRound.isSwap = false
-		end
+		-- if pfp.PTRound.isSwap then
+		-- 	if pfp.PTRound.swapModeFollower
+		-- 	and pfp.PTRound.swapModeFollower.valid then
+		-- 		local mo = pfp.PTRound.swapModeFollower
+		-- 		mo.player.PTRound.swapModeFollower = nil
+		-- 		mo.player.PTRound.isSwap = false
+		-- 	end
+		-- 	pfp.PTRound.swapModeFollower = nil
+		-- 	pfp.PTRound.isSwap = false
+		-- end
 		if pfp.PTRound.insecret then
 			PTV3:exitSecret(pfp)
 		end

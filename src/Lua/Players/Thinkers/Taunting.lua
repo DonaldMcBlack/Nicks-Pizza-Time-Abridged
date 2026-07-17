@@ -40,8 +40,8 @@ local function taunt(p)
 		end
 	end
 
-	if p.cmd.buttons & BT_TOSSFLAG
-	and not (p.PTGlobal.buttons & BT_TOSSFLAG)
+	if p.PTGlobal.buttons & BT_TOSSFLAG
+	and not (p.PTGlobal.lastbuttons & BT_TOSSFLAG)
 	and not (p.pflags & PF_STARTDASH or p.pflags & PF_SPINNING or p.panim == PA_PAIN)
 	and not p.PTRound.isTaunting then
 		local tauntData = PTV3.tauntData[p.mo.skin] or PTV3.tauntData["Default"]
@@ -71,11 +71,7 @@ local function pretaunt(p)
 	if p.PTRound.isTaunting then
 		p.cmd.forwardmove = 0
 		p.cmd.sidemove = 0
-		if p.cmd.buttons & BT_TOSSFLAG then
-			p.cmd.buttons = BT_TOSSFLAG
-		else
-			p.cmd.buttons = 0
-		end
+		p.cmd.buttons = p.PTGlobal.lastbuttons
 	end
 end
 

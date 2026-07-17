@@ -140,7 +140,7 @@ addHook('TouchSpecial', function(secret,mo)
 
 	local p = mo.player
 	local next_secret = FindSecretEye(secret)
-	local link = { x=next_secret.x, y=next_secret.y, z=next_secret.z, a=next_secret.angle }
+	local link = { x=next_secret.x, y=next_secret.y, z=next_secret.z, angle=next_secret.angle }
 	
 	if secret.stype == 2 then
 		PTV3:exitSecret(p)

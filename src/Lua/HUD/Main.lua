@@ -38,6 +38,32 @@ function PTV3.HUD_returnTime(startTime, length, offset, useTics)
 	return tween
 end
 
+addHook("HUD", function(v)
+	if not PTV3:isPTV3() then
+		hud.enable('lives')
+		return
+	end
+
+	if gamemap ~= M_MapNumber("PT") then
+		hud.enable('time')
+	else
+		hud.disable('time')
+	end
+	hud.disable('lives')
+end)
+
+addHook("HUD", function(v)
+	if not PTV3:isPTV3() then hud.enable("stagetitle") return
+	else hud.disable("stagetitle") end
+
+	PTV3.has_titlecard = true
+
+	if v.patchExists(mapheaderinfo[gamemap].keywords.."TC") then return end
+
+	hud.enable("stagetitle")
+	PTV3.has_titlecard = false
+end, "titlecard")
+
 customhud.SetupFont("PTFNT", 1, 12)
 customhud.SetupFont("PCFNT")
 customhud.SetupFont("WARFN", 8, 40)
@@ -55,9 +81,9 @@ customhud.SetupItem("PTV3_Pizza Rage",      "ptv3", PizzaRageHUD,      "game", 1
 customhud.SetupItem("PTV3_Pizzaface Timer", "ptv3", PizzafaceTimerHUD, "game", 1)
 customhud.SetupItem("PTV3_Timer",           "ptv3", TimerHUD,          "game", 1)
 customhud.SetupItem("PTV3_WAR Timer",       "ptv3", WarTimerHUD,       "game", 1)
-customhud.SetupItem("PTV3_End",             "ptv3", EndHUD,            "game", 1)
 customhud.SetupItem("PTV3_Rank",            "ptv3", RankHUD,           "game", -1)
 customhud.SetupItem("PTV3_Combo",           "ptv3", ComboHUD,          "game", -1)
+customhud.SetupItem("PTV3_End",             "ptv3", EndHUD,            "game", 2)
 customhud.SetupItem("PTV3_Secrets",         "ptv3", SecretHUD,         "game", 2)
 customhud.SetupItem("PTV3_Camper",          "ptv3", CamperHud,         "game", 2)
 customhud.SetupItem("PTV3_Snick",           "ptv3", SnickHUD,          "game", 2)

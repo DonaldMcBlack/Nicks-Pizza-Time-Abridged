@@ -11,19 +11,14 @@ local music = {
 	[5] = "MANIAC", -- 10
 }
 
+local muspos = 0
+
 local jingle_blacklist = {
 	"_shoes",
 	"_inv",
-	"_1up"
+	"_1up",
+	"_super"
 }
-
-addHook("MusicChange", function(old, new)
-	if PTV3.pizzatime then
-		for _, jingle in pairs(jingle_blacklist) do
-			if new == jingle then return true end
-		end
-	end
-end)
 
 local function playPizzaTimeMusic()
 	if not PTV3:isPTV3() then return end
@@ -111,7 +106,7 @@ addHook('PostThinkFrame', function()
 	end
 
 	if PTV3.extreme then
-		if PTV3.pizzaface.skindata.extreme_theme then
+		if PTV3.pizzaface and PTV3.pizzaface.skindata.extreme_theme then
 			song = PTV3.pizzaface.skindata.extreme_theme
 		else
 			song = "POTMAC"
@@ -125,9 +120,16 @@ addHook('PostThinkFrame', function()
 		
 		song = modsongs["Overtime"] or default
 	end
+	
+
+	for _, jing in pairs(jingle_blacklist) do
+		if jing == S_MusicName(p) then S_ChangeMusic(mapmusname, loop, p, 0, muspos) break end
+	end
 
 	if song and mapmusname ~= song then
 		mapmusname = song
 		S_ChangeMusic(mapmusname, loop)
 	end
+
+	muspos = S_GetMusicPosition()
 end)

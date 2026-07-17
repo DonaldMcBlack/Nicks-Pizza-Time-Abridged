@@ -80,7 +80,7 @@ PTV3:insertCallback("PlayerThink", function(p)
 	if not (p.PTRound.combo) then return end
 
 	if not (p.exiting) then
-		p.PTRound.combo_pos = $-(FU/TICRATE)
+		p.PTRound.combo_pos = p.powers[pw_super] > 0 and $-((FU/TICRATE)*2) or $-(FU/TICRATE)
 	end
 
 	p.PTRound.combo_display = $ + ((p.PTRound.combo_pos-p.PTRound.combo_display)/2)
@@ -120,14 +120,14 @@ PTV3:insertCallback("PlayerThink", function(p)
 		p.PTRound.combo_rank.time = leveltime
 	end
 	
-	if p.PTRound.isSwap
-	and p.PTRound.isSwap.valid then
-		local p2 = p.PTRound.isSwap
-		p2.PTRound.combo = p.PTRound.combo
-		p2.PTRound.combo_pos = p.PTRound.combo_pos
-		p2.PTRound.combo_display = p.PTRound.combo_display
-		p2.PTRound.combo_offtime = p.PTRound.combo_offtime
-		p2.PTRound.combo_dropped = p.PTRound.combo_dropped
-		p2.PTRound.combo_rank = p.PTRound.combo_rank
-	end
+	-- if p.PTRound.isSwap
+	-- and p.PTRound.isSwap.valid then
+	-- 	local p2 = p.PTRound.isSwap
+	-- 	p2.PTRound.combo = p.PTRound.combo
+	-- 	p2.PTRound.combo_pos = p.PTRound.combo_pos
+	-- 	p2.PTRound.combo_display = p.PTRound.combo_display
+	-- 	p2.PTRound.combo_offtime = p.PTRound.combo_offtime
+	-- 	p2.PTRound.combo_dropped = p.PTRound.combo_dropped
+	-- 	p2.PTRound.combo_rank = p.PTRound.combo_rank
+	-- end
 end)

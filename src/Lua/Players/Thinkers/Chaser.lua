@@ -15,22 +15,22 @@ addHook("PostThinkFrame", function()
 	end
 end)
 
-local function PerformAction(p, pizztable, chaser)
-	if chaser.abilities[1] ~= nil and (p.cmd.buttons & BT_CUSTOM1) and not (pizztable.buttons & BT_CUSTOM1)
+local function PerformAction(p, chaser)
+	if chaser.abilities[1] ~= nil and (p.cmd.buttons & BT_CUSTOM1) and not (p.PTGlobal.buttons & BT_CUSTOM1)
 		and not chaser.abilities[1].cooldown then
-		chaser.abilities[1].action_start(p, chaser)
+		chaser.abilities[1].action_start(p, p.PTRound.pizzaMobj, chaser)
 		return 1
 	end
 
-	if chaser.abilities[2] ~= nil and (p.cmd.buttons & BT_CUSTOM2) and not (pizztable.buttons & BT_CUSTOM2)
+	if chaser.abilities[2] ~= nil and (p.cmd.buttons & BT_CUSTOM2) and not (p.PTGlobal.buttons & BT_CUSTOM2)
 		and not chaser.abilities[2].cooldown then
-		chaser.abilities[2].action_start(p, chaser)
+		chaser.abilities[2].action_start(p, p.PTRound.pizzaMobj, chaser)
 		return 2
 	end
 
-	if chaser.abilities[3] ~= nil and p.cmd.buttons & BT_CUSTOM3 and not (pizztable.buttons & BT_CUSTOM3)
+	if chaser.abilities[3] ~= nil and p.cmd.buttons & BT_CUSTOM3 and not (p.PTGlobal.buttons & BT_CUSTOM3)
 		and not chaser.abilities[3].cooldown then
-		chaser.abilities[3].action_start(p, chaser)
+		chaser.abilities[3].action_start(p, p.PTRound.pizzaMobj, chaser)
 		return 3
 	end
 
@@ -39,7 +39,6 @@ end
 
 local chaser = function(p)
 	local canMove = true
-	local pt_table = p.PTRound
 	local chasermo = p.PTRound.pizzaMobj
 	local chaserdata = p.PTRound.pizzaMobj_skindata
 
@@ -49,8 +48,8 @@ local chaser = function(p)
 
 	-- p.mo.flags = $|MF_NOCLIP|MF_NOCLIPHEIGHT
 
-	if PTV3.pftime or pt_table.stun then
-		pt_table.stun = max(0, $-1)
+	if PTV3.pftime or p.PTRound.stun then
+		p.PTRound.stun = max(0, $-1)
 	end
 
 	local speed = 0
@@ -67,7 +66,7 @@ local chaser = function(p)
 	if not chaserdata.abilities then return end
 
 	if p.cmd.buttons & BT_CUSTOM1|BT_CUSTOM2|BT_CUSTOM3 and not chaserdata.active_ability then
-		chaserdata.active_ability = PerformAction(p, pt_table, chaserdata)
+		chaserdata.active_ability = PerformAction(p, chaserdata)
 	end
 
 	for i, v in ipairs(chaserdata.abilities) do
@@ -77,7 +76,7 @@ local chaser = function(p)
 	end
 
 	if chaserdata.active_ability then
-		if chaserdata.abilities[chaserdata.active_ability].actiontime <= 0 then
+		if chaserdata.abilities[chaserdata.active_ability].actiontime == 0 then
 			chaserdata.abilities[chaserdata.active_ability].action_end(p, chaserdata)
 			chaserdata.abilities[chaserdata.active_ability].cooldown = chaserdata.abilities[chaserdata.active_ability].cooldown_maxduration
 			chaserdata.active_ability = 0

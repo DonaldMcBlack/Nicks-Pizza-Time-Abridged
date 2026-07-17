@@ -50,7 +50,7 @@ addHook("MobjSpawn", function(mo)
     P_RemoveMobj(mo)
 end, MT_STARPOST)
 
-addHook("TouchSpecial", function(post, mo)
+local function PizzaPostActivate(post, mo)
     if not mo.player and mo.player.PTRound then return true end
 
     local p = mo.player
@@ -60,8 +60,20 @@ addHook("TouchSpecial", function(post, mo)
     p.PTRound.pizzapost_id = post
     post.state = S_PTV3_PIZZAPOST_EXTEND
     S_StartSound(post, sfx_pizpst)
+end
 
+addHook("TouchSpecial", function(post, mo)
+    PizzaPostActivate(post, mo)
     return true
+end, MT_PTV3_PIZZAPOST)
+
+addHook("MobjThinker", function(mo) -- Star Post Activator compat
+    if mo.subsector.sector.flags & ~SSF_STARPOSTACTIVATOR then return end
+    
+    for mobj in mo.subsector.sector.thinglist() do
+        if not mobj.valid or not mobj.player then continue end
+        PizzaPostActivate(mo, mobj)
+    end
 end, MT_PTV3_PIZZAPOST)
 
 addHook("ShouldDamage", function(target, inflictor, source, damage, damagetype)
@@ -72,9 +84,9 @@ addHook("ShouldDamage", function(target, inflictor, source, damage, damagetype)
 		if player.playerstate == PST_LIVE then
             if player.PTRound.pizzapost_id then
                 local post = player.PTRound.pizzapost_id
-                P_SetOrigin(target, post.x, post.y, post.z)
-                target.angle = post.angle
-            else return true
+                PTV3:queueTeleport(player, post, false)
+            else
+                PTV3:queueTeleport(player, player.PTRound.lastTeleportDest, false)
             end
             target.momx = 0
             target.momy = 0

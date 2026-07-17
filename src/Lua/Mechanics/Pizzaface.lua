@@ -98,59 +98,52 @@ end, MT_PTV3_PIZZAFACE)
 function PTV3:pizzafaceSpawn(skin)
 	local canSpawnAI = not (self.pizzaface and self.pizzaface.PTRound)
 
+	local alive, pizzafaces, finished, unfinished, alive_2, total = PTV3:playerCount()
+	local pos = {}
+	local start_or_end = self.pizzatime < 0 and self.spawn or self.endpos
+	local pf = nil
+	local skindata = nil
+
 	if canSpawnAI then
 		if self.pizzaface and self.pizzaface.valid then return end
-		
+		local randomplayer = players[P_RandomRange(0, #alive-1)].mo
 
-		local alive = PTV3:playerCount()
-
-		local randomplayer = players[P_RandomRange(0, #alive)]
-
-		local pos = (gametype == GT_PTV3DM or PTV3.pizzatime < 0) and self.spawn or randomplayer.mo
+		if not randomplayer then
+			pos = start_or_end
+		else
+			pos = gametype == GT_PTV3DM and self.spawn or randomplayer
+		end
 
 		self.pizzaface = P_SpawnMobj(pos.x, pos.y, pos.z, MT_PTV3_PIZZAFACE)
-
-		if skin then
-			for _,i in pairs(PTV3_SKINS.pizzaface) do
-				if skin == string.lower(PTV3_SKINS.pizzaface[_].name) then PTV3:ApplyChaserSkin("pizzaface", self.pizzaface.skindata, PTV3_SKINS.pizzaface[_]) break end
-			end
-		else
-			PTV3:ApplyChaserSkin("pizzaface", self.pizzaface.skindata, PTV3_SKINS.pizzaface[self.skinIndex.pizzaface])
-		end
-
-		if not self.pizzaface.skindata then
-			error("Skin is null. Picking default skin.")
-			self.pizzaface.skindata = PTV3_SKINS.pizzaface[0]
-		end
-
-		if self.pizzaface.skindata.spawn then
-			self.pizzaface.skindata.spawn(self.pizzaface)
-		else
-			self.pizzaface.state = gametype == GT_PTV3DM and self.pizzaface.skindata.states.happy or self.pizzaface.skindata.states.laughing
-		end
-		
-		self.pizzaface.angry = false
-		S_StartSound(nil, self.pizzaface.skindata.laughsound[self.pizzatime] ~= nil and self.pizzaface.skindata.laughsound[self.pizzatime] or self.pizzaface.skindata.laughsound[1])
 	else
-		if self.pizzaface.PTRound
-		and self.pizzaface.PTRound.pizzaMobj and self.pizzaface.PTRound.pizzaMobj.valid then return end
+		if self.pizzaface.PTRound and self.pizzaface.PTRound.pizzaMobj and self.pizzaface.PTRound.pizzaMobj.valid then return end
+		pf = P_SpawnMobj(self.pizzaface.mo.x, self.pizzaface.mo.y, self.pizzaface.mo.z, MT_PTV3_PIZZAFACE)
+	end
 
-		local pf = P_SpawnMobj(self.pizzaface.mo.x, self.pizzaface.mo.y, self.pizzaface.mo.z, MT_PTV3_PIZZAFACE)
-
-		if skin then
-			for _,i in pairs(PTV3_SKINS.pizzaface) do
-				if skin == string.lower(PTV3_SKINS.pizzaface[_].name) then PTV3:ApplyChaserSkin("pizzaface", self.pizzaface.PTRound.pizzaMobj_skindata, PTV3_SKINS.pizzaface[_]) break end
-			end
-		else
-			error("Skin is null. Picking default skin.")
-			PTV3:ApplyChaserSkin("pizzaface", self.pizzaface.PTRound.pizzaMobj_skindata, PTV3_SKINS.pizzaface[0])
+	if skin then
+		for _,i in pairs(PTV3_SKINS.pizzaface) do
+			if skin == string.lower(PTV3_SKINS.pizzaface[_].name) then skin = PTV3_SKINS.pizzaface[_] break end
 		end
+	end
 
+	skindata = PTV3:ApplyChaserSkin("pizzaface", self.pizzaface.PTRound == nil and self.pizzaface.skindata or self.pizzaface.PTRound.pizzaMobj_skindata, skin ~= nil and skin or PTV3_SKINS.pizzaface[self.skinIndex.pizzaface])
+
+	if not skindata then
+		error("Skin is null. Picking default skin.")
+		self.pizzaface.skindata = PTV3_SKINS.pizzaface[0]
+		skindata = PTV3_SKINS.pizzaface[0]
+	end
+
+	if self.pizzaface.PTRound then
 		pf.state = self.pizzaface.PTRound.pizzaMobj_skindata.states.normal
 		pf.tracer = self.pizzaface.mo
-
 		self.pizzaface.PTRound.pizzaMobj = pf
-		S_StartSound(nil, self.pizzaface.PTRound.pizzaMobj_skindata.laughsound[self.pizzatime] ~= nil and self.pizzaface.PTRound.pizzaMobj_skindata.laughsound[self.pizzatime] or self.pizzaface.PTRound.pizzaMobj_skindata.laughsound[1])
+	end
+
+	if skindata.spawn then
+		skindata.spawn(self.pizzaface.PTRound ~= nil and self.pizzaface or nil, self.pizzaface.PTRound ~= nil and self.pizzaface.PTRound.pizzaMobj or self.pizzaface, skindata)
+	else
+		self.pizzaface.state = gametype == GT_PTV3DM and self.pizzaface.skindata.states.happy or self.pizzaface.skindata.states.laughing
 	end
 
 	table.insert(self.currentchasers, self.pizzaface)

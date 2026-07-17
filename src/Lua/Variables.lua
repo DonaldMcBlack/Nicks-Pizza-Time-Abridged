@@ -66,7 +66,7 @@ COM_AddCommand('PTV3_openmenu', function(p, menuname)
 	CONS_Printf(p, "Entering: "..p.PTGlobal.menumode.menutype)
 end)
 
-COM_AddCommand('PTV3_pizzatimenow', function(p, lap)
+COM_AddCommand('PTV3_panic', function(p, lap)
 	if not PTV3:isPTV3() then return end
 	if not (IsPlayerAdmin(p) or p == server) then return end
 
@@ -203,6 +203,7 @@ COM_AddCommand('PTV3_endgame', function(p)
 
 	PTV3:endGame()
 end, COM_ADMIN)
+
 COM_AddCommand('PTV3_rollgates', function(p)
 	for _, gate in pairs(PTV3_HUB.gates) do
 		PTV3_HUB.gates[gate.map] = nil
@@ -252,7 +253,7 @@ PTV3.synced_variables = {
 	['lapPortal'] = false,
 	['pillarJohn'] = false,
 	['spawnsector'] = false,
-	['game_ended'] = false,
+	['endtime'] = -1,
 	['extreme'] = false,
 	['skybox'] = false,
 	['shakeintensity'] = 0,
@@ -273,9 +274,8 @@ PTV3.synced_variables = {
 	['pftime'] = 30*TICRATE,
 	['spawnGate'] = false,
 	['__fadedmus'] = false,
-	['wartime'] = 1,
 	['overtime_time'] = TICRATE,
-	['maxotTime'] = (120+29)*TICRATE,
+	['maxottime'] = 60*TICRATE,
 	['secret_count'] = 0,
  	['game_over'] = (21*TICRATE)-10, --- 200
 	['ranktransitiontime'] = 15*TICRATE,
@@ -340,7 +340,7 @@ addHook('NetVars', function(n)
 		"endpos",
 		"endsec",
 		"spawnsector",
-		"game_ended",
+		"endtime",
 		"extreme",
 		"skybox",
 		"shakeintensity",
@@ -362,9 +362,8 @@ addHook('NetVars', function(n)
 		"maxpftime",
 		"spawnGate",
 		"__fadedmus",
-		"wartime",
 		"overtime_time",
-		"maxotTime",
+		"maxottime",
 		"secrets",
 		"secret_count",
 		"pizzafacetps",

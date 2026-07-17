@@ -5,7 +5,7 @@ return function(p)
 	p.pflags = $|PF_FULLSTASIS
 	local lap_inc = PTV3.pizzatime < 0 and -1 or 1
 
-	if (((p.cmd.buttons & BT_ATTACK) and not (p.PTGlobal.buttons & BT_ATTACK))
+	if (((p.PTGlobal.buttons & BT_ATTACK) and not (p.PTGlobal.lastbuttons & BT_ATTACK))
 	and p.PTRound.canLap) or p.PTRound.extreme
 	or gametype == GT_PTV3DM then
 		if gametype == GT_PTV3 and p.PTRound.laps == PTV3.max_laps then

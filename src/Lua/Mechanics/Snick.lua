@@ -45,51 +45,44 @@ end, MT_PTV3_SNICK)
 
 function PTV3:snickSpawn(skin)
 	local canSpawnAI = not (self.snick and self.snick.PTRound)
+	local pos = {}
+	local start_or_end = self.pizzatime < 0 and self.spawn or self.endpos
+	local snick = nil
+	local skindata = nil
 
 	if canSpawnAI then
 		if self.snick and self.snick.valid then return end
 
-		local pos = {}
-		local clonething = PTV3.pizzatime < 0 and self.spawn or self.endpos
-
-		for _,i in pairs(clonething) do
-			pos[_] = i
-		end
-		
-		pos.z = $+(420*FU)
-		self.snick = P_SpawnMobj(pos.x, pos.y, pos.z, MT_PTV3_SNICK)
-
-		if skin then
-			for _,i in pairs(PTV3_SKINS.snick) do
-				if skin == string.lower(PTV3_SKINS.snick[_].name) then PTV3:ApplyChaserSkin("snick", self.snick.skindata, PTV3_SKINS.snick[_]) break end
-			end
-		else
-			PTV3:ApplyChaserSkin("snick", self.snick.skindata, PTV3_SKINS.snick[self.skinIndex.snick])
-		end
-
-		if not self.snick.skindata then
-			error("Skin is null. Picking default skin.")
-			self.snick.skindata = PTV3_SKINS.snick[0]
-		end
+		pos = start_or_end
+		self.snick = P_SpawnMobj(pos.x, pos.y, pos.z+(420*FU), MT_PTV3_SNICK)
 	else
-		if self.snick.PTRound
-		and self.snick.PTRound.pizzaMobj and self.snick.PTRound.pizzaMobj.valid then return end
+		if self.snick.PTRound and self.snick.PTRound.pizzaMobj and self.snick.PTRound.pizzaMobj.valid then return end
 
-		local snick = P_SpawnMobj(self.snick.mo.x, self.snick.mo.y, self.snick.mo.z, MT_PTV3_SNICK)
+		snick = P_SpawnMobj(self.snick.mo.x, self.snick.mo.y, self.snick.mo.z, MT_PTV3_SNICK)
+	end
 
-		if skin then
-			for _,i in pairs(PTV3_SKINS.snick) do
-				if skin == string.lower(PTV3_SKINS.snick[_].name) then PTV3:ApplyChaserSkin("snick", self.snick.PTRound.pizzaMobj_skindata, PTV3_SKINS.snick[_]) break end
-			end
-		else
-			error("Skin is null. Picking default skin.")
-			self.snick.PTRound.pizzaMobj_skindata = PTV3_SKINS.snick[0]
+	if skin then
+		for _,i in pairs(PTV3_SKINS.snick) do
+			if skin == string.lower(PTV3_SKINS.snick[_].name) then skin = PTV3_SKINS.snick[_] break end
 		end
+	end
 
+	skindata = self:ApplyChaserSkin("snick", self.snick.PTRound == nil and self.snick.skindata or self.snick.PTRound.pizzaMobj_skindata, skin ~= nil and skin or PTV3_SKINS.snick[self.skinIndex.snick])
+
+	if not skindata then
+		error("Skin is null. Picking default skin.")
+		self.snick.skindata = PTV3_SKINS.snick[0]
+		skindata = PTV3_SKINS.snick[0]
+	end
+
+	if self.snick.PTRound then
 		snick.state = self.snick.PTRound.pizzaMobj_skindata.states.normal
 		snick.tracer = self.snick.mo
-
 		self.snick.PTRound.pizzaMobj = snick
+	end
+
+	if skindata.spawn then
+		skindata.spawn(self.snick.PTRound ~= nil and self.snick or nil, self.snick.PTRound ~= nil and self.snick.PTRound.pizzaMobj or self.snick, skindata)
 	end
 
 	table.insert(self.currentchasers, self.snick)

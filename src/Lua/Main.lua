@@ -3,6 +3,8 @@ local cutsceneTime
 addHook("ThinkFrame", function()
 	if not PTV3:isPTV3() then return end
 	if PTV3.pizzatime then P_StartQuake(PTV3.shakeintensity*FU, 2) end
+
+	if (PTV3.extreme or PTV3.overtime) and not S_SoundPlaying(consoleplayer.mo, sfx_rumble) then S_StartSound(consoleplayer.mo, sfx_rumble, consoleplayer) end
 end)
 
 local function SpawnGateController(MaxTimeOpen)
@@ -143,25 +145,25 @@ addHook('PostThinkFrame', function()
 	if #PTV3.tplist > 0 then
 		for _, tps in pairs(PTV3.tplist) do
 			if not tps then continue end
+			table.remove(PTV3.tplist, tonumber(_))
 			
-			if tps.mo == nil or not (tps.mo and tps.mo.valid and tps.mo.player) then
-				table.remove(PTV3.tplist, tonumber(_))
+			if not (tps.mo and tps.mo.valid and tps.mo.player) then
 				continue
 			end
+			
+			P_SetOrigin(tps.mo, tps.coords.x, tps.coords.y, tps.coords.z)
+			
+			tps.mo.angle = tps.coords.angle
 
 			local p = tps.mo.player
-			P_SetOrigin(tps.mo, tps.coords.x, tps.coords.y, tps.coords.z)
-			if not p.mo.valid then continue end
-			p.mo.angle = tps.coords.a
 
 			if tps.relative then
-				P_InstaThrust(p.mo, tps.coords.a, p.speed)
+				P_InstaThrust(p.mo, tps.coords.angle, p.speed)
 			else
-				tps.mo.momx, tps.mo.momy, tps.mo.momz = 0,0,0
+				p.mo.momx, p.mo.momy, p.mo.momz = 0,0,0
 			end
 
 			if p.PTRound.lap_in then p.PTRound.lap_in = false end
-
 			p.PTRound.fake_exit = false
 			p.mo.flags2 = $ & ~MF2_DONTDRAW
 
@@ -180,8 +182,7 @@ addHook('PostThinkFrame', function()
 				pizza.cooldown = 3*TICRATE
 			end
 			
-			p.PTRound.currentTeleportDest = tps.coords
-			table.remove(PTV3.tplist, tonumber(_))
+			p.PTRound.lastTeleportDest = tps.coords
 		end
 	end
 

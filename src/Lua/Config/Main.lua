@@ -50,9 +50,12 @@ rawset(_G, "PTV3_SKINS", {
 
 			current_icon = 1,
 
-			spawn = function(pf)
-				pf.state = PTV3.pizzatime > -1 and S_PTV3_PIZZALAUGHING or S_PTV3_PROTOFACE
-				pf.skindata.current_icon = PTV3.pizzatime > -1 and 1 or -1
+			spawn = function(p, pf, pf_data)
+				S_StartSound(nil, pf_data.laughsound[PTV3.pizzatime < 0 and -1 or 1])
+				if not p then pf.state = PTV3.pizzatime > -1 and S_PTV3_PIZZALAUGHING or S_PTV3_PROTOFACE end
+				pf_data.current_icon = PTV3.pizzatime > -1 and 1 or -1
+				local spawnmessage = PTV3.pizzatime < 0 and "Is that... Pizzaface?" or "Pizzaface is coming..."
+				print(spawnmessage)
 			end,
 
 			behaviour = function(pf)
@@ -143,11 +146,11 @@ rawset(_G, "PTV3_SKINS", {
 					can_cancel = true,
 					restrict = true,
 
-					action_start = function(p, pf)
+					action_start = function(p, pf, pf_data)
 						-- CONS_Printf(p, "Ram Start")
 					end,
 					
-					action_behaviour = function(p, pf)
+					action_behaviour = function(p, pf, pf_data)
 						-- CONS_Printf(p, "Ram")
 
 						local player = getNearestPlayer(p.mo, function(p2)
@@ -159,13 +162,13 @@ rawset(_G, "PTV3_SKINS", {
 						end)
 
 						if not player then
-							pf.abilities[1].actiontime = 0
+							pf_data.abilities[1].actiontime = 0
 						else
 							P_FlyTo(p.mo, player.mo.x, player.mo.y, player.mo.z, 45*FU)
 						end
 					end,
 
-					action_end = function(p, pf)
+					action_end = function(p, pf, pf_data)
 						-- CONS_Printf(p, "Ram End")
 					end
 				},
@@ -182,16 +185,16 @@ rawset(_G, "PTV3_SKINS", {
 					can_cancel = false,
 					restrict = true,
 
-					action_start = function(p, pf)
+					action_start = function(p, pf, pf_data)
 						p.PTRound.stun = 4*TICRATE
-						S_StartSound(p.mo, pf.laughsound[(PTV3.pizzatime or 1)])
+						S_StartSound(p.mo, pf_data.laughsound[(PTV3.pizzatime or 1)])
 					end,
 
-					action_behaviour = function(p, pf)
+					action_behaviour = function(p, pf, pf_data)
 						-- CONS_Printf(p, "Teleport")
 
 						local pt_table = p.PTRound
-						p.PTRound.pizzaMobj.flags2 = $|MF2_DONTDRAW
+						pf.flags2 = $|MF2_DONTDRAW
 
 						if abs(p.cmd.sidemove) >= 25
 						and abs(pt_table.pizzaface_tpsidemove) < 25 then
@@ -213,9 +216,9 @@ rawset(_G, "PTV3_SKINS", {
 						p.mo.momx,p.mo.momy,p.mo.momz = 0,0,0
 					end,
 
-					action_end = function(p, pf)
+					action_end = function(p, pf, pf_data)
 						-- CONS_Printf(p, "Teleport End")
-						p.PTRound.pizzaMobj.flags2 = $ & ~MF2_DONTDRAW
+						pf.flags2 = $ & ~MF2_DONTDRAW
 					end
 				},
 				[3] = {
@@ -231,15 +234,15 @@ rawset(_G, "PTV3_SKINS", {
 					can_cancel = false,
 					restrict = false,
 
-					action_start = function(p, pf)
-						p.PTRound.pizzaMobj.state = S_PTV3_PIZZAFACE_SUMMON1
+					action_start = function(p, pf, pf_data)
+						pf.state = S_PTV3_PIZZAFACE_SUMMON1
 					end,
 
-					action_behaviour = function(p, pf)
+					action_behaviour = function(p, pf, pf_data)
 						-- CONS_Printf(p, "Deploy")
 					end,
 
-					action_end = function(p, pf)
+					action_end = function(p, pf, pf_data)
 						-- CONS_Printf(p, "Deploy End")
 					end
 				}
@@ -263,6 +266,11 @@ rawset(_G, "PTV3_SKINS", {
 
 			current_icon = 1,
 
+			spawn = function(p, snick, snick_data)
+				local spawnmessage = PTV3.pizzatime < 0 and "Watch your back... And your front." or "Snick is here..."
+				print(spawnmessage)
+			end,
+
 			touch = function(snick, pmo)
 				if (pmo.player.pflags & PF_JUMPED or pmo.player.pflags & PF_SPINNING or pmo.player.pflags & PF_STARTDASH) or pmo.player.powers[pw_invulnerability] then
 					local i = 0
@@ -276,7 +284,18 @@ rawset(_G, "PTV3_SKINS", {
 						i = $+1
 					end
 					S_StartSound(nil, sfx_s1a3, pmo.player)
-					P_SetOrigin(snick, 0, 0, 0)
+
+					if PTV3.pizzatime < 0 then
+						local case = P_RandomRange(1, 4)
+						if case == 1 then     P_SetOrigin(snick, pmo.x - 1000*FU, pmo.y, 0)
+						elseif case == 2 then P_SetOrigin(snick, pmo.x + 1000*FU, pmo.y, 0)
+						elseif case == 3 then P_SetOrigin(snick, pmo.x, pmo.y + 1000*FU, 0)
+						elseif case == 4 then P_SetOrigin(snick, pmo.x, pmo.y - 1000*FU, 0)
+						end
+					else
+						P_SetOrigin(snick, 0, 0, 0)
+					end
+					
 					return
 				elseif (pmo.player.powers[pw_flashing] and pmo.player.panim == PA_PAIN) or pmo.player.PTRound.fake_exit then
 					return
@@ -287,22 +306,130 @@ rawset(_G, "PTV3_SKINS", {
 
 			behaviour = function(snick)
 				local dist = P_AproxDistance(snick.x - snick.target.x, snick.y - snick.target.y)
-				local speedup = 650*FU
+				local speedup = PTV3.pizzatime > -1 and 650*FU or 1000*FU
 				snick.angle = R_PointToAngle2(snick.x, snick.y, snick.target.x, snick.target.y)
+
+				local normalstate = PTV3.pizzatime > -1 and S_PTV3_SNICK or S_PTV3_SHADE
+				local lungestate = PTV3.pizzatime > -1 and S_PTV3_SNICK_LUNGE or S_PTV3_SHADE_LUNGE
 				
 				if dist > speedup then
-					snick.speed = min(FixedMul(FU/20, dist), 300*FU)
-					snick.state = PTV3.pizzatime > -1 and S_PTV3_SNICK_LUNGE or S_PTV3_SHADE_LUNGE
+
+					if PTV3.pizzatime > -1 then
+						snick.speed = min(FixedMul(FU/20, dist), 300*FU)
+						if snick.state ~= lungestate then snick.state = lungestate end
+					else
+						local i = 0
+						while i < 20 do
+							local particle = P_SpawnMobjFromMobj(snick, 0, 0, 0, MT_ARIDDUST)
+							particle.momx = P_RandomRange(-10, 10)*FU
+							particle.momy = P_RandomRange(-10, 10)*FU
+							particle.momz = P_RandomRange(-10, 10)*FU
+							particle.scalespeed = FU/TICRATE
+							particle.destscale = 0
+							i = $+1
+						end
+						S_StartSound(nil, sfx_cdfm74, snick.target)
+						local case = P_RandomRange(1, 4)
+						if case == 1 then
+							P_SetOrigin(snick, snick.target.x - 1000*FU, snick.target.y, 0)
+						elseif case == 2 then P_SetOrigin(snick, snick.target.x + 1000*FU, snick.target.y, 0)
+						elseif case == 3 then P_SetOrigin(snick, snick.target.x, snick.target.y + 1000*FU, 0)
+						elseif case == 4 then P_SetOrigin(snick, snick.target.x, snick.target.y - 1000*FU, 0)
+						end
+
+					end
+					
 				else
 					if not snick.speed then snick.speed = snick.skindata.basespeed
 					else
 						snick.speed = ease.linear(FU/32, snick.speed, 10*FU)
 					end
-					snick.state = PTV3.pizzatime > -1 and S_PTV3_SNICK or S_PTV3_SHADE
+					if snick.state ~= normalstate then snick.state = normalstate end
 				end
 				
 				P_FlyTo(snick, snick.target.x, snick.target.y, snick.target.z+8*FU, snick.speed)
-			end
+			end,
+
+			abilities = {
+				[1] = {
+					name = "Dash",
+					buttontype = "Hold",
+					actiontime = 10*TICRATE,
+					icon = "ACTION_DASH",
+					button = "C1",
+					
+					cooldown = 0,
+					cooldown_maxduration = 20*TICRATE,
+
+					can_cancel = true,
+					restrict = false,
+
+					action_start = function(p, snick, snick_data)
+						CONS_Printf(p, "Dash Start")
+						snick_data.basespeed = 20*FU
+						if FixedHypot(p.mo.momx, p.mo.momy) > 0 then
+							snick.state = PTV3.pizzatime >= 0 and S_PTV3_SNICK_LUNGE or S_PTV3_SHADE_LUNGE
+						end
+					end,
+					
+					action_behaviour = function(p, snick, snick_data)
+					end,
+
+					action_end = function(p, snick, snick_data)
+						snick.basespeed = 10*FU
+					end
+				},
+				[2] = {
+					name = "None",
+					buttontype = "Hold",
+					actiontime = -1,
+					icon = "ACTION_TELEPORT",
+					button = "C2",
+
+					cooldown = 0,
+					cooldown_maxduration = 40*TICRATE,
+
+					can_cancel = false,
+					restrict = true,
+
+					action_start = function(p, snick, snick_data)
+						-- CONS_Printf(p, "Teleport Start")
+					end,
+
+					action_behaviour = function(p, snick, snick_data)
+						-- CONS_Printf(p, "Teleport")
+					end,
+
+					action_end = function(p, snick, snick_data)
+						-- CONS_Printf(p, "Teleport End")
+					end
+				},
+				[3] = {
+					name = "Deploy",
+					buttontype = "Press",
+					actiontime = 12,
+					icon = "ACTION_DEPLOY",
+					button = "C3",
+					
+					cooldown = 0,
+					cooldown_maxduration = 5*TICRATE,
+
+					can_cancel = false,
+					restrict = false,
+
+					action_start = function(p, snick, snick_data)
+
+					end,
+
+					action_behaviour = function(p, snick, snick_data)
+						-- CONS_Printf(p, "Deploy")
+					end,
+
+					action_end = function(p, snick, snick_data)
+						-- CONS_Printf(p, "Deploy End")
+					end
+				}
+			}
 		}
 	},
 	johnGhost = {
@@ -311,11 +438,10 @@ rawset(_G, "PTV3_SKINS", {
 			name = "John",
 			extreme_theme = nil,
 			states = { normal = S_PTV3_JOHNGHOST, minus_normal = S_PTV3_JONATHANPHANTOM },
-			ambient_sfx = { normal = sfx_jghtsp, minus = sfx_jphmsp },
+			ambient_sfx = { [1] = sfx_jghtsp, [-1] = sfx_jphmsp },
 			effect = nil,
 			basespeed = 5*FU,
-			touch_cooldown = 5*FU,
-			touch_cooldownmax = 5*FU,
+			touch_cooldown = 0, -- 5*FU
 
 			icons = {
 				[-1] = "JONATHANICON",
@@ -325,24 +451,46 @@ rawset(_G, "PTV3_SKINS", {
 
 			current_icon = 1,
 
+			spawn = function(p, john, john_data)
+				-- john_data.touch_cooldown = TICRATE
+				local spawnmessage = PTV3.pizzatime < 0 and "FEAR THE PHANTOM" or "John's ghost wants vengeance..."
+				print(spawnmessage)
+			end,
+
 			touch = function(john, pmo)
-				if john.tracer == pmo then return end
+				if john.tracer == pmo or john.skindata.touch_cooldown then return end
 				if (pmo and pmo.player and pmo.player.PTRound and pmo.player.PTRound.chaser) then return end
 
 				local p = pmo.player
 				
 				if p.PTRound.fake_exit then return end
 				john.speed, john.basespeed, john.maxspeed = 0, 0, 0
-				PTV3:queueTeleport(p, p.PTRound.currentTeleportDest, false, john)
+				john.momx, john.momy, john.momz = 0, 0, 0
+
+				local teleportdest = p.PTRound.pizzapost_id or p.PTRound.lastTeleportDest
+				if not teleportdest then teleportdest = PTV3.pizzatime > 0 and PTV3.endpos or PTV3.spawn end
+
+				PTV3:queueTeleport(p, teleportdest, false, john)
 				S_StartSound(nil, sfx_jghtct, p)
-				P_SetOrigin(john, PTV3.spawn.x, PTV3.spawn.y, PTV3.spawn.z+(200*FU))
+				john.skindata.touch_cooldown = TICRATE
 			end,
 
 			behaviour = function(john)
+				john.frame = ($ & ~FF_TRANSMASK)|((john.skindata.touch_cooldown/FU)/6<<FF_TRANSSHIFT)
+
 				john.skindata.current_icon = PTV3.pizzatime < 0 and -1 or 1
-				john.ambience = PTV3.pizzatime < 0 and john.skindata.ambient_sfx.minus or john.skindata.ambient_sfx.normal
+				john.ambience = john.skindata.ambient_sfx[PTV3.pizzatime or 1]
 
 				if not S_SoundPlaying(john, john.ambience) then S_StartSound(john, john.ambience) end
+
+				if john.skindata.touch_cooldown then
+					john.skindata.touch_cooldown = max($-1, 0)
+
+					if john.skindata.touch_cooldown == 0 then
+						P_SetOrigin(john, 0, 0, 0)
+					end
+					return
+				end
 
 				local dist = P_AproxDistance(john.x - john.target.x, john.y - john.target.y)
 				john.angle = R_PointToAngle2(john.x, john.y, john.target.x, john.target.y)

@@ -7,6 +7,7 @@ local function DrawTitle(v)
     local y = hei/2 - logo.height*FU/3
 
     v.drawScaled(60*FU, y, FU/2, logo, V_SNAPTOTOP)
+    S_ChangeMusic("TITLEB", true)
 end
 
 -- return function(v)

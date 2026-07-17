@@ -85,7 +85,7 @@ return function(p)
     end
 
     if item then
-        if (p.cmd.buttons & BT_CUSTOM1) and not (p.PTGlobal.buttons & BT_CUSTOM1) then
+        if (p.PTGlobal.buttons & BT_CUSTOM1) and not (p.PTGlobal.lastbuttons & BT_CUSTOM1) then
             if PTV3.items[item].equipable then
                 p.PTRound.curItem_equipped = not p.PTRound.curItem_equipped
                 if p.PTRound.curItem_equipped then S_StartSound(p.mo, PTV3.items[item].equip_sfx) end
@@ -94,7 +94,7 @@ return function(p)
             end
         end
 
-        if p.PTRound.curItem_equipped and (p.cmd.buttons & BT_FIRENORMAL) and not (p.PTGlobal.buttons & BT_FIRENORMAL) then
+        if p.PTRound.curItem_equipped and (p.PTGlobal.buttons & BT_FIRENORMAL) and not (p.PTGlobal.lastbuttons & BT_FIRENORMAL) then
             PTV3:UseEquipableItem(p)
         end
     end

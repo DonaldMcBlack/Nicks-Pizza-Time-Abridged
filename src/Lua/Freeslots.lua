@@ -164,9 +164,8 @@ states[S_PTV3_PROTOFACE] = {
 
 --- SNICK /// -----------------------------------------------
 freeslot("MT_PTV3_SNICK",
-	"SPR_SNOR",
-	"SPR_SLUN",
-	"SPR_SHOR",
+	"SPR_SNIC",
+	"SPR_SHDE",
 	"S_PTV3_SNICK",
 	"S_PTV3_SNICK_LUNGE",
 	"S_PTV3_SHADE",
@@ -184,7 +183,7 @@ mobjinfo[MT_PTV3_SNICK] = {
 }
 
 states[S_PTV3_SNICK] = {
-    sprite = SPR_SNOR,
+    sprite = SPR_SNIC,
     frame = FF_ANIMATE|A,
     tics = -1,
     action = nil,
@@ -194,8 +193,8 @@ states[S_PTV3_SNICK] = {
 }
 
 states[S_PTV3_SNICK_LUNGE] = {
-    sprite = SPR_SLUN,
-    frame = FF_ANIMATE|A,
+    sprite = SPR_SNIC,
+    frame = FF_ANIMATE|D,
     tics = -1,
     action = nil,
     var1 = 3,
@@ -204,21 +203,21 @@ states[S_PTV3_SNICK_LUNGE] = {
 }
 
 states[S_PTV3_SHADE] = {
-	sprite = SPR_SHOR,
+	sprite = SPR_SHDE,
 	frame = FF_ANIMATE|A,
 	tics = -1,
 	action = nil,
-	var1 = B,
+	var1 = C,
 	var2 = 2,
 	nextstate = S_PTV3_SHADE
 }
 
 states[S_PTV3_SHADE_LUNGE] = {
-	sprite = SPR_SHOR,
-	frame = FF_ANIMATE|C,
+	sprite = SPR_SHDE,
+	frame = FF_ANIMATE|D,
 	tics = -1,
 	action = nil,
-	var1 = F,
+	var1 = 3,
 	var2 = 2,
 	nextstate = S_PTV3_SHADE_LUNGE
 }
