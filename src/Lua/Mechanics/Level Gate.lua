@@ -2,7 +2,7 @@ freeslot("MT_PTV3_LEVELGATE")
 
 mobjinfo[MT_PTV3_LEVELGATE] = {
 	--$Name "Level Gate"
-    --$Sprite EXGAA0
+    --$Sprite EXGAA1
     --$Category "PTV3A"
 	--$Color 1
 	--$Angled

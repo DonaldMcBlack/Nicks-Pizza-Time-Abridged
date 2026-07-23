@@ -50,20 +50,14 @@ end
 function PTV3:canGet(p, rank)
 	if not (p and p.PTRound) then return end
 
-	if not self.ranks[rank] then
-		return false
-	end
+	if not self.ranks[rank] then return false end
 
-	if PTV3.ranks[rank].canGet and PTV3.ranks[rank].canGet(p) then return true end
+	if self.ranks[rank].canGet and self.ranks[rank].canGet(p) then return true end
 
-	if p.score < PTV3.maxrankrequirement*(rank-1) then
-		return false
-	end
+	local total_score = p.PTRound.fake_exit and (p.score and p.PTRound.comboscore) or p.score
+	if total_score < self.maxrankrequirement*(rank-1) then return false end
 
-	if PTV3.ranks[rank].canGet
-	and not PTV3.ranks[rank].canGet(p) then
-		return false
-	end
+	if self.ranks[rank].canGet and not self.ranks[rank].canGet(p) then return false end
 
 	return true
 end
@@ -72,18 +66,14 @@ end
 function PTV3:returnNextRankPercent(p)
 	if not p.PTRound then return end
 
-	local depletion = PTV3.maxrankrequirement*(p.PTRound.rank-1)
+	local depletion = self.maxrankrequirement*(p.PTRound.rank-1)
+	local total_score = p.PTRound.fake_exit and (p.score + p.PTRound.comboscore) or p.score
 
-	if not PTV3.ranks[p.PTRound.rank+1] then
-		return 0
-	end
+	if not self.ranks[p.PTRound.rank+1] then return 0 end
 
-	if PTV3.ranks[p.PTRound.rank+1].canGet
-	and not PTV3.ranks[p.PTRound.rank+1].canGet(p) then
-		return 0
-	end
+	if self.ranks[p.PTRound.rank+1].canGet and not self.ranks[p.PTRound.rank+1].canGet(p) then return 0 end
 
-	return FixedDiv((p.score-depletion)*FU, ((PTV3.maxrankrequirement*p.PTRound.rank)-depletion)*FU)
+	return FixedDiv((total_score-depletion)*FU, ((PTV3.maxrankrequirement*p.PTRound.rank)-depletion)*FU)
 end
 
 local sounds = {

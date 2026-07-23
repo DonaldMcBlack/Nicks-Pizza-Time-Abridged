@@ -40,7 +40,7 @@ function PTV3:increaseCombo(p, type, increase)
 	end
 end
 
-addHook('MobjDamage', function(t,i,s)
+addHook("MobjDamage", function(t,i,s)
 	if not PTV3:isPTV3() then return end
 	if not (s and s.type == MT_PLAYER) then return end
 	if not (s.player.PTRound and s.player.PTRound.combo) then return end
@@ -49,12 +49,31 @@ addHook('MobjDamage', function(t,i,s)
 	PTV3:increaseCombo(s.player, 3)
 end)
 
-addHook('MobjDeath', function(t,i,s)
+local score_table = {
+	[1] = 100,
+	[2] = 200,
+	[3] = 500,
+}
+addHook("MobjDeath", function(t,i,s)
 	if not PTV3:isPTV3() then return end
-	if not (s and s.type == MT_PLAYER) then return end
+	if not (s and s.valid and s.player and s.player.valid) then return end
+
+	local p = s.player
+	local combo_scoreadd = 0
+	local real_scoreadd = p.scoreadd + 1
+
+	if score_table[real_scoreadd] then
+		combo_scoreadd = score_table[real_scoreadd]
+	elseif real_scoreadd >= 4 and real_scoreadd <= 14 then
+		combo_scoreadd = 1000
+	elseif real_scoreadd > 14 then
+		combo_scoreadd = 10000
+	end
 	
 	if t.flags & MF_ENEMY then
+		t.flags = $ & ~MF_ENEMY
 		PTV3:increaseCombo(s.player, 1)
+		p.PTRound.comboscore = $ + combo_scoreadd
 	elseif t.flags & MF_MONITOR then
 		PTV3:increaseCombo(s.player, 3)
 	else
@@ -70,17 +89,23 @@ local function IncrementByFive(combo)
 	return 0
 end
 
-PTV3:insertCallback("PlayerThink", function(p)
+addHook("PlayerThink", function(p)
+	if not PTV3:isPTV3() then return end
+
 	if p.PTRound.combo_offtime then
 		local time = min(((leveltime - p.PTRound.combo_offtime)*(FU*2))/35, FU+1)
 		if time > FU then
-			p.PTRound.combo_offtime = nil
+			p.PTRound.combo_offtime = 0
 		end
 	end
-	if not (p.PTRound.combo) then return end
 
-	if not (p.exiting) then
-		p.PTRound.combo_pos = p.powers[pw_super] > 0 and $-((FU/TICRATE)*2) or $-(FU/TICRATE)
+	if not p.PTRound.combo then return end
+	if not p.exiting then p.PTRound.combo_pos = p.powers[pw_super] > 0 and $-((FU/TICRATE)*2) or $-(FU/TICRATE) end
+
+	local dontdrop = true
+	if PTV3.endtime > 0 then
+		p.PTRound.combo_pos = 0
+		dontdrop = p.PTRound.combo_dropped
 	end
 
 	p.PTRound.combo_display = $ + ((p.PTRound.combo_pos-p.PTRound.combo_display)/2)
@@ -94,7 +119,7 @@ PTV3:insertCallback("PlayerThink", function(p)
 
 	p.PTRound.combo_rank.very = very
 
-	if (p.PTRound.combo_pos > 0) then
+	if p.PTRound.combo_pos > 0 then
 		if rank_increment and combo >= ranks[rank_increment]
 		and p.PTRound.combo_rank.rank ~= ranks[rank_increment] then -- Replace oldrank in Combo.lua
 			p.PTRound.combo_rank.rank = ranks[rank_increment]
@@ -107,7 +132,11 @@ PTV3:insertCallback("PlayerThink", function(p)
 		p.PTRound.combo_pos = 0
 		p.PTRound.combo_display = 0
 		p.PTRound.combo_offtime = leveltime
-		p.PTRound.combo_dropped = true
+
+		p.PTRound.combo_dropped = dontdrop
+
+		p.score = $ + p.PTRound.comboscore
+		p.PTRound.comboscore = 0
 		
 		for _,i in ipairs(ranks) do
 			if combo >= i then
@@ -118,6 +147,7 @@ PTV3:insertCallback("PlayerThink", function(p)
 			end
 		end
 		p.PTRound.combo_rank.time = leveltime
+		S_StartSound(nil, sfx_chchng, p)
 	end
 	
 	-- if p.PTRound.isSwap

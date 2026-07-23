@@ -126,13 +126,15 @@ function PTV3:InitPlayerRound(p)
 		insecret = false,
 		secretsfound = 0,
 		secret_tptoend = false,
+
 		combo = 0,
 		combo_pos = 0,
 		combo_display = 0,
 		combo_start_time = 0,
 		started_combo = false,
-		combo_offtime = false,
+		combo_offtime = 0,
 		combo_rank = { rank = nil, rankn = 0, very = false, time = 5*TICRATE},
+
 		lap_time = -1,
 		canLap = 0,
 
@@ -154,6 +156,8 @@ function PTV3:InitPlayerRound(p)
 		extremeNotif = 0,
 
 		scoreReduce = {time = false, by = 0},
+		comboscore = 0,
+		roundscore = 0,
 
 		pizzaMobj = false,
 		pizzaMobj_skindata = {},

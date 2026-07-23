@@ -35,8 +35,7 @@ end
 
 return function(v, p)
 	if not PTV3:isPTV3() then return end
-	if not p.PTRound then return end
-	if p.PTRound.chaser then return end
+	if not p.PTRound or p.PTRound.chaser then return end
 
 	local rank_x = 240*FU
 	local rank_y = 60*FU
@@ -51,26 +50,23 @@ return function(v, p)
 	end
 
 	if not (p.PTRound.combo or p.PTRound.combo_offtime) then return end
-	
+
 	local x = 230*FU
-	local scale = FU/3
-	scale = $+($/8)
+	local scale = FU/3 + ((FU/3)/8)
+	local targety = (p.pvars and p.pvars.tv) and 40*FU or 0
+
 	x = $ + FixedMul(8*scale, cos(((leveltime*2) % 360) * ANG1))
-	local targety = 0
-	if p.pvars and p.pvars.tv then
-		targety = 40*FU
-	end
+
 	local bar = v.cachePatch('COMBOBAR')
-	local time = min(((leveltime - p.PTRound.combo_start_time)*(FU*2))/35, FU+1)
+	local time = min(abs((leveltime - p.PTRound.combo_start_time)*(FU*2))/35, FU+1)
 	local y = ease.linear(time, -bar.height*scale, targety)
+
 	if p.PTRound.combo_offtime then
-		time = min(((leveltime - p.PTRound.combo_offtime)*(FU*2))/35, FU+1)
+		time = min(abs((leveltime - p.PTRound.combo_offtime)*(FU*2))/35, FU+1)
 		y = ease.linear(time, targety, -bar.height*scale)
-	else
-		if p.PTRound.combo_pos <= PTV3.MAX_COMBO_TIME/2 then
-			local time = (leveltime-p.PTRound.combo_start_time)*25
-			y = $ - abs(FixedMul(6*scale, sin(time*ANG1)))
-		end
+	elseif p.PTRound.combo_pos <= PTV3.MAX_COMBO_TIME/2
+		time = (leveltime-p.PTRound.combo_start_time)*25
+		y = $ - abs(FixedMul(6*scale, sin(time*ANG1)))
 	end
 
 	local start_point = 40*scale
@@ -79,10 +75,7 @@ return function(v, p)
 	local combopos = FixedDiv(p.PTRound.combo_display, PTV3.MAX_COMBO_TIME)
 	
 	local pos = start_point + FixedMul(end_point-start_point, combopos)
-	local color
-
-	if not p.PTRound.combo_dropped then color = v.getColormap(TC_DEFAULT, SKINCOLOR_FIRSTCOMBO)
-	else color = v.getColormap(TC_DEFAULT, SKINCOLOR_DROPPEDCOMBO) end
+	local color = not p.PTRound.combo_dropped and v.getColormap(TC_DEFAULT, SKINCOLOR_FIRSTCOMBO) or v.getColormap(TC_DEFAULT, SKINCOLOR_DROPPEDCOMBO)
 	
 	local pointer = v.cachePatch('COMBOGUY'..(leveltime % 8))
 	local center = pointer.width*(scale/2)
