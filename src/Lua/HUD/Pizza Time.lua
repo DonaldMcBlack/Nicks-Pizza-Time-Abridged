@@ -1,9 +1,9 @@
 return function(v)
 	if not PTV3.pizzatime then return end
-	if PTV3.hud_pt < 0 then return end
-	local time = PTV3.HUD_returnTime(PTV3.hud_pt, 3*FU)
+	if PTV3.starttime_pizzatime < 0 then return end
+	local time = PTV3.HUD_returnTime(PTV3.starttime_pizzatime, 3*FU)
 	
-	local flashTime = PTV3.HUD_returnTime(PTV3.hud_pt, PTV3.pizzatime > 0 and TICRATE/4 or TICRATE/2, nil, true)
+	local flashTime = PTV3.HUD_returnTime(PTV3.starttime_pizzatime, PTV3.pizzatime > 0 and TICRATE/4 or TICRATE/2, nil, true)
 	v.fadeScreen(SKINCOLOR_WHITE, ease.linear(flashTime, 10, 0))
 
 	local patch1 = PTV3.pizzatime < 0 and v.cachePatch('MINUS1') or v.cachePatch('PITIM1')

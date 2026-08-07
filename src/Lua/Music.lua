@@ -47,7 +47,7 @@ end
 addHook('PostThinkFrame', function()
 	if not PTV3:isPTV3() then return end
 
-	local p = (displayplayer.valid and displayplayer.PTRound) and displayplayer or nil
+	local p = (displayplayer and displayplayer.valid and displayplayer.PTRound) and displayplayer or nil
 
 	if not p then return end
 

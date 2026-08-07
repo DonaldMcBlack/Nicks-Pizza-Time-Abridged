@@ -392,7 +392,7 @@ function PTV3:newLap(p, int)
 	if not int then return end
 	p.PTRound.laps = $+int
 
-	local raw_time = leveltime - PTV3.hud_pt
+	local raw_time = leveltime - PTV3.starttime_pizzatime
 
 	if p.PTRound.lap_time >= 0 then
 		raw_time = leveltime - p.PTRound.lap_time
@@ -547,7 +547,7 @@ function PTV3:startPizzaTime(p, int)
 	int = $ > 0 and 1 or -1
 
 	self.pizzatime = int
-	self.hud_pt = leveltime
+	self.starttime_pizzatime = leveltime
 
 	local callback_string = self.pizzatime < 0 and 'MinusWorld' or 'PizzaTime'
 	PTV3.shakeintensity = 4

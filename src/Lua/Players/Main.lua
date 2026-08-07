@@ -124,7 +124,7 @@ end)
 local function DoNotTheChaser(t, return_value)
 	if t.valid and t.player and t.player.PTRound.chaser then
 		print(return_value)
-		return return_value 
+		return return_value
 	end
 end
 
@@ -178,3 +178,8 @@ addHook("MobjDeath", function(t,i,s)
 	-- t.player.PTRound.isSwap = nil
 	-- t.player.PTRound.swapModeFollower = nil
 end, MT_PLAYER)
+
+-- addHook("MobjDeath", function(t,i,s)
+-- 	if not PTV3:isPTV3() then return end
+	
+-- end, MT_NULL)

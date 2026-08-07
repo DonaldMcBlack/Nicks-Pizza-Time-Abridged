@@ -1,6 +1,6 @@
 return function(v)
 	if not PTV3.pizzatime or PTV3.pizzatime > 0 then return end
-    if PTV3.hud_pt < 0 then return end
+    if PTV3.starttime_pizzatime < 0 then return end
     local rendoption = v.renderer()
 	
 	local patch = v.cachePatch('TRANSFG')

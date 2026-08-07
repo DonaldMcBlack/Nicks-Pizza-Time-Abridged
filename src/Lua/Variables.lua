@@ -280,7 +280,7 @@ PTV3.synced_variables = {
  	['game_over'] = (21*TICRATE)-10, --- 200
 	['ranktransitiontime'] = 15*TICRATE,
 	['maxrankrequirement'] = 1500,
-	['hud_pt'] = -1,
+	['starttime_pizzatime'] = -1,
 	['matchLog'] = {},
 	['has_titlecard'] = false,
 
@@ -370,7 +370,7 @@ addHook('NetVars', function(n)
 		"pizzaposts",
 		"game_over",
 		"ranktransitiontime",
-		"hud_pt",
+		"starttime_pizzatime",
 		"matchLog",
 		"max_laps",
 		"max_elaps",
