@@ -7,9 +7,7 @@ rawset(_G, "PTV3_SKINS", {
 			name = "Pizzaface",
 			extreme_theme = "POTMAC",
 			can_haywire = true,
-			intspeed = 25,
-			incremspeed = FU,
-			incremspeedthreshold = 16,
+			basespeed = 25*FU,
 
 			icons = {
 				[-1] = "PROTOFACEICON",
@@ -33,7 +31,7 @@ rawset(_G, "PTV3_SKINS", {
 				if not pf.target then pf.momx, pf.momy, pf.momz = 0, 0, 0 return end
 
 				pf.angle = R_PointToAngle2(pf.x, pf.y, pf.target.x, pf.target.y)
-				pf.combinedspeed = not pf.brokentimer and (pf.skindata.intspeed*pf.skindata.incremspeed) or (pf.skindata.intspeed*pf.skindata.incremspeed)/2
+				pf.combinedspeed = not pf.brokentimer and pf.skindata.basespeed or pf.skindata.basespeed/2
 				pf.speed = pf.combinedspeed
 
 				if pf.state == S_PTV3_PIZZALAUGHING then pf.state = S_PTV3_PIZZAFACE end
@@ -73,13 +71,17 @@ rawset(_G, "PTV3_SKINS", {
 				else
 					-- Behaviour changes ---------------------
 					if pf.angry then -- Enraged Pizzaface
+
+						pf.maxspeed = $ == nil and pf.skindata.basespeed or $
+						if dist > FU*1500 then pf.maxspeed = min($+FU, 1000*FU) end
+
 						if pf.state ~= S_PTV3_PIZZAMAD then pf.state = S_PTV3_PIZZAMAD end
 						if dist > FU*2000 then
-							pf.speed = max(FixedMul(FU/pf.skindata.incremspeedthreshold, dist-(FU*500)), pf.combinedspeed)
+							pf.speed = max(FixedMul(FU/16, dist-(FU*500)), pf.combinedspeed)
 						else
-							pf.speed = ease.linear(FU/pf.skindata.incremspeedthreshold, pf.speed, pf.combinedspeed)
+							pf.maxspeed = max(pf.skindata.basespeed+FixedMul(pf.skindata.basespeed/PTV3.max_elaps, (PTV3.highestlap-5)*FU), $-(FU/2))
+							pf.speed = pf.maxspeed
 						end
-						pf.skindata.current_icon = 2
 					else -- Normal Pizzaface
 						if PTV3.pizzatime < 0 then
 							pf.speed = max(FixedMul(FU/8, dist-(FU*250)), 23*FU)
@@ -90,8 +92,6 @@ rawset(_G, "PTV3_SKINS", {
 						elseif not pf.brokentimer and pf.state == S_PTV3_PIZZAHAYWIRE then
 							pf.state = S_PTV3_PIZZAFACE
 						end
-
-						pf.skindata.current_icon = PTV3.pizzatime > -1 and 1 or -1
 					end
 
 					if pf.eflags & MFE_UNDERWATER then
@@ -106,7 +106,6 @@ rawset(_G, "PTV3_SKINS", {
 				P_DamageMobj(mo, pf, pf, 999, DMG_INSTAKILL)
 
 				local alive = PTV3.playerCount and PTV3:playerCount()
-				print(#alive)
 
 				if #alive < 1 then
 					S_StartSound(nil, PTV3.pizzatime < 0 and sfx_fplgh or sfx_pflgh)
@@ -130,6 +129,13 @@ rawset(_G, "PTV3_SKINS", {
 				end
 
 				pf.angry = (PTV3.extreme or PTV3.overtime) and PTV3.pizzatime > 0 or false
+
+				if pf.angry then
+					pf.skindata.current_icon = 2
+				else
+					pf.skindata.current_icon = PTV3.pizzatime > -1 and 1 or -1
+				end
+				
 			end,
 
 			active_ability = 0,

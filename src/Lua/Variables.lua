@@ -281,6 +281,7 @@ PTV3.synced_variables = {
 	['ranktransitiontime'] = 15*TICRATE,
 	['maxrankrequirement'] = 1500,
 	['starttime_pizzatime'] = -1,
+	['highestlap'] = 0,
 	['matchLog'] = {},
 	['has_titlecard'] = false,
 
@@ -374,6 +375,7 @@ addHook('NetVars', function(n)
 		"matchLog",
 		"max_laps",
 		"max_elaps",
+		"highestlap",
 		"max_erings",
 		"ai_pizzaface",
 		"maxrankrequirement",

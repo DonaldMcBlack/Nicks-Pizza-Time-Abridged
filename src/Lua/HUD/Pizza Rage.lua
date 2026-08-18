@@ -38,7 +38,7 @@ return function(v)
 	local shakeX = v.RandomRange(-intensity, intensity)
 	local shakeY = v.RandomRange(-intensity, intensity)
 
-	local dec = L_FixedDecimal(PTV3.pizzaface.skindata.incremspeed, 2)
+	local dec = L_FixedDecimal(PTV3.pizzaface.speed, 2)
 
 	local patch = v.cachePatch("PIZZARAGE")
 

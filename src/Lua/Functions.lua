@@ -385,6 +385,7 @@ function PTV3:newLap(p, int)
 
 	if not int then return end
 	p.PTRound.laps = $+int
+	self.highestlap = $ < p.PTRound.laps and p.PTRound.laps or $
 
 	local raw_time = leveltime - PTV3.starttime_pizzatime
 
@@ -433,11 +434,6 @@ function PTV3:newLap(p, int)
 	end
 
 	if gametype ~= GT_PTV3DM then
-		-- Speed up Pizzaface
-		if self.pizzaface and self.pizzaface.angry then
-			self.pizzaface.skindata.incremspeed = $+(FU/(self.max_elaps - (self.max_elaps/2)))
-			self.pizzaface.skindata.incremspeedthreshold = max($-1, 0)
-		end
 		-- Spawn Pizzaface
 		if abs(p.PTRound.laps) >= 3 and not (self.pizzaface and self.pizzaface.valid) then
 			self.pftime = 0
