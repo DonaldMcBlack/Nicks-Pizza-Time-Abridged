@@ -102,13 +102,12 @@ local function getRandomPlayer(conditions)
 	return p
 end
 
--- Returns players in-game into individual counts. Alive, Chasers, Finished, Unfinished, Alive_2, and Total.
+-- Returns players in-game into individual counts. Alive, Chasers, Finished, Unfinished, and Total.
 function PTV3:playerCount()
 	if not PTV3:isPTV3(true) then return end
 	local total = {}
 	local alive = {}
-	local alive_2 = {}
-	local pizzafaces = {}
+	local chasers = {}
 	local finished = {}
 	local unfinished = {}
 
@@ -119,16 +118,11 @@ function PTV3:playerCount()
 			table.insert(total, p)
 		end
 		if p.PTRound.chaser then
-			table.insert(pizzafaces, p)
+			table.insert(chasers, p)
 			continue
 		end
-		if p.mo
-		and p.mo.valid
-		and not p.PTRound.specforce then -- not p.PTRound.swapModeFollower
+		if p.mo and p.mo.valid and p.mo.health then -- not p.PTRound.swapModeFollower
 			table.insert(alive, p)
-			if p.mo.health then
-				table.insert(alive_2, p)
-			end
 			if p.PTRound.fake_exit then
 				table.insert(finished, p)
 			else
@@ -137,7 +131,7 @@ function PTV3:playerCount()
 		end
 	end
 	
-	return alive, pizzafaces, finished, unfinished, alive_2, total
+	return alive, chasers, finished, unfinished, total
 end
 
 
@@ -250,7 +244,7 @@ end
 
 --- Can the game switch to Overtime?
 function PTV3:canOvertime()
-	local alive, pizzafaces, finished, unfinished, alive_2, total = PTV3:playerCount()
+	local alive, pizzafaces, finished, unfinished, total = PTV3:playerCount()
 	local normalLappers = {}
 	local extremeLappers = {}
 
@@ -528,16 +522,21 @@ end
 
 --- Applies a selected skin to a chaser. Returns skin data.
 ---@param chaser string
----@param skindata table
 ---@param selectedskin table
-function PTV3:ApplyChaserSkin(chaser, skindata, selectedskin)
+function PTV3:ApplyChaserSkin(chaser, selectedskin)
 	local default_struct = PTV3_SKINS[chaser][0]
+	local fresh_skin = {}
 
 	for i, v in pairs(default_struct) do
-		if skindata[i] ~= selectedskin[i] then skindata[i] = selectedskin[i] end
+		if fresh_skin[i] ~= selectedskin[i] then fresh_skin[i] = selectedskin[i] end
 	end
 
-	return skindata
+	if not fresh_skin then
+		error("Skin is null. Picking default skin.")
+		fresh_skin = PTV3_SKINS[chaser][0]
+	end
+
+	return fresh_skin
 end
 
 --- Starts either Pizza Time or Minus World given that int is defined, else defaults to Pizza Time. P is the player who triggered it.
@@ -584,7 +583,7 @@ function PTV3:startPizzaTime(p, int)
 	local time = string.format( "%02d:%02d", G_TicsToMinutes(leveltime), G_TicsToSeconds(leveltime) )
 	PTV3:logEvent(p.name.." has started "..event.." in "..time.."!", 1)
 
-	local alive, pizzafaces, finished, unfinished, alive_2, total = PTV3:playerCount()
+	local alive, pizzafaces, finished, unfinished, total = PTV3:playerCount()
 
 	if gametype ~= GT_PTV3DM
 	and multiplayer

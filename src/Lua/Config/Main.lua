@@ -1,30 +1,4 @@
-local function getNearestPlayer(pos, conditions)
-	local x,y,z,pl,pm
-
-	for p in players.iterate do
-		if not p.mo then continue end
-		if conditions and not conditions(p) then continue end
-		
-		local newx = abs(p.mo.x - pos.x)
-		local newy = abs(p.mo.y - pos.y)
-		local newz = abs(p.mo.z - pos.z)
-
-		if (x == nil
-		or y == nil
-		or z == nil)
-		or (newx < x
-		and newy < y
-		and newz < z) then
-			x = newx
-			y = newy
-			z = newz
-			pl = p
-			pm = p.mo
-		end
-	end
-
-	return pl, pm
-end
+local function followC(p) return p.mo.health and p.PTRound and not p.PTRound.chaser and not (p.PTRound.fake_exit) end
 
 rawset(_G, "PTV3_SKINS", {
 	pizzaface = {
@@ -32,10 +6,6 @@ rawset(_G, "PTV3_SKINS", {
 			display_name = { [-1] = "Protoface", [1] = "Pizzaface"},
 			name = "Pizzaface",
 			extreme_theme = "POTMAC",
-			states = { haywire = S_PTV3_PIZZAHAYWIRE, laughing = S_PTV3_PIZZALAUGHING, happy = S_PTV3_PIZZAHAPPY, normal = S_PTV3_PIZZAFACE, enraged = S_PTV3_PIZZAMAD },
-			laughsound = { [-1] = sfx_fplgh, [1] = sfx_pflgh },
-			movesound = { [-1] = sfx_promov, [1] = sfx_pizmov },
-			effect = "PF Afterimage",
 			can_haywire = true,
 			intspeed = 25,
 			incremspeed = FU,
@@ -50,15 +20,18 @@ rawset(_G, "PTV3_SKINS", {
 
 			current_icon = 1,
 
-			spawn = function(p, pf, pf_data)
-				S_StartSound(nil, pf_data.laughsound[PTV3.pizzatime < 0 and -1 or 1])
-				if not p then pf.state = PTV3.pizzatime > -1 and S_PTV3_PIZZALAUGHING or S_PTV3_PROTOFACE end
-				pf_data.current_icon = PTV3.pizzatime > -1 and 1 or -1
+			spawn = function(pf)
+				S_StartSound(nil, PTV3.pizzatime < 0 and sfx_fplgh or sfx_pflgh)
+				if not pf.tracer then pf.state = PTV3.pizzatime > -1 and S_PTV3_PIZZALAUGHING or S_PTV3_PROTOFACE end
 				local spawnmessage = PTV3.pizzatime < 0 and "Is that... Pizzaface?" or "Pizzaface is coming..."
 				print(spawnmessage)
 			end,
 
 			behaviour = function(pf)
+				if pf.cooldown then return end
+				pf.target = PTV3:getNearestPlayer(pf, followC)
+				if not pf.target then pf.momx, pf.momy, pf.momz = 0, 0, 0 return end
+
 				pf.angle = R_PointToAngle2(pf.x, pf.y, pf.target.x, pf.target.y)
 				pf.combinedspeed = not pf.brokentimer and (pf.skindata.intspeed*pf.skindata.incremspeed) or (pf.skindata.intspeed*pf.skindata.incremspeed)/2
 				pf.speed = pf.combinedspeed
@@ -129,6 +102,36 @@ rawset(_G, "PTV3_SKINS", {
 				end
 			end,
 
+			touch = function(pf, mo)
+				P_DamageMobj(mo, pf, pf, 999, DMG_INSTAKILL)
+
+				local alive = PTV3.playerCount and PTV3:playerCount()
+				print(#alive)
+
+				if #alive < 1 then
+					S_StartSound(nil, PTV3.pizzatime < 0 and sfx_fplgh or sfx_pflgh)
+					if not pf.tracer then pf.state = PTV3.pizzatime > -1 and S_PTV3_PIZZALAUGHING or S_PTV3_PROTOFACE end
+				end
+			end,
+
+			update = function(pf)
+				local movesound = PTV3.pizzatime > -1 and sfx_pizmov or sfx_promov
+				if not S_SoundPlaying(pf, movesound) then S_StartSound(pf, movesound) end
+
+				if not (leveltime % 8) then
+					if (pf.momx ~= 0 or pf.momy ~= 0 or pf.momz ~= 0) then
+						PTV3:doEffect(pf, "PF Afterimage")
+					end
+				end
+
+				if pf.cooldown then
+					pf.cooldown = max($-1, 0)
+					pf.frame = ($ & ~FF_TRANSMASK)|((pf.cooldown)/16<<FF_TRANSSHIFT)
+				end
+
+				pf.angry = (PTV3.extreme or PTV3.overtime) and PTV3.pizzatime > 0 or false
+			end,
+
 			active_ability = 0,
 			pizzaface_tpselection = 0,
 
@@ -153,7 +156,7 @@ rawset(_G, "PTV3_SKINS", {
 					action_behaviour = function(p, pf, pf_data)
 						-- CONS_Printf(p, "Ram")
 
-						local player = getNearestPlayer(p.mo, function(p2)
+						local player = PTV3:getNearestPlayer(p.mo, function(p2)
 							return p2
 							and p2.mo
 							and p2.mo.health
@@ -254,8 +257,6 @@ rawset(_G, "PTV3_SKINS", {
 			display_name = { [-1] = "Shade", [1] = "Snick" },
 			name = "Snick",
 			extreme_theme = nil,
-			states = { normal = S_PTV3_SNICK, lunge = S_PTV3_SNICK_LUNGE },
-			effect = "Snick Afterimage",
 			basespeed = 10*FU,
 
 			icons = {
@@ -266,7 +267,7 @@ rawset(_G, "PTV3_SKINS", {
 
 			current_icon = 1,
 
-			spawn = function(p, snick, snick_data)
+			spawn = function(snick)
 				local spawnmessage = PTV3.pizzatime < 0 and "Watch your back... And your front." or "Snick is here..."
 				print(spawnmessage)
 			end,
@@ -304,7 +305,16 @@ rawset(_G, "PTV3_SKINS", {
 				P_DamageMobj(pmo, snick, snick)
 			end,
 
+			update = function(snick)
+				if not (leveltime % 8) and (snick.momx ~= 0 or snick.momy ~= 0 or snick.momz ~= 0) and not PTV3.snick.PTRound then
+					PTV3:doEffect(snick, "Snick Afterimage")
+				end
+			end,
+
 			behaviour = function(snick)
+				snick.target = PTV3:getNearestPlayer(PTV3.spawn, followC)
+				if not snick.target then snick.momx, snick.momy, snick.momz = 0, 0, 0 return end
+
 				local dist = P_AproxDistance(snick.x - snick.target.x, snick.y - snick.target.y)
 				local speedup = PTV3.pizzatime > -1 and 650*FU or 1000*FU
 				snick.angle = R_PointToAngle2(snick.x, snick.y, snick.target.x, snick.target.y)
@@ -340,10 +350,7 @@ rawset(_G, "PTV3_SKINS", {
 					end
 					
 				else
-					if not snick.speed then snick.speed = snick.skindata.basespeed
-					else
-						snick.speed = ease.linear(FU/32, snick.speed, 10*FU)
-					end
+					snick.speed = (not snick.speed) and snick.skindata.basespeed or ease.linear(FU/32, snick.speed, 10*FU)
 					if snick.state ~= normalstate then snick.state = normalstate end
 				end
 				
@@ -437,9 +444,6 @@ rawset(_G, "PTV3_SKINS", {
 			display_name = { [-1] = "Jonathan", [1] = "John"},
 			name = "John",
 			extreme_theme = nil,
-			states = { normal = S_PTV3_JOHNGHOST, minus_normal = S_PTV3_JONATHANPHANTOM },
-			ambient_sfx = { [1] = sfx_jghtsp, [-1] = sfx_jphmsp },
-			effect = nil,
 			basespeed = 5*FU,
 			touch_cooldown = 0, -- 5*FU
 
@@ -451,8 +455,9 @@ rawset(_G, "PTV3_SKINS", {
 
 			current_icon = 1,
 
-			spawn = function(p, john, john_data)
+			spawn = function(john)
 				-- john_data.touch_cooldown = TICRATE
+				john.state = PTV3.pizzatime < 0 and S_PTV3_JONATHANPHANTOM or S_PTV3_JOHNGHOST
 				local spawnmessage = PTV3.pizzatime < 0 and "FEAR THE PHANTOM" or "John's ghost wants vengeance..."
 				print(spawnmessage)
 			end,
@@ -475,13 +480,17 @@ rawset(_G, "PTV3_SKINS", {
 				john.skindata.touch_cooldown = TICRATE
 			end,
 
-			behaviour = function(john)
-				john.frame = ($ & ~FF_TRANSMASK)|((john.skindata.touch_cooldown/FU)/6<<FF_TRANSSHIFT)
+			update = function(john)
+				local ambientsound = PTV3.pizzatime < 0 and sfx_jphmsp or sfx_jghtsp
+				if not S_SoundPlaying(john, ambientsound) then S_StartSound(john, ambientsound) end
 
 				john.skindata.current_icon = PTV3.pizzatime < 0 and -1 or 1
-				john.ambience = john.skindata.ambient_sfx[PTV3.pizzatime or 1]
+			end,
 
-				if not S_SoundPlaying(john, john.ambience) then S_StartSound(john, john.ambience) end
+			behaviour = function(john)
+				john.target = PTV3:getNearestPlayer(PTV3.spawn, followC)
+				if not john.target then john.momx, john.momy, john.momz = 0, 0, 0 return end
+				john.frame = ($ & ~FF_TRANSMASK)|((john.skindata.touch_cooldown/FU)/6<<FF_TRANSSHIFT)
 
 				if john.skindata.touch_cooldown then
 					john.skindata.touch_cooldown = max($-1, 0)

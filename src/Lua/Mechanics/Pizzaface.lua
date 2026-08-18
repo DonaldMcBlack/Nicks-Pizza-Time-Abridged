@@ -1,5 +1,3 @@
-local function followC(p) return p.mo.health and p.PTRound and not p.PTRound.chaser and not (p.PTRound.fake_exit) end
-
 addHook('MobjSpawn', function(pf)
 	pf.destscale = (FU/2)*5/4
 	pf.scale = (FU/2)*5/4
@@ -7,6 +5,7 @@ addHook('MobjSpawn', function(pf)
 	pf.spriteyscale = $*2
 	pf.shadowscale = pf.scale*3
 	pf.cooldown = 3*TICRATE
+	pf.brokentimer = -1
 
 	pf.skindata = {}
 end, MT_PTV3_PIZZAFACE)
@@ -16,60 +15,30 @@ addHook('MobjDamage', function(t,i,s)   return true end, MT_PTV3_PIZZAFACE)
 addHook('MobjRemoved', function(t,i,s)  return true end, MT_PTV3_PIZZAFACE)
 addHook('MobjDeath', function(t,i,s)    return true end, MT_PTV3_PIZZAFACE)
 
-local function ProcessSkindata(pf)
-	local skindata = pf.player and pf.player.PTRound.pizzaMobj_skindata or pf.skindata
-	if not S_SoundPlaying(pf, skindata.movesound[(PTV3.pizzatime or 1)]) then S_StartSound(pf, skindata.movesound[(PTV3.pizzatime or 1)]) end
-
-	if not (leveltime % 8) then
-		if (pf.momx ~= 0 or pf.momy ~= 0 or pf.momz ~= 0) then
-			if pf.player then
-				PTV3:doEffect(pf.player.PTRound.pizzaMobj, skindata.effect)
-			else
-				PTV3:doEffect(pf, skindata.effect)
-			end
-		end
-	end
-end
-
 addHook('MobjThinker', function(pf)
-	local runCode = true
 	local player = (pf.tracer and pf.tracer.valid) and pf.tracer or nil
-
-	if pf.cooldown then
-		pf.cooldown = max($-1, 0)
-		pf.frame = ($ & ~FF_TRANSMASK)|((pf.cooldown)/16<<FF_TRANSSHIFT)
-		runCode = false
-	end
+	local noAI = player and true or false
 
 	if player then
 		pf.momx,pf.momy,pf.momz = player.momx, player.momy, player.momz
-		runCode = false
 	elseif not (PTV3.pizzaface and PTV3.pizzaface.valid) then
 		PTV3.pizzaface = pf
 	end
 
-	ProcessSkindata(player or pf)
-	pf.angry = (PTV3.extreme or PTV3.overtime) and PTV3.pizzatime > 0 or false
+	pf.skindata.update(pf)
+	pf.brokentimer = max($-1, 0)
 
-	if not runCode then return end
-
-	pf.target = PTV3:getNearestPlayer(pf, followC)
-	if pf.target then
-		pf.skindata.behaviour(pf)
-	else
-		pf.momx, pf.momy, pf.momz = 0, 0, 0
-	end
-
-	if pf.brokentimer then pf.brokentimer = $-1 end
+	if noAI then return end
+	pf.skindata.behaviour(pf)
 end, MT_PTV3_PIZZAFACE)
 
 local function PFTouchSpecial(pf, pmo)
 	if pf.cooldown then return end
 	if pf.tracer == pmo then return end
-	
+
 	local victim = pmo.player
-	
 	local src = pf
+
 	if pf.tracer and pf.tracer.valid then
 		src = pf.tracer
 		local p = pf.tracer.player
@@ -78,15 +47,13 @@ local function PFTouchSpecial(pf, pmo)
 			return
 		end
 	end
-	
-	if victim.powers[pw_invulnerability]
-	or (victim.PTRound and (victim.PTRound.fake_exit or victim.PTRound.chaser)) then
+
+	if victim.powers[pw_invulnerability] or (victim.PTRound and (victim.PTRound.fake_exit or victim.PTRound.chaser)) then
 		return
 	end
-	
+
 	if PTV3.callbacks("PizzafaceKill", pf, pmo) then return end
-	
-	P_DamageMobj(pmo, src, src, 999, DMG_INSTAKILL)
+	pf.skindata.touch(src, pmo)
 end
 
 addHook('TouchSpecial', function(pf, pmo)
@@ -98,7 +65,7 @@ end, MT_PTV3_PIZZAFACE)
 function PTV3:pizzafaceSpawn(skin)
 	local canSpawnAI = not (self.pizzaface and self.pizzaface.PTRound)
 
-	local alive, pizzafaces, finished, unfinished, alive_2, total = PTV3:playerCount()
+	local alive, pizzafaces, finished, unfinished, total = PTV3:playerCount()
 	local pos = {}
 	local start_or_end = self.pizzatime < 0 and self.spawn or self.endpos
 	local pf = nil
@@ -108,16 +75,14 @@ function PTV3:pizzafaceSpawn(skin)
 		if self.pizzaface and self.pizzaface.valid then return end
 		local randomplayer = players[P_RandomRange(0, #alive-1)].mo
 
-		if not randomplayer then
-			pos = start_or_end
-		else
-			pos = gametype == GT_PTV3DM and self.spawn or randomplayer
-		end
-
+		pos = not randomplayer and start_or_end or gametype == GT_PTV3DM and self.spawn or randomplayer
 		self.pizzaface = P_SpawnMobj(pos.x, pos.y, pos.z, MT_PTV3_PIZZAFACE)
 	else
 		if self.pizzaface.PTRound and self.pizzaface.PTRound.pizzaMobj and self.pizzaface.PTRound.pizzaMobj.valid then return end
+
 		pf = P_SpawnMobj(self.pizzaface.mo.x, self.pizzaface.mo.y, self.pizzaface.mo.z, MT_PTV3_PIZZAFACE)
+		pf.tracer = self.pizzaface.mo
+		self.pizzaface.PTRound.pizzaMobj = pf
 	end
 
 	if skin then
@@ -126,25 +91,17 @@ function PTV3:pizzafaceSpawn(skin)
 		end
 	end
 
-	skindata = PTV3:ApplyChaserSkin("pizzaface", self.pizzaface.PTRound == nil and self.pizzaface.skindata or self.pizzaface.PTRound.pizzaMobj_skindata, skin ~= nil and skin or PTV3_SKINS.pizzaface[self.skinIndex.pizzaface])
-
-	if not skindata then
-		error("Skin is null. Picking default skin.")
-		self.pizzaface.skindata = PTV3_SKINS.pizzaface[0]
-		skindata = PTV3_SKINS.pizzaface[0]
-	end
+	skindata = PTV3:ApplyChaserSkin("pizzaface", skin ~= nil and skin or PTV3_SKINS.pizzaface[self.skinIndex.pizzaface])
 
 	if self.pizzaface.PTRound then
-		pf.state = self.pizzaface.PTRound.pizzaMobj_skindata.states.normal
-		pf.tracer = self.pizzaface.mo
-		self.pizzaface.PTRound.pizzaMobj = pf
+		self.pizzaface.PTRound.pizzaMobj_skindata = skindata
+	else
+		self.pizzaface.skindata = skindata
 	end
 
-	if skindata.spawn then
-		skindata.spawn(self.pizzaface.PTRound ~= nil and self.pizzaface or nil, self.pizzaface.PTRound ~= nil and self.pizzaface.PTRound.pizzaMobj or self.pizzaface, skindata)
-	else
-		self.pizzaface.state = gametype == GT_PTV3DM and self.pizzaface.skindata.states.happy or self.pizzaface.skindata.states.laughing
-	end
+	pf = self.pizzaface.PTRound and self.pizzaface.PTRound.pizzaMobj or self.pizzaface
+
+	skindata.spawn(pf)
 
 	table.insert(self.currentchasers, self.pizzaface)
 end

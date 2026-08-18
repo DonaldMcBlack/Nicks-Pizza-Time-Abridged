@@ -98,7 +98,7 @@ local function RoundThinker()
 		PTV3.pftime = max(0, $-1)
 	end
 
-	local alive, pizzafaces, finished, unfinished, alive_2, total = PTV3:playerCount()
+	local alive, pizzafaces, finished, unfinished, total = PTV3:playerCount()
 
 	if (PTV3.pizzaface or PTV3.snick)
 	and multiplayer
