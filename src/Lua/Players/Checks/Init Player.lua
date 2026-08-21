@@ -108,7 +108,6 @@ end
 function PTV3:InitPlayerRound(p)
 	-- local isSwap = player.ptv3 and player.ptv3.isSwap
 	-- local swapModeFollower = player.ptv3 and player.ptv3.swapModeFollower
-
 	p.PTRound = {
 		laps = 0,
 
@@ -146,6 +145,7 @@ function PTV3:InitPlayerRound(p)
 
 		exitShield = SH_NONE,
 		pvpCooldown = 0,
+		freeflow = 0,
 		
 		movementData = {},
 		lastTeleportDest = nil,

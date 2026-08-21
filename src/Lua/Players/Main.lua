@@ -68,6 +68,23 @@ local function runCode(p)
 
 	itemequip(p)
 
+	p.PTRound.freeflow = p.speed > p.normalspeed/2 and min($+1, 10*TICRATE) or max($-1, 0)
+
+	if p.PTRound.freeflow == 9*TICRATE and p.speed > p.normalspeed/2 then S_StartSound(p.mo, sfx_spin) end
+
+	if p.PTRound.freeflow > 9*TICRATE then
+		local circle = P_SpawnMobjFromMobj(p.mo, 0, 0, p.mo.scale * p.mo.height/2, MT_THOK)
+		circle.fuse = 7
+		circle.scale = p.mo.scale
+		circle.destscale = FU/5
+		circle.colorized = true
+		circle.color = p.mo.color
+		circle.momx = -p.mo.momx / 2
+		circle.momy = -p.mo.momy / 2
+	elseif p.speed < p.normalspeed/2 then
+		p.PTRound.freeflow = 0
+	end
+
 	if p.powers[pw_super] and not (leveltime % TICRATE) and not (p.mo.state >= S_PLAY_SUPER_TRANS1) and (p.mo.state <= S_PLAY_SUPER_TRANS6) then P_GivePlayerRings(p, 1) end
 
 	if skins[p.mo.skin].flags & SF_SUPER then
@@ -179,7 +196,8 @@ addHook("MobjDeath", function(t,i,s)
 	-- t.player.PTRound.swapModeFollower = nil
 end, MT_PLAYER)
 
--- addHook("MobjDeath", function(t,i,s)
--- 	if not PTV3:isPTV3() then return end
-	
--- end, MT_NULL)
+addHook("PlayerCanDamage", function(p, mo)
+	if not PTV3:isPTV3() then return end
+
+	if p.PTRound.freeflow > 9*TICRATE then return true end
+end)

@@ -344,7 +344,7 @@ rawset(_G, "PTV3_SKINS", {
 							particle.destscale = 0
 							i = $+1
 						end
-						S_StartSound(nil, sfx_cdfm74, snick.target)
+						S_StartSound(nil, sfx_cdfm74, snick.target.player)
 						local case = P_RandomRange(1, 4)
 						if case == 1 then
 							P_SetOrigin(snick, snick.target.x - 1000*FU, snick.target.y, 0)
