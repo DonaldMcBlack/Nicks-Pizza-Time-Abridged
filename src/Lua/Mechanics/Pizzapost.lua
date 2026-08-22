@@ -59,6 +59,12 @@ local function PizzaPostActivate(post, mo)
 
     p.PTRound.pizzapost_id = post
     post.state = S_PTV3_PIZZAPOST_EXTEND
+
+    if PTV3.pizzatime < 0 and PTV3.overtime_time then
+        PTV3.overtime_time = PTV3.maxottime
+        PTV3.overtime_elapser = 0
+        S_StartSound(nil, sfx_static)
+    end
     S_StartSound(post, sfx_pizpst)
 end
 

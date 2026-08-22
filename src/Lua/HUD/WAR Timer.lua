@@ -22,17 +22,29 @@ return function(v)
 
 	-- war timer
 	if not time or time > PTV3.overtime_time then time = PTV3.overtime_time end
-
+	local patchname = PTV3.pizzatime < 0 and "MARIDLE" or "WARRED"
 	local timer_colour = SKINCOLOR_RED
-	local timer = v.cachePatch("WARALAR1")
 
-	if time < PTV3.overtime_time then
-		time = min($+24, PTV3.overtime_time) or $
-		timer_colour = SKINCOLOR_GREEN
-		timer = v.cachePatch("WARALAR2")
+	if time <= 10*TICRATE then
+		patchname = (PTV3.pizzatime < 0 and "MARPANIC" or "WARPANIC") + leveltime % 3
 	end
-	local tweenTime = PTV3.HUD_returnTime(PTV3.wartimerStart, TICRATE, TICRATE, true)
+
+	if PTV3.pizzatime < 0 then
+		if time < PTV3.overtime_time then
+			time = min($+72, PTV3.overtime_time) or $
+			patchname = "MARADD" + leveltime % 3
+		end
+	else
+		if time < PTV3.overtime_time then
+			time = min($+24, PTV3.overtime_time) or $
+			timer_colour = SKINCOLOR_GREEN
+			patchname = "WARGREEN"
+		end
+	end
 	
+
+	local timer = v.cachePatch(patchname)
+	local tweenTime = PTV3.HUD_returnTime(PTV3.wartimerStart, TICRATE, TICRATE, true)
 
 	local scale = FU/3
 	local tweenY = ease.linear(tweenTime, 0, -timer.height*scale)
@@ -54,17 +66,26 @@ return function(v)
 
 	v.drawScaled(x, y, scale, timer, V_SNAPTOBOTTOM)
 
-	-- text
+	if PTV3.pizzatime < 0 and time < PTV3.overtime_time then return end
 
-	local text = ("%02d %02d"):format(
-		G_TicsToMinutes(time),
-		G_TicsToSeconds(time)
-	)
+	-- text
+	local text = PTV3.pizzatime < 0 and ("%02d %02d"):format(G_TicsToSeconds(time), G_TicsToCentiseconds(time)) or ("%02d %02d"):format(G_TicsToMinutes(time), G_TicsToSeconds(time))
+
+	local font = PTV3.pizzatime < 0 and "MARFN" or "WARFN"
+
+	if PTV3.pizzatime < 0 then
+		local shakePerc = (PTV3.overtime_elapser/TICRATE)*FU/2
+
+		if time > 0 then
+			x = $+v.RandomRange(-shakePerc, shakePerc)
+			y = $+v.RandomRange(-shakePerc, shakePerc)
+		end
+	end
 
 	customhud.CustomFontString(v,
-		x+(100*scale), y+(50*scale),
+		x+(100*scale), y+(65*scale),
 		text,
-		"WARFN",
+		font,
 		V_SNAPTOBOTTOM,
 		"left",
 		scale,

@@ -83,10 +83,13 @@ local function RoundThinker()
 		end
 
 		if PTV3.wartimer then
-			PTV3.overtime_time = max(0, $-1)
-			if PTV3.overtime_time
-			and not (PTV3.overtime_time % TICRATE) then
-				S_StartSoundAtVolume(nil, sfx_wartim, 255/3)
+			PTV3.overtime_time = max(0, $-(PTV3.overtime_elapser/TICRATE))
+
+			if PTV3.overtime_time then
+				if not (PTV3.overtime_time % TICRATE) then
+					S_StartSoundAtVolume(nil, sfx_wartim, 255/3)
+					PTV3.overtime_elapser = PTV3.pizzatime < 0 and min($+10, 3*TICRATE) or TICRATE
+				end
 			end
 
 			if PTV3.overtime_time == 0

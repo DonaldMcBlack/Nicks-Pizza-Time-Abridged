@@ -448,8 +448,14 @@ function PTV3:newLap(p, int)
 				self.wartimer = true
 				self.wartimerStart = leveltime
 			elseif self.wartimer and not multiplayer then
-				self.overtime_time = $+self.maxottime
-				S_StartSound(nil, sfx_wartup, p)
+				if PTV3.pizzatime < 0 then
+					PTV3.overtime_time = PTV3.maxottime
+					PTV3.overtime_elapser = 0
+					S_StartSound(nil, sfx_static)
+				else
+					self.overtime_time = $+self.maxottime
+					S_StartSound(nil, sfx_wartup, p)
+				end
 			end
 		end
 
@@ -552,6 +558,9 @@ function PTV3:startPizzaTime(p, int)
 			P_SetOrigin(PTV3.spawnGate, PTV3.endpos.x, PTV3.endpos.y, PTV3.endpos.z)
 			PTV3.spawnGate.angle = PTV3.endpos.angle
 		end
+
+		PTV3.overtime_time = mapheaderinfo[gamemap].ptv3_msecs ~= nil and (tonumber(mapheaderinfo[gamemap].ptv3_msecs)*TICRATE) or $/2
+		PTV3.maxottime = PTV3.overtime_time
 
 		S_StartSound(nil, sfx_s3k9f)
 	end

@@ -9,6 +9,7 @@ sfxinfo[freeslot "sfx_wartim"].caption = "Beep!"
 sfxinfo[freeslot "sfx_wartup"].caption = "Beepeepbeepeep!"
 sfxinfo[freeslot "sfx_timexp"].caption = "BOOM!"
 sfxinfo[freeslot "sfx_doorsh"].caption = "SLAM!"
+sfxinfo[freeslot "sfx_static"].caption = "Static"
 
 states[freeslot "S_PTV3_PANIC"] = {
 	sprite = SPR_PLAY,

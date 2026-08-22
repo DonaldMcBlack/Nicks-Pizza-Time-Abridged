@@ -276,6 +276,7 @@ PTV3.synced_variables = {
 	['__fadedmus'] = false,
 	['overtime_time'] = TICRATE,
 	['maxottime'] = 60*TICRATE,
+	['overtime_elapser'] = 1,
 	['secret_count'] = 0,
  	['game_over'] = (21*TICRATE)-10, --- 200
 	['ranktransitiontime'] = 15*TICRATE,
@@ -365,6 +366,7 @@ addHook('NetVars', function(n)
 		"__fadedmus",
 		"overtime_time",
 		"maxottime",
+		"overtime_elapser",
 		"secrets",
 		"secret_count",
 		"pizzafacetps",
