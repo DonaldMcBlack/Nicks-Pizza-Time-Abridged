@@ -143,8 +143,6 @@ local oppositefaces = {
 }
 
 PTV3.setJohnBlocks = function()
-	if mapheaderinfo[gamemap].ptv3_nofofflip ~= nil then return end
-
 	-- TODO: Don't hardcode this for just the John Block textures
 	for sec in sectors.iterate do
 		for rover in sec.ffloors() do
@@ -166,8 +164,6 @@ PTV3.setJohnBlocks = function()
 end
 
 PTV3.switchJohnBlocks = function()
-	if mapheaderinfo[gamemap].ptv3_nofofflip ~= nil then return end
-	
 	for sec in sectors.iterate do
 		for rover in sec.ffloors() do
 			if not rover.valid then continue end
@@ -312,18 +308,20 @@ end
 ---@param p player_t
 function PTV3:extremeToggle(p)
 	p.PTRound.extreme = true
-	if not self.extreme then
-		self.extreme = true
+	if self.extreme then return end
+	self.extreme = true
 
-		P_SetSkyboxMobj(nil, false)
-		P_SetupLevelSky(1029)
-		S_StartSound(nil, P_RandomRange(41,43))
-		P_FlashPal(consoleplayer, 1, 15)
+	local triggertag = mapheaderinfo[gamemap].ptv3_extreme_triggertag
+	if triggertag and tonumber(triggertag) then P_LinedefExecute(tonumber(triggertag)) end
 
-		if globalweather ~= (1 or 5) then
-			P_SwitchWeather(5)
-		elseif globalweather == 6 then P_SwitchWeather(1) end
-	end
+	P_SetSkyboxMobj(nil, false)
+	P_SetupLevelSky(1029)
+	S_StartSound(nil, P_RandomRange(41,43))
+	P_FlashPal(consoleplayer, 1, 15)
+
+	if globalweather ~= (1 or 5) then
+		P_SwitchWeather(5)
+	elseif globalweather == 6 then P_SwitchWeather(1) end
 end
 
 --- Enters Overtime.
@@ -339,16 +337,18 @@ function PTV3:overtimeToggle()
 
 	S_StartSound(nil, sfx_timexp)
 
-	if not (PTV3.snick) then
-		PTV3:snickSpawn()
-	end
+	if not PTV3.snick then PTV3:snickSpawn() end
 
-	if consoleplayer
-	and consoleplayer.PTRound
-	and not consoleplayer.PTRound.insecret then
+	local p = consoleplayer
+
+	if p and p.PTRound and not p.PTRound.insecret then
 		P_SetSkyboxMobj(nil,false)
 		P_SetupLevelSky(9)
 	end
+
+	local triggertag = mapheaderinfo[gamemap].ptv3_overtime_triggertag
+
+	if triggertag and tonumber(triggertag) then P_LinedefExecute(tonumber(triggertag)) end
 
 	PTV3.callbacks("OvertimeStart")
 end
@@ -416,7 +416,7 @@ function PTV3:newLap(p, int)
 	end
 
 	-- For the quakes
-	if (PTV3.pizzatime < 0 or PTV3.extreme) then PTV3.shakeintensity = min(abs(p.PTRound.laps), 10) end
+	if (PTV3.pizzatime ~= 0 or PTV3.extreme) then PTV3.shakeintensity = min(abs(p.PTRound.laps), 10) end
 
 	p.PTRound.lap_time = leveltime
 	p.powers[pw_invulnerability] = 5*TICRATE
@@ -551,6 +551,7 @@ function PTV3:startPizzaTime(p, int)
 	self.starttime_pizzatime = leveltime
 
 	local callback_string = self.pizzatime < 0 and 'MinusWorld' or 'PizzaTime'
+	local triggertag = 0
 	PTV3.shakeintensity = 4
 
 	if self.pizzatime < 0 then
@@ -561,9 +562,14 @@ function PTV3:startPizzaTime(p, int)
 
 		PTV3.overtime_time = mapheaderinfo[gamemap].ptv3_msecs ~= nil and (tonumber(mapheaderinfo[gamemap].ptv3_msecs)*TICRATE) or $/2
 		PTV3.maxottime = PTV3.overtime_time
+		triggertag = mapheaderinfo[gamemap].ptv3_minusworld_triggertag
 
 		S_StartSound(nil, sfx_s3k9f)
+	else
+		triggertag = mapheaderinfo[gamemap].ptv3_pizzatime_triggertag
 	end
+
+	if triggertag and tonumber(triggertag) then P_LinedefExecute(tonumber(triggertag)) end
 
 	for player in players.iterate do
 		if not player.mo and not player.PTRound then continue end
