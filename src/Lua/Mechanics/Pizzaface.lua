@@ -43,7 +43,7 @@ local function PFTouchSpecial(pf, pmo)
 		src = pf.tracer
 		local p = pf.tracer.player
 
-		if p.PTRound and (p.PTRound.camper or p.PTRound.stun) then
+		if p and p.valid and p.PTRound and (p.PTRound.camper or p.PTRound.stun) then
 			return
 		end
 	end
@@ -73,7 +73,7 @@ function PTV3:pizzafaceSpawn(skin)
 
 	if canSpawnAI then
 		if self.pizzaface and self.pizzaface.valid then return end
-		local randomplayer = players[P_RandomRange(0, #alive-1)].mo
+		local randomplayer = alive[P_RandomRange(1, #alive)].mo --players[P_RandomRange(0, #alive-1)].mo
 
 		pos = not randomplayer and start_or_end or gametype == GT_PTV3DM and self.spawn or randomplayer
 		self.pizzaface = P_SpawnMobj(pos.x, pos.y, pos.z, MT_PTV3_PIZZAFACE)

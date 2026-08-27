@@ -4,6 +4,5 @@ addHook('MobjDamage', function(mo, enemy)
 
 	mo.player.score = max($-250, 0)
 
-	if enemy.valid and enemy.type ~= MT_PTV3_PIZZAFACE 
-	and not mo.player.rings then P_DoPlayerPain(mo.player) return true end
+	if not mo.player.rings then P_DoPlayerPain(mo.player) return true end
 end, MT_PLAYER)

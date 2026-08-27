@@ -23,7 +23,7 @@ addHook("MapThingSpawn", function(mo, mt)
 		local data = mapheaderinfo[map]
 	
 		if data
-		and data.typeoflevel & TOL_COOP
+		and data.typeoflevel & TOL_PTV3
 		and data.bonustype <= 0 then
 			table.insert(foundMaps, map)
 		end
@@ -56,7 +56,11 @@ addHook("MobjThinker", function(mo)
 		if foundmobj and foundmobj.valid and foundmobj.player then
 			local p = foundmobj.player
 
-			if p.PTGlobal.forwardmove == 1 then
+			if p.mo.z < mo.z or p.mo.z > mo.z+mo.height then return end
+
+			local forwardmove = p.PTGlobal.forwardmove
+
+			if forwardmove == 50 and forwardmove ~= p.PTGlobal.lastforwardmove then
 				if multiplayer then
 					if p.PTRound.gate_vote then
 						p.PTRound.gate_vote.votes = $-1

@@ -74,20 +74,16 @@ local function endSector(t)
 end
 
 local function PrepareTimer(minutes, seconds)
-	if not seconds then return end
 
 	local timer = 0
 
-	timer = seconds*TICRATE
+	timer = seconds and seconds*TICRATE or 0
 
-	if not minutes then return end
-
-	timer = $+minutes*TICRATE*60
+	timer = minutes and $+minutes*TICRATE*60 or 0
 
 	return timer
 end
 
-local chasers = { "pizzaface", "snick", "johnGhost"}
 addHook('MapLoad', function(map)
 	if titlemapinaction then return end
 	PTV3:init()
@@ -108,23 +104,30 @@ addHook('MapLoad', function(map)
 	print("There are... "..PTV3.secret_count.." secrets.")
 	print("Level Gates: "..#PTV3_HUB.gates)
 
-	local alive, pizzafaces, total = PTV3.playerCount and PTV3:playerCount()
+	for player in players.iterate do
+		PTV3:InitPlayerChecks(player, true)
+	end
 
-	PTV3.time = PrepareTimer(mapheaderinfo[map].ptv3_pt_mins ~= nil and tonumber(mapheaderinfo[map].ptv3_pt_mins) or CV_PTV3['time'].value, mapheaderinfo[map].ptv3_pt_secs ~= nil and tonumber(mapheaderinfo[map].ptv3_pt_secs) or 1)
-	PTV3.overtime_time = PrepareTimer(mapheaderinfo[map].ptv3_ot_mins ~= nil and tonumber(mapheaderinfo[map].ptv3_ot_mins) or 1, mapheaderinfo[map].ptv3_ot_secs ~= nil and tonumber(mapheaderinfo[map].ptv3_ot_secs) or 0)
+	local minutes = mapheaderinfo[map].ptv3_pt_mins ~= nil and tonumber(mapheaderinfo[map].ptv3_pt_mins) or CV_PTV3['time'].value
+	local seconds = mapheaderinfo[map].ptv3_pt_secs ~= nil and tonumber(mapheaderinfo[map].ptv3_pt_secs) or 1
+	PTV3.time = PrepareTimer(minutes, seconds)
+
+	minutes = mapheaderinfo[map].ptv3_ot_mins ~= nil and tonumber(mapheaderinfo[map].ptv3_ot_mins) or 1
+	seconds = mapheaderinfo[map].ptv3_ot_secs ~= nil and tonumber(mapheaderinfo[map].ptv3_ot_secs) or 0
+	PTV3.overtime_time = PrepareTimer(minutes, seconds)
 
 	PTV3.maxtime = PTV3.time
 	PTV3.maxottime = PTV3.overtime_time
 	PTV3.pftime = 30*TICRATE
 	PTV3.maxpftime = PTV3.pftime
 	
-	PTV3.skinIndex.pizzaface = P_RandomRange(0, #PTV3_SKINS.pizzaface)
-	PTV3.skinIndex.snick = P_RandomRange(0, #PTV3_SKINS.snick)
-	PTV3.skinIndex.johnGhost = P_RandomRange(0, #PTV3_SKINS.johnGhost)
+	-- PTV3.skinIndex.pizzaface = P_RandomRange(0, #PTV3_SKINS.pizzaface)
+	-- PTV3.skinIndex.snick = P_RandomRange(0, #PTV3_SKINS.snick)
+	-- PTV3.skinIndex.johnGhost = P_RandomRange(0, #PTV3_SKINS.johnGhost)
 
-	CONS_Printf(consoleplayer, "Pizzaface is... "..PTV3_SKINS.pizzaface[PTV3.skinIndex.pizzaface].name)
-	CONS_Printf(consoleplayer, "Snick is... "..PTV3_SKINS.snick[PTV3.skinIndex.snick].name)
-	CONS_Printf(consoleplayer, "John is... "..PTV3_SKINS.johnGhost[PTV3.skinIndex.johnGhost].name)
+	-- print("Pizzaface is... "..PTV3_SKINS.pizzaface[PTV3.skinIndex.pizzaface].name)
+	-- print("Snick is... "..PTV3_SKINS.snick[PTV3.skinIndex.snick].name)
+	-- print("John is... "..PTV3_SKINS.johnGhost[PTV3.skinIndex.johnGhost].name)
 end)
 
 addHook('MapChange', function()

@@ -526,17 +526,11 @@ end
 ---@param chaser string
 ---@param selectedskin table
 function PTV3:ApplyChaserSkin(chaser, selectedskin)
-	local default_struct = PTV3_SKINS[chaser][0]
-	local fresh_skin = {}
-
-	for i, v in pairs(default_struct) do
-		if fresh_skin[i] ~= selectedskin[i] then fresh_skin[i] = selectedskin[i] end
-	end
-
-	if not fresh_skin then
+	if not selectedskin then
 		error("Skin is null. Picking default skin.")
-		fresh_skin = PTV3_SKINS[chaser][0]
+		selectedskin = PTV3_SKINS[chaser][0]
 	end
+	local fresh_skin = setmetatable({}, selectedskin)
 
 	return fresh_skin
 end
@@ -594,36 +588,36 @@ function PTV3:startPizzaTime(p, int)
 	local time = string.format( "%02d:%02d", G_TicsToMinutes(leveltime), G_TicsToSeconds(leveltime) )
 	PTV3:logEvent(p.name.." has started "..event.." in "..time.."!", 1)
 
-	local alive, pizzafaces, finished, unfinished, total = PTV3:playerCount()
+	-- local alive, pizzafaces, finished, unfinished, total = PTV3:playerCount()
 
-	if gametype ~= GT_PTV3DM
-	and multiplayer
-	and #total > 1 then
-		local pfp = getRandomPlayer(function(rp)
-			return rp.PTRound
-			and rp ~= p
-			and rp.PTRound.swapModeFollower ~= p.mo
-		end)
+	-- if gametype ~= GT_PTV3DM
+	-- and multiplayer
+	-- and #total > 1 then
+	-- 	local pfp = getRandomPlayer(function(rp)
+	-- 		return rp.PTRound
+	-- 		and rp ~= p
+	-- 		and rp.PTRound.swapModeFollower ~= p.mo
+	-- 	end)
 		
-		pfp.PTRound.chaser = true
-		pfp.PTRound.chasertype = "pizzaface"
-		pfp.powers[pw_shield] = SH_NONE
-		pfp.powers[pw_invulnerability] = 0
-		-- if pfp.PTRound.isSwap then
-		-- 	if pfp.PTRound.swapModeFollower
-		-- 	and pfp.PTRound.swapModeFollower.valid then
-		-- 		local mo = pfp.PTRound.swapModeFollower
-		-- 		mo.player.PTRound.swapModeFollower = nil
-		-- 		mo.player.PTRound.isSwap = false
-		-- 	end
-		-- 	pfp.PTRound.swapModeFollower = nil
-		-- 	pfp.PTRound.isSwap = false
-		-- end
-		if pfp.PTRound.insecret then
-			PTV3:exitSecret(pfp)
-		end
-		PTV3:logEvent(pfp.name.." is Pizzaface for this round.", 1)
-	end
+	-- 	pfp.PTRound.chaser = true
+	-- 	pfp.PTRound.chasertype = "pizzaface"
+	-- 	pfp.powers[pw_shield] = SH_NONE
+	-- 	pfp.powers[pw_invulnerability] = 0
+	-- 	-- if pfp.PTRound.isSwap then
+	-- 	-- 	if pfp.PTRound.swapModeFollower
+	-- 	-- 	and pfp.PTRound.swapModeFollower.valid then
+	-- 	-- 		local mo = pfp.PTRound.swapModeFollower
+	-- 	-- 		mo.player.PTRound.swapModeFollower = nil
+	-- 	-- 		mo.player.PTRound.isSwap = false
+	-- 	-- 	end
+	-- 	-- 	pfp.PTRound.swapModeFollower = nil
+	-- 	-- 	pfp.PTRound.isSwap = false
+	-- 	-- end
+	-- 	if pfp.PTRound.insecret then
+	-- 		PTV3:exitSecret(pfp)
+	-- 	end
+	-- 	PTV3:logEvent(pfp.name.." is Pizzaface for this round.", 1)
+	-- end
 
 	PTV3.switchJohnBlocks()
 	PTV3.callbacks(callback_string, p)

@@ -70,13 +70,9 @@
 --- @field PTRound PTV3PlayerRound_t?
 
 ---@param p player_t
-function PTV3:InitPlayerChecks(p)
-	if not p.PTGlobal then
-		PTV3:InitPlayerGlobal(p)
-	end
-
-	PTV3:InitPlayerRound(p)
-
+function PTV3:InitPlayerChecks(p, forced)
+	if not p.PTGlobal then PTV3:InitPlayerGlobal(p) end
+	if not p.PTRound or forced then PTV3:InitPlayerRound(p) end
 end
 
 --- Initialises the player's global variables for in between rounds. Should only be called once.
@@ -178,14 +174,13 @@ function PTV3:InitPlayerRound(p)
 		camper_radius = (40*24)*FU,
 		camper_time = 0,
 	}
-	
-	if self.pizzatime then
+	if PTV3.pizzatime then
 		p.PTRound.specforce = true
 	end
+
 	p.score = 0
 	-- player.ptv3.swapModeFollower = swapModeFollower
 	-- player.ptv3.isSwap = isSwap
 	P_ResetPlayer(p)
-
 	PTV3.callbacks('PlayerInit', p)
 end

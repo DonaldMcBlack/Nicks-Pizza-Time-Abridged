@@ -4,7 +4,12 @@ addHook("ThinkFrame", function()
 	if not PTV3:isPTV3() then return end
 	if PTV3.pizzatime then P_StartQuake(PTV3.shakeintensity*FU, 2) end
 
-	if (PTV3.extreme or PTV3.overtime) and not S_SoundPlaying(consoleplayer.mo, sfx_rumble) then S_StartSound(consoleplayer.mo, sfx_rumble, consoleplayer) end
+	if (PTV3.extreme or PTV3.overtime)
+	and consoleplayer
+	and consoleplayer.valid
+	and consoleplayer.mo
+	and consoleplayer.mo.valid
+	and not S_SoundPlaying(consoleplayer.mo, sfx_rumble) then S_StartSound(consoleplayer.mo, sfx_rumble, consoleplayer) end
 end)
 
 local function SpawnGateController(MaxTimeOpen)
@@ -36,7 +41,8 @@ local function HUBThinker()
 		if gate.votes then countdown_active = true break end
 	end
 	
-	if countdown_active then PTV3.votetime = max(0, $-1) end
+	PTV3.votetime = countdown_active and max(0, $-1) or 5*TICRATE
+	if not (PTV3.votetime % TICRATE) and countdown_active then S_StartSound(nil, sfx_s23a) end
 	if PTV3.votetime then return end
 
 	local highestNum = 0
@@ -105,7 +111,7 @@ local function RoundThinker()
 
 	if (PTV3.pizzaface or PTV3.snick)
 	and multiplayer
-	and #alive == 0 then
+	and #alive - #finished == 0 then
 		PTV3:endGame()
 	end
 
@@ -145,12 +151,12 @@ addHook('PostThinkFrame', function()
 		end
 	end
 
-	if #PTV3.tplist > 0 then
+	if PTV3.tplist and #PTV3.tplist > 0 then
 		for _, tps in pairs(PTV3.tplist) do
 			if not tps then continue end
 			table.remove(PTV3.tplist, tonumber(_))
 			
-			if not (tps.mo and tps.mo.valid and tps.mo.player) then
+			if not (tps.mo and tps.mo.valid and tps.mo.player and tps.mo.player.valid and tps.mo.player.mo and tps.mo.player.mo.valid) then
 				continue
 			end
 			

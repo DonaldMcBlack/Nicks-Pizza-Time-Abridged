@@ -15,8 +15,11 @@ local function drawTransString(v,x,y,text,flags,alpha,align)
 	)
 end
 
-return function(v)
-	if PTV3.hud_secret < 0 then return end
+return function(v, p)
+	if PTV3.hud_secret == nil or PTV3.hud_secret < 0 then return end
+	if not p.PTRound.insecret then return end
+	if p ~= displayplayer then return end
+
 	local time = PTV3.HUD_returnTime(PTV3.hud_secret, 5*FU)
 	if time > FU then return end
 
@@ -32,8 +35,8 @@ return function(v)
 	local visible = max(first_visible, second_visible)
 
 	local text = string.format('You found %d secret%s out of %d',
-		consoleplayer.PTRound.secretsfound,
-		consoleplayer.PTRound.secretsfound > 1 and "s" or "",
+		p.PTRound.secretsfound,
+		p.PTRound.secretsfound > 1 and "s" or "",
 		PTV3.secret_count,
 		"!"
 	)

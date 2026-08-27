@@ -56,7 +56,6 @@ local chaser = function(p)
 	if (chaserdata.intspeed and chaserdata.incremspeed) then
 		speed = chaserdata.intspeed*chaserdata.incremspeed
 	else
-		print(chaserdata.basespeed)
 		speed = chaserdata.basespeed
 	end
 

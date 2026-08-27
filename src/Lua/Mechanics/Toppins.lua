@@ -52,8 +52,8 @@ states[freeslot "S_PTV3_TOPPINCAGE"] = {
 }
 mobjinfo[freeslot "MT_PTV3_TOPPINCAGE"] = {
 	spawnstate = S_PTV3_TOPPINCAGE,
-	radius = 20*FU,
-	height = 20*FU,
+	radius = 30*FU,
+	height = 30*FU,
 	flags = MF_SPECIAL
 }
 
@@ -88,6 +88,7 @@ addHook("MobjSpawn", function(tpn)
 	tpn.toppinState = "intro"
 	tpn.chaseOffset = 3
 	tpn.collectOffset = 1
+	tpn.shadowscale = tpn.scale
 end, MT_PTV3_TOPPIN)
 
 local function __think(tpn)
@@ -176,6 +177,7 @@ addHook("MapThingSpawn", function(mo)
 
 	local tpn = P_SpawnMobj(mo.x,mo.y,mo.z, MT_PTV3_TOPPINCAGE)
 	tpn.angle = mo.angle
+	tpn.shadowscale = tpn.scale
 	tpn.toppinType = toppinTypes[toppinAmount]
 	
 	toppinAmount = $+1
@@ -211,9 +213,7 @@ addHook("TouchSpecial", function(gate, mo)
 	tpn.collectOffset = #p.PTRound.toppins
 
 	p.score = $+300
-	if p.PTRound.combo then
-		p.PTRound.combo_pos = PTV3.MAX_COMBO_TIME
-	end
+	p.PTRound.combo_pos = p.PTRound.combo and PTV3.MAX_COMBO_TIME or 0
 
 	S_StartSound(tpn, sfx_gottpn)
 end, MT_PTV3_TOPPINCAGE)

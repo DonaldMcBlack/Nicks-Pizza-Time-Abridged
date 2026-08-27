@@ -42,19 +42,19 @@ local function hAndHTween(startTween, endTween, time, start, half, finish)
 end
 
 addHook("ThinkFrame", function()
+	if not PTV3:isPTV3() then return end
 	if PTV3.game_over > PTV3.ranktransitiontime then return end
 
 	if multiplayer then G_SetCustomExitVars(M_MapNumber("PT")) else
 		G_SetCustomExitVars(nil, 1)
 	end
 	
-	print("Time til end of intermission: "..PTV3.game_over)
+	-- print("Time til end of intermission: "..PTV3.game_over)
 	if not PTV3.game_over then G_ExitLevel() end
 
 end)
 
 addHook("HUD", function(v)
-	if not PTV3:isPTV3() then return end
 	if PTV3.game_over > PTV3.ranktransitiontime then return end
 
 	hud.disable("rankings")
@@ -70,10 +70,7 @@ addHook("HUD", function(v)
 	local screenWidth =  FixedDiv(v.width()*FU, v.dupx()*FU)
 	local screenHeight = FixedDiv(v.height()*FU, v.dupy()*FU)
 
-	local rank = PTV3.ranks[p.PTRound.rank].rank
-	if p.PTRound.specforce then
-		rank = "E"
-	end
+	local rank = not p.PTRound.specforce and PTV3.ranks[p.PTRound.rank].rank or "E"
 
 	local scale = FU/3
 	local x = screenWidth/2

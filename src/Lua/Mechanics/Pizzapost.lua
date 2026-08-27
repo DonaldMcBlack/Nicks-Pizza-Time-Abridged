@@ -42,7 +42,9 @@ mobjinfo[MT_PTV3_PIZZAPOST] = {
 addHook("MobjSpawn", function(mo)
 	if not PTV3:isPTV3() then return end
 
-	table.insert(PTV3.pizzafacetps, {x=mo.x, y=mo.y, z=mo.z})
+	if PTV3.pizzafacetps then
+		table.insert(PTV3.pizzafacetps, {x=mo.x, y=mo.y, z=mo.z})
+	end
 
     local pizzapost = P_SpawnMobjFromMobj(mo, 0, 0, 0, MT_PTV3_PIZZAPOST)
     pizzapost.angle = mo.angle
@@ -60,7 +62,7 @@ local function PizzaPostActivate(post, mo)
     p.PTRound.pizzapost_id = post
     post.state = S_PTV3_PIZZAPOST_EXTEND
 
-    if PTV3.pizzatime < 0 and PTV3.overtime_time then
+    if PTV3.pizzatime < 0 and PTV3.wartimer then
         PTV3.overtime_time = PTV3.maxottime
         PTV3.overtime_elapser = 0
         S_StartSound(nil, sfx_static)
@@ -88,16 +90,18 @@ addHook("ShouldDamage", function(target, inflictor, source, damage, damagetype)
 	if damagetype == DMG_CRUSHED or damagetype == DMG_DEATHPIT then
 		local player = target.player
 		if player.playerstate == PST_LIVE then
-            if player.PTRound.pizzapost_id then
-                local post = player.PTRound.pizzapost_id
-                PTV3:queueTeleport(player, post, false)
-            else
-                PTV3:queueTeleport(player, player.PTRound.lastTeleportDest, false)
-            end
+            local post = player.PTRound.pizzapost_id
+            PTV3:queueTeleport(player, (post and post.valid) and post or player.PTRound.lastTeleportDest, false)
+
             target.momx = 0
             target.momy = 0
+            
             P_SetObjectMomZ(target, 0, false)
             P_ResetPlayer(player)
+
+            if (post and post.valid) and (target.flags2 & MF2_OBJECTFLIP) then
+                target.flags2 = P_MobjFlip(post) == -1 and $|MF2_OBJECTFLIP or $ & ~MF2_OBJECTFLIP
+            end
 
             player.powers[pw_nocontrol] = TICRATE / 2
             P_FlashPal(player, PAL_MIXUP, 10)
