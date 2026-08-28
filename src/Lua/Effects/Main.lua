@@ -45,14 +45,9 @@ function PTV3:doEffect(mo, effect)
 		mobj.color = effect.color
 		mobj.colorized = true
 		mobj.target = mo
+		mobj.follow = effect.follow and true or false
 
-		if effect.flags then
-			mobj.frame = effect.flags
-		end
-
-		if effect.follow then
-			mobj.follow = true
-		end
+		if effect.flags then mobj.frame = effect.flags end
 
 		return mobj
 	end
@@ -62,66 +57,54 @@ function PTV3:doEffect(mo, effect)
 	mobj.target = mo
 	mobj.scale = mo.scale
 	mobj.destscale = mo.destscale
-	if effect.follow then
-		mobj.follow = true
-	end
+	mobj.follow = effect.follow and true or false
+	mobj.state = effect.state
+
 	if effect.gravity then
 		mobj.flags = ($|MF_NOCLIPHEIGHT|MF_NOCLIP) & ~(MF_NOGRAVITY)
 		mobj.kafc = true --kill after floor or ceiling
 	end
-	mobj.state = effect.state
-	if effect.randomframe then
-		mobj.frame = P_RandomKey(effect.randomframe)
-	end
 
-	if effect.func then
-		effect.func(mo, mobj)
-	end
+	if effect.randomframe then mobj.frame = P_RandomKey(effect.randomframe) end
+	if effect.func then effect.func(mo, mobj) end
 
 	return mobj
 end
 
 addHook('MobjThinker', function(mobj)
-	if not (mobj.target
-	and mobj.target.valid)
-	and mobj.follow then
+	if not (mobj.target and mobj.target.valid) and mobj.follow then
 		P_RemoveMobj(mobj)
 		return
 	end
 
-	if mobj.target
-	and mobj.target.valid
-	and mobj.follow then
-
-		P_SetOrigin(mobj,
+	if mobj.target and mobj.target.valid then
+		if mobj.follow then
+			P_SetOrigin(mobj,
 			mobj.target.x-mobj.target.momx,
 			mobj.target.y-mobj.target.momy,
 			mobj.target.z-mobj.target.momz
-		)
-		mobj.momx = mobj.target.momx
-		mobj.momy = mobj.target.momy
-		mobj.momz = mobj.target.momz
-		mobj.dispoffset = -1
-	end
-	if mobj.target
-	and mobj.target.valid
-	and mobj.target.tracer
-	and mobj.target.tracer.valid then
-		-- cheap pf first person fix lmao
-		local pmo = mobj.target.tracer
-		
-		if displayplayer
-		and displayplayer == pmo.player
-		and camera
-		and not camera.chase then
-			mobj.flags2 = $|MF2_DONTDRAW
-		else
-			mobj.flags2 = $ & ~MF2_DONTDRAW
+			)
+			mobj.momx = mobj.target.momx
+			mobj.momy = mobj.target.momy
+			mobj.momz = mobj.target.momz
+			mobj.dispoffset = -1
+		end
+
+		if mobj.target.tracer and mobj.target.tracer.valid then
+			-- cheap pf first person fix lmao
+			local pmo = mobj.target.tracer
+			
+			if displayplayer and displayplayer == pmo.player
+			and camera and not camera.chase then
+				mobj.flags2 = $|MF2_DONTDRAW
+			else
+				mobj.flags2 = $ & ~MF2_DONTDRAW
+			end
 		end
 	end
+
 	if mobj.kafc then
-		if mobj.z+mobj.height < mobj.floorz
-		or mobj.z > mobj.ceilingz then
+		if mobj.z+mobj.height < mobj.floorz or mobj.z > mobj.ceilingz then
 			P_RemoveMobj(mobj)
 			return
 		end

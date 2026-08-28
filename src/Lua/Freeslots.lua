@@ -4,7 +4,7 @@ rawset(_G, "CV_PTV3", {})
 rawset(_G, "PTV3_HUB", { gates = {} })
 
 sfxinfo[freeslot("sfx_winer")].caption = "You won!"
-
+sfxinfo[freeslot("sfx_ptprry")].caption = "Parry"
 sfxinfo[freeslot "sfx_wartim"].caption = "Beep!"
 sfxinfo[freeslot "sfx_wartup"].caption = "Beepeepbeepeep!"
 sfxinfo[freeslot "sfx_timexp"].caption = "BOOM!"

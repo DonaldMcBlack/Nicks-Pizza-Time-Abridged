@@ -55,11 +55,7 @@ addHook("MobjThinker", function(mo)
 	if displayplayer and displayplayer.valid then
 		local p = displayplayer
 
-		if not PTV3.pizzatime or PTV3.pizzatime < 0 or not PTV3:canLap(p) then
-			mo.frame = $|TR_TRANS50
-		else
-			mo.frame = $ & ~TR_TRANS50
-		end
+		mo.frame = (not PTV3.pizzatime or PTV3.pizzatime < 0 or not PTV3:canLap(p)) and $|TR_TRANS50 or $ & ~TR_TRANS50
 	end
 end, MT_PTV3_LAPPORTAL)
 

@@ -201,3 +201,59 @@ addHook("PlayerCanDamage", function(p, mo)
 
 	if p.PTRound.freeflow > 9*TICRATE then return true end
 end)
+
+
+local function ParryBurst(p, mo)
+	p.PTRound.isTaunting = false
+	p.PTRound.tauntTime = 0
+	p.powers[pw_invulnerability] = TICRATE
+
+	local speedburst = 0
+
+	if P_GetPlayerControlDirection(p) then
+		speedburst = FixedHypot(p.PTRound.tauntmomx, p.PTRound.tauntmomy)*4
+	else
+		speedburst = -24*FU
+		p.drawangle = R_PointToAngle2(p.mo.x, p.mo.y, mo.x, mo.y)
+		p.mo.state = S_PLAY_SKID
+		p.powers[pw_nocontrol] = TICRATE/2
+	end
+
+	S_StartSound(p.mo, sfx_ptprry)
+	P_InstaThrust(p.mo, p.drawangle, speedburst)
+end
+
+addHook("MobjMoveCollide", function(pmo, mo)
+	if not PTV3:isPTV3() then return end
+	if not (mo and mo.valid) or not (pmo and pmo.valid and pmo.player) then return end
+
+	local p = pmo.player
+
+	if not p.PTRound.isTaunting then return end
+	if not (mo.flags & MF_ENEMY) then return end
+
+	ParryBurst(p, mo)
+	P_KillMobj(mo, pmo, pmo)
+end, MT_PLAYER)
+
+addHook('ShouldDamage', function(pmo, inflictor, source, _, dmg)
+	if not PTV3:isPTV3() then return end
+	if not (pmo and pmo.valid and pmo.player) then return end
+
+	local p = pmo.player
+
+	if not p.PTRound.isTaunting then return end
+	if not (inflictor and inflictor.valid) then return end
+
+	ParryBurst(p, inflictor)
+
+	if (inflictor.flags & MF_MISSILE) then
+		inflictor.target = pmo
+		inflictor.momx = -$
+		inflictor.momy = -$
+		inflictor.momz = -$
+	else
+		P_DamageMobj(inflictor, pmo, pmo)
+	end
+	return false
+end, MT_PLAYER)

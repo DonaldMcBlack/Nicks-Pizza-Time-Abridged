@@ -72,7 +72,7 @@ addHook('PostThinkFrame', function()
 			mapmusname = (p.PTRound.insecret and mapmusname ~= secretmusic) and secretmusic or (not p.PTRound.insecret and mapmusname == secretmusic) and mapheaderinfo[gamemap].musname or $
 		end
 
-		if PTV3.pillarJohn and PTV3.pillarJohn.valid then
+		if (PTV3.pillarJohn and PTV3.pillarJohn.valid) and (p.mo and p.mo.valid) then
 			local dist_from_john = R_PointToDist2(0, 0, R_PointToDist2(p.mo.x, p.mo.y, PTV3.pillarJohn.x, PTV3.pillarJohn.y), p.mo.z-PTV3.pillarJohn.z)
 			mapmusname = dist_from_john < 4000*FU and "MEATO" or mapheaderinfo[gamemap].musname
 		end
