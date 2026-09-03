@@ -124,14 +124,6 @@ local function FindSecretEye(entered, group)
 	end
 end
 
--- function PTV3:SetSecrets()
--- 	for mobj in mobjs.iterate() do
--- 		if mobj.type == MT_PTV3_SECRET then
-			
--- 		end
--- 	end
--- end
-
 addHook('TouchSpecial', function(secret,mo)
 	if secret.stype == 1 or secret.hidden
 	or not (mo and mo.valid and mo.player)

@@ -13,6 +13,7 @@ PTV3_SKINS.pizzaface = setmetatable({
 		extreme_theme = "POTMAC",
 		can_haywire = true,
 		basespeed = 25*FU,
+		enraged = false,
 
 		icons = {
 			[-1] = "PROTOFACEICON",
@@ -75,7 +76,7 @@ PTV3_SKINS.pizzaface = setmetatable({
 				L_SpeedCap(pf, sped)
 			else
 				-- Behaviour changes ---------------------
-				if pf.angry then -- Enraged Pizzaface
+				if pf.skindata.enraged then -- Enraged Pizzaface
 
 					pf.maxspeed = $ == nil and pf.skindata.basespeed or $
 					if dist > FU*1500 then pf.maxspeed = min($+FU, 1000*FU) end
@@ -112,7 +113,7 @@ PTV3_SKINS.pizzaface = setmetatable({
 			mo.player.PTRound.specforce = true
 			
 
-			local alive = PTV3.playerCount and PTV3:playerCount()
+			local alive = PTV3:playerCount("alive")
 
 			if #alive < 1 then
 				S_StartSound(nil, PTV3.pizzatime < 0 and sfx_fplgh or sfx_pflgh)
@@ -135,9 +136,9 @@ PTV3_SKINS.pizzaface = setmetatable({
 				pf.frame = ($ & ~FF_TRANSMASK)|((pf.cooldown)/16<<FF_TRANSSHIFT)
 			end
 
-			pf.angry = (PTV3.extreme or PTV3.overtime) and PTV3.pizzatime > 0 or false
+			pf.skindata.enraged = (PTV3.extreme or PTV3.overtime) and PTV3.pizzatime > 0 or false
 
-			if pf.angry then
+			if pf.skindata.enraged then
 				pf.skindata.current_icon = 2
 			else
 				pf.skindata.current_icon = PTV3.pizzatime > -1 and 1 or -1
@@ -321,7 +322,7 @@ PTV3_SKINS.snick = setmetatable({
 		end,
 
 		update = function(snick)
-			if not (leveltime % 8) and (snick.momx ~= 0 or snick.momy ~= 0 or snick.momz ~= 0) and not PTV3.snick.PTRound then
+			if not (leveltime % 8) and (snick.momx ~= 0 or snick.momy ~= 0 or snick.momz ~= 0) then
 				PTV3:doEffect(snick, "Snick Afterimage")
 			end
 		end,
@@ -402,10 +403,10 @@ PTV3_SKINS.snick = setmetatable({
 				end
 			},
 			[2] = {
-				name = "None",
+				name = "Claw",
 				buttontype = "Hold",
 				actiontime = -1,
-				icon = "ACTION_TELEPORT",
+				icon = "ACTION_CLAW",
 				button = "C2",
 
 				cooldown = 0,

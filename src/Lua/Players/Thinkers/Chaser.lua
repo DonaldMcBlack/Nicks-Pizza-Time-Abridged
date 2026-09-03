@@ -52,13 +52,9 @@ local chaser = function(p)
 		p.PTRound.stun = max(0, $-1)
 	end
 
-	local speed = 0
-	if (chaserdata.intspeed and chaserdata.incremspeed) then
-		speed = chaserdata.intspeed*chaserdata.incremspeed
-	else
-		speed = chaserdata.basespeed
-	end
+	p.PTRound.stun = (PTV3.pftime or p.PTRound.stun) and max(0, $-1) or 0
 
+	local speed = chaserdata.basespeed
 	movement(p, canMove, speed)
 	-- anticamp(p, canMove)
 

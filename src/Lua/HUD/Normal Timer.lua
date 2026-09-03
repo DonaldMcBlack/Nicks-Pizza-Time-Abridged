@@ -62,14 +62,12 @@ return function(v)
 	if not PTV3.pizzatime then return end
 	if PTV3.overtime or PTV3.game_over < PTV3.ranktransitiontime then return end
 
-	local time = nil
-	local maxtime = PTV3.maxtime
+	local time
 
 	local f = v.cachePatch('PIZZAFILL')
 	local b = v.cachePatch('PIZZABAR')
 	
-	local scale = FU/4
-	scale = $*3/2
+	local scale = (FU/4)*3/2
 	
 	local x = (160*FU)-(b.width*(scale/2))
 	local y
@@ -85,18 +83,16 @@ return function(v)
 	local o = 5*scale
 	local of = 5*FU
 
-	time = PTV3.time
-
 	local width = (b.width*FU)-of
 	local bwidth = (b.width*scale)
-	local progress = FixedMul(width, FixedDiv(maxtime-time, maxtime))
+	local progress = FixedMul(width, FixedDiv(PTV3.maxtime-PTV3.time, PTV3.maxtime))
 
-	if time <= 5*TICRATE
+	if PTV3.time <= 5*TICRATE
 	and not PTV3.overtime
 	and not (PTV3.game_over <= 0)
 	and multiplayer then
-		local maxTime = min(maxtime, 5*TICRATE)
-		local shakePerc = FixedDiv(maxTime-time, maxTime)*6
+		local maxTime = min(PTV3.maxtime, 5*TICRATE)
+		local shakePerc = FixedDiv(maxTime-PTV3.time, maxTime)*6
 
 		x = $+v.RandomRange(-shakePerc, shakePerc)
 		y = $+v.RandomRange(-shakePerc, shakePerc)
@@ -109,12 +105,10 @@ return function(v)
 
 	local j_prog = max(-6*scale, min(FixedMul(progress, scale)+o-(j.width*scale/2), (b.width*scale)-(j.width*scale)+(8*scale)))
 
-	drawBarFill(v, x+o, y+o, f, V_SNAPTOBOTTOM, scale, FixedDiv(leveltime % (f.width*4), f.width*4)*f.width, progress)
+	drawBarFill(v, max(x+o, 0), y+o, f, V_SNAPTOBOTTOM, scale, FixedDiv(leveltime % (f.width*4), f.width*4)*f.width, progress)
 
 	if PTV3.overtime then
-		local maxtime = PTV3.maxotTime
-		local progress = FixedMul(width, FixedDiv(maxtime-PTV3.overtime_time, maxtime))
-		
+		progress = FixedMul(width, FixedDiv(PTV3.maxotTime-PTV3.overtime_time, PTV3.maxotTime))
 		drawBarFill(v, x+o, y+o, f, V_SNAPTOBOTTOM, scale, FixedDiv(leveltime % (f.width*4), f.width*4)*f.width, progress, v.getColormap(TC_RAINBOW, SKINCOLOR_PEPPER))
 	end
 

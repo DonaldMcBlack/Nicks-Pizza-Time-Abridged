@@ -43,7 +43,7 @@ return function(v)
 	local startTweenTime = min(FixedDiv(leveltime, fadeTime), FU)
 	local endTweenTime = min(FixedDiv(max(0, PTV3.maxTitlecardTime-leveltime), fadeTime), FU)
 
-	local tweenTime = min(startTweenTime, endTweenTime)
+	tweenTime = min(startTweenTime, endTweenTime)
 
 	local tween = ease.linear(tweenTime, 10, 0)
 

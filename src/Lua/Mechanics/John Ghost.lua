@@ -5,18 +5,21 @@ end, MT_PTV3_JOHNGHOST)
 addHook("ShouldDamage", function(t,i,s) return false end, MT_PTV3_JOHNGHOST)
 
 addHook('MobjThinker', function(john)
-	local player = (john.tracer and john.tracer.valid) and john.tracer or nil
-	local noAI = player and true or false
+	local pmo = (john.tracer and john.tracer.valid) and john.tracer or nil
+	local noAI = pmo and true or false
+	local skindata
 
-	if player then
-		john.momx, john.momy, john.momz = player.momx, player.momy, player.momz
-	elseif not (PTV3.pizzaface and PTV3.pizzaface.valid) then
-		PTV3.johnGhost = john
+	if pmo then
+		john.momx, john.momy, john.momz = pmo.momx, pmo.momy, pmo.momz
+		skindata = pmo.player.PTRound.pizzaMobj_skindata
+	else
+		if not (PTV3.johnGhost and PTV3.johnGhost.valid) then PTV3.johnGhost = john end
+		skindata = john.skindata
 	end
 
-	john.skindata.update(john)
+	skindata.update(john)
 	if noAI then return end
-	john.skindata.behaviour(john)
+	skindata.behaviour(john)
 end, MT_PTV3_JOHNGHOST)
 
 addHook('TouchSpecial', function(john, pmo)

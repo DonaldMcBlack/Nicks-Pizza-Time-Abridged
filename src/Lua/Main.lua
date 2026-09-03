@@ -13,7 +13,6 @@ addHook("ThinkFrame", function()
 end)
 
 local function SpawnGateController(MaxTimeOpen)
-
 	if (leveltime > MaxTimeOpen and not PTV3.pizzatime)
 	or (PTV3.game_over < (21*TICRATE)-10 and PTV3.pizzatime) then
 		if PTV3.spawnGate._frame ~= A then
@@ -40,10 +39,10 @@ local function HUBThinker()
 	for _, gate in ipairs(PTV3_HUB.gates) do
 		if gate.votes then countdown_active = true break end
 	end
-	
+
 	PTV3.votetime = countdown_active and max(0, $-1) or 5*TICRATE
 	if not (PTV3.votetime % TICRATE) and countdown_active then S_StartSound(nil, sfx_s23a) end
-	if PTV3.votetime then return end
+	if PTV3.votetime > 1 then return end
 
 	local highestNum = 0
 	for _, gate in ipairs(PTV3_HUB.gates) do
@@ -58,11 +57,14 @@ local function HUBThinker()
 end
 
 local function RoundThinker()
+	local alive = PTV3:playerCount("alive")
+	local finished = PTV3:playerCount("finished")
+	local total = PTV3:playerCount("total")
+
 	-- Everything that's controlled when the timer starts is in here.
 	if PTV3.pizzatime then
 		PTV3.time = max(0, $-1)
-
-		if consoleplayer then consoleplayer.realtime = PTV3.time end
+		consoleplayer.realtime = PTV3.time
 
 		if multiplayer then
 			PTV3.pftime = max(0, $-1)
@@ -76,14 +78,15 @@ local function RoundThinker()
 				PTV3.__fadedmus = true
 			end
 
-			if not (PTV3.time)
-			and not PTV3.overtime then
+			if not PTV3.time and not PTV3.overtime then
 				if PTV3:canOvertime() then
 					PTV3:overtimeToggle()
 				else
 					PTV3:endGame()
 				end
 			end
+
+			if #alive - #finished <= 0 then PTV3:endGame() end
 		else
 			if not PTV3.time and not (PTV3.pizzaface and PTV3.pizzaface.valid) then PTV3:pizzafaceSpawn() end
 		end
@@ -96,27 +99,15 @@ local function RoundThinker()
 					S_StartSoundAtVolume(nil, sfx_wartim, 255/3)
 					PTV3.overtime_elapser = PTV3.pizzatime < 0 and min($+10, 3*TICRATE) or TICRATE
 				end
-			end
-
-			if PTV3.overtime_time == 0
-			or not PTV3:canOvertime() and PTV3.overtime then
-				PTV3:endGame()
+			else
+				if not PTV3:canOvertime() and PTV3.overtime then PTV3:endGame() end
 			end
 		end
 	elseif gametype == GT_PTV3DM and leveltime > PTV3.maxTitlecardTime then
 		PTV3.pftime = max(0, $-1)
 	end
 
-	local alive, pizzafaces, finished, unfinished, total = PTV3:playerCount()
-
-	if (PTV3.pizzaface or PTV3.snick)
-	and multiplayer
-	and #alive - #finished == 0 then
-		PTV3:endGame()
-	end
-
-	if #alive
-	and #finished == #alive then
+	if #alive and #finished == #alive then
 		local canEnd = true
 
 		for p in players.iterate do
@@ -134,7 +125,6 @@ local function RoundThinker()
 	end
 
 	if gametype == GT_PTV3DM then
-
 		if not PTV3.overtime and PTV3.pizzatime
 		and #total > 2 and #alive <= 2 then
 			PTV3:overtimeToggle()
@@ -144,10 +134,11 @@ end
 
 addHook('PostThinkFrame', function()
 	if not PTV3:isPTV3() then return end
-	if displayplayer then
-		if ((displayplayer.pflags & PF_FINISHED) or displayplayer.exiting) then
-			displayplayer.exiting = 0
-			displayplayer.pflags = $ & ~(PF_FINISHED | PF_FULLSTASIS)
+
+	for p in players.iterate do
+		if ((p.pflags & PF_FINISHED) or p.exiting) then
+			p.exiting = 0
+			p.pflags = $ & ~(PF_FINISHED | PF_FULLSTASIS)
 		end
 	end
 
@@ -172,7 +163,7 @@ addHook('PostThinkFrame', function()
 				p.mo.momx, p.mo.momy, p.mo.momz = 0,0,0
 			end
 
-			if p.PTRound.lap_in then p.PTRound.lap_in = false end
+			p.PTRound.lap_in = $ and false or false
 			p.PTRound.fake_exit = false
 			p.mo.flags2 = $ & ~MF2_DONTDRAW
 
@@ -212,7 +203,6 @@ addHook('PostThinkFrame', function()
 	if PTV3.game_over <= 0 then return end
 
 	RoundThinker()
-
 end)
 
 addHook("MobjDeath", function(t,i,s)

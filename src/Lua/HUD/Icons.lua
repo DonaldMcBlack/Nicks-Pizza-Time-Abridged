@@ -86,13 +86,8 @@ local function drawChaserIcon(v,dp,c, chaser, norenderdetails)
 
 	if chaser == PTV3.pizzaface then
 		p = (PTV3.pizzaface.tracer and PTV3.pizzaface.tracer.valid) and PTV3.pizzaface.tracer.player
-		if PTV3.pizzaface.angry then
-
-			if (leveltime % 8)/2 then
-				color = SKINCOLOR_KETCHUP
-			else
-				color = SKINCOLOR_CRIMSON
-			end
+		if PTV3.pizzaface.skindata.enraged then
+			color = (leveltime % 8)/2 and SKINCOLOR_KETCHUP or SKINCOLOR_CRIMSON
 		end
 	else
 		p = (chaser.tracer and chaser.tracer.valid) and chaser.tracer.player

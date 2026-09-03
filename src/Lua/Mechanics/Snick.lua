@@ -6,18 +6,21 @@ end, MT_PTV3_SNICK)
 addHook("ShouldDamage", function(t,i,s) return false end, MT_PTV3_SNICK)
 
 addHook('MobjThinker', function(snick)
-	local player = (snick.tracer and snick.tracer.valid) and snick.tracer or nil
-	local noAI = player and true or false
+	local pmo = (snick.tracer and snick.tracer.valid) and snick.tracer or nil
+	local noAI = pmo and true or false
+	local skindata
 
-	if player then
-		snick.momx, snick.momy, snick.momz = player.momx, player.momy, player.momz
-	elseif not (PTV3.snick and PTV3.snick.valid) then
-		PTV3.snick = snick
+	if pmo then
+		snick.momx, snick.momy, snick.momz = pmo.momx, pmo.momy, pmo.momz
+		skindata = pmo.player.PTRound.pizzaMobj_skindata
+	else
+		if not (PTV3.snick and PTV3.snick.valid) then PTV3.snick = snick end
+		skindata = snick.skindata
 	end
 
-	snick.skindata.update(snick)
+	skindata.update(snick)
 	if noAI then return end
-	snick.skindata.behaviour(snick)
+	skindata.behaviour(snick)
 end, MT_PTV3_SNICK)
 
 addHook('TouchSpecial', function(snick, pmo)

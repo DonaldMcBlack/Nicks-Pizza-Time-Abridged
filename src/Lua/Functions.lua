@@ -103,7 +103,7 @@ local function getRandomPlayer(conditions)
 end
 
 -- Returns players in-game into individual counts. Alive, Chasers, Finished, Unfinished, and Total.
-function PTV3:playerCount()
+function PTV3:playerCount(category)
 	if not PTV3:isPTV3(true) then return end
 	local total = {}
 	local alive = {}
@@ -130,8 +130,16 @@ function PTV3:playerCount()
 			end
 		end
 	end
+
+	local column = {
+		["total"] = total,
+		["alive"] = alive,
+		["chasers"] = chasers,
+		["finished"] = finished,
+		["unfinished"] = unfinished
+	}
 	
-	return alive, chasers, finished, unfinished, total
+	return column[category]
 end
 
 
@@ -240,7 +248,9 @@ end
 
 --- Can the game switch to Overtime?
 function PTV3:canOvertime()
-	local alive, pizzafaces, finished, unfinished, total = PTV3:playerCount()
+	local alive = PTV3:playerCount("alive")
+	local finished = PTV3:playerCount("finished")
+
 	local normalLappers = {}
 	local extremeLappers = {}
 
@@ -547,6 +557,7 @@ function PTV3:startPizzaTime(p, int)
 	local callback_string = self.pizzatime < 0 and 'MinusWorld' or 'PizzaTime'
 	local triggertag = 0
 	PTV3.shakeintensity = 4
+	PTV3.time = $ * #PTV3:playerCount("total")
 
 	if self.pizzatime < 0 then
 		if PTV3.spawnGate and PTV3.spawnGate.valid then

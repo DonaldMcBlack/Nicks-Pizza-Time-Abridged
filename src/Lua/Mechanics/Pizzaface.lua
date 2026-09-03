@@ -16,20 +16,23 @@ addHook('MobjRemoved', function(t,i,s)  return true end, MT_PTV3_PIZZAFACE)
 addHook('MobjDeath', function(t,i,s)    return true end, MT_PTV3_PIZZAFACE)
 
 addHook('MobjThinker', function(pf)
-	local player = (pf.tracer and pf.tracer.valid) and pf.tracer or nil
-	local noAI = player and true or false
+	local pmo = (pf.tracer and pf.tracer.valid) and pf.tracer or nil
+	local noAI = pmo and true or false
+	local skindata
 
-	if player then
-		pf.momx,pf.momy,pf.momz = player.momx, player.momy, player.momz
-	elseif not (PTV3.pizzaface and PTV3.pizzaface.valid) then
-		PTV3.pizzaface = pf
+	if pmo then
+		pf.momx,pf.momy,pf.momz = pmo.momx, pmo.momy, pmo.momz
+		skindata = pmo.player.PTRound.pizzaMobj_skindata
+	else
+		if not (PTV3.pizzaface and PTV3.pizzaface.valid) then PTV3.pizzaface = pf end
+		skindata = pf.skindata
 	end
 
-	pf.skindata.update(pf)
+	skindata.update(pf)
 	pf.brokentimer = max($-1, 0)
 
 	if noAI then return end
-	pf.skindata.behaviour(pf)
+	skindata.behaviour(pf)
 end, MT_PTV3_PIZZAFACE)
 
 local function PFTouchSpecial(pf, pmo)
@@ -38,14 +41,18 @@ local function PFTouchSpecial(pf, pmo)
 
 	local victim = pmo.player
 	local src = pf
+	local skindata
 
 	if pf.tracer and pf.tracer.valid then
 		src = pf.tracer
 		local p = pf.tracer.player
+		skindata = p.PTRound.pizzaMobj_skindata
 
 		if p and p.valid and p.PTRound and (p.PTRound.camper or p.PTRound.stun) then
 			return
 		end
+	else
+		skindata = pf.skindata
 	end
 
 	if victim.powers[pw_invulnerability] or (victim.PTRound and (victim.PTRound.fake_exit or victim.PTRound.chaser)) then
@@ -53,7 +60,7 @@ local function PFTouchSpecial(pf, pmo)
 	end
 
 	if PTV3.callbacks("PizzafaceKill", pf, pmo) then return end
-	pf.skindata.touch(src, pmo)
+	skindata.touch(src, pmo)
 end
 
 addHook('TouchSpecial', function(pf, pmo)
@@ -65,7 +72,7 @@ end, MT_PTV3_PIZZAFACE)
 function PTV3:pizzafaceSpawn(skin)
 	local canSpawnAI = not (self.pizzaface and self.pizzaface.PTRound)
 
-	local alive, pizzafaces, finished, unfinished, total = PTV3:playerCount()
+	local alive = PTV3:playerCount("alive")
 	local pos = {}
 	local start_or_end = self.pizzatime < 0 and self.spawn or self.endpos
 	local pf = nil

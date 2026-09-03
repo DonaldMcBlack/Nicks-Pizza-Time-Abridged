@@ -19,17 +19,14 @@ rawset(_G, "L_FixedDecimal", function(str,maxdecimal)
 	return str_polarity..str_whole..'.'..str_decimal
 end)
 
-local x = -15*FU
+local x = -35*FU
 
 return function(v)
 	if not PTV3:isPTV3() then return end
+	if not (PTV3.pizzaface and PTV3.pizzaface.valid) then return end
 
-	if not (PTV3.pizzatime and PTV3.extreme) then
-		x = ease.linear(FU, 15*FU, -15*FU)
-		return
-	end
-
-	if not PTV3.pizzaface then return end
+	local skindata = PTV3.pizzaface.PTRound and PTV3.pizzaface.PTRound.pizzaMobj_skindata or PTV3.pizzaface.skindata
+	if not skindata.enraged then return end
 
 	x = ease.outcubic(5*FU, -50*FU, 15*FU)
 	local y = 150*FU
@@ -38,7 +35,7 @@ return function(v)
 	local shakeX = v.RandomRange(-intensity, intensity)
 	local shakeY = v.RandomRange(-intensity, intensity)
 
-	local dec = L_FixedDecimal(PTV3.pizzaface.speed, 2)
+	local dec = L_FixedDecimal(PTV3.pizzaface.speed or 0, 2)
 
 	local patch = v.cachePatch("PIZZARAGE")
 
