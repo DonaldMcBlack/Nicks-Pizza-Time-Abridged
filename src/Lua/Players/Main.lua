@@ -18,6 +18,7 @@ local taunt,pretaunt = dofile(ThinkerPath.."Taunting")
 local panic = dofile(ThinkerPath.."Panic")
 local itemequip = dofile(ThinkerPath.."ItemEquip")
 local ragdoll = dofile(ThinkerPath.."Ragdoll")
+local VFX = dofile(ThinkerPath.."VFX")
 
 local chaserthink = dofile(ThinkerPath.."Chaser")
 
@@ -33,7 +34,7 @@ addHook("PreThinkFrame", function()
 		p.PTGlobal.forwardmove = p.cmd.forwardmove
 		p.PTGlobal.sidemove = p.cmd.sidemove
 
-		if PTV3.game_over < (21*TICRATE)-10 or p.PTGlobal.menumode.inmenu then
+		if PTV3.game_over or p.PTGlobal.menumode.inmenu then
 			p.cmd.buttons = 0
 			p.cmd.forwardmove = 0
 			p.cmd.sidemove = 0
@@ -47,8 +48,9 @@ addHook("PreThinkFrame", function()
 end)
 
 local function runCode(p)
-	if p.spectator then return end
-	if not p.mo    then return end
+	PTV3:checkRank(p)
+
+	if p.spectator or not p.mo then return end
 	if cutscene(p) then return end
 	if exit(p)     then return end
 	if gameover(p) then return end
@@ -59,6 +61,21 @@ local function runCode(p)
 		taunt(p)
 		panic(p)
 		ragdoll(p)
+
+		p.PTRound.freeflow = p.speed > p.normalspeed/2 and min($+1, 10*TICRATE) or max($-1, 0)
+    	if p.PTRound.freeflow == 9*TICRATE and p.speed > p.normalspeed/2 then
+			S_StartSound(p.mo, sfx_cdfm40)
+		elseif p.PTRound.freeflow < 9*TICRATE and p.speed < p.normalspeed/2 then
+			p.PTRound.freeflow = max($-TICRATE, 0)
+		end
+		
+		VFX(p)
+
+		if p.powers[pw_super] and not (leveltime % TICRATE) and not (p.mo.state >= S_PLAY_SUPER_TRANS1) and (p.mo.state <= S_PLAY_SUPER_TRANS6) then P_GivePlayerRings(p, 1) end
+
+		if skins[p.mo.skin].flags & SF_SUPER then
+			p.charflags = p.PTRound.combo >= 50 and $|SF_SUPER or $ & ~SF_SUPER
+		end
 	else
 		R_SetPlayerSkin(p, "sonic")
 		p.mo.flags2 = $|MF2_DONTDRAW
@@ -68,31 +85,6 @@ local function runCode(p)
 
 	itemequip(p)
 
-	p.PTRound.freeflow = p.speed > p.normalspeed/2 and min($+1, 10*TICRATE) or max($-1, 0)
-
-	if p.PTRound.freeflow == 9*TICRATE and p.speed > p.normalspeed/2 then S_StartSound(p.mo, sfx_spin) end
-
-	if p.PTRound.freeflow > 9*TICRATE then
-		local circle = P_SpawnMobjFromMobj(p.mo, 0, 0, p.mo.scale * p.mo.height/2, MT_THOK)
-		circle.fuse = 7
-		circle.scale = p.mo.scale
-		circle.destscale = FU/5
-		circle.colorized = true
-		circle.color = p.mo.color
-		circle.momx = -p.mo.momx / 2
-		circle.momy = -p.mo.momy / 2
-	elseif p.speed < p.normalspeed/2 then
-		p.PTRound.freeflow = 0
-	end
-
-	if p.powers[pw_super] and not (leveltime % TICRATE) and not (p.mo.state >= S_PLAY_SUPER_TRANS1) and (p.mo.state <= S_PLAY_SUPER_TRANS6) then P_GivePlayerRings(p, 1) end
-
-	if skins[p.mo.skin].flags & SF_SUPER then
-		p.charflags = p.PTRound.combo >= 50 and $|SF_SUPER or $ & ~SF_SUPER
-	end
-
-	PTV3:checkRank(p)
-	PTV3:returnNextRankPercent(p)
 	PTV3.callbacks("PlayerThink", p)
 end
 
@@ -105,7 +97,7 @@ addHook("PlayerThink", function(p)
 	p.PTRound.canLap = max(0, $-1)
 
 	if p.spectator
-	and PTV3.snick and PTV3.snick.valid and not PTV3.snick.PTRound
+	and (PTV3.snick and PTV3.snick.valid and not PTV3.snick.PTRound)
 	and p.PTGlobal.buttons & BT_ATTACK then -- yea thats not a player, fill in snicks spot lol
 		p.spectator = false
 		p.playerstate = PST_LIVE
@@ -152,7 +144,7 @@ addHook("MobjDamage",   function(t,i,s) return DoNotTheChaser(t, true)  end, MT_
 -- No more game status.
 addHook("KeyDown", function(key)
 	if not PTV3:isPTV3() then return end
-	if PTV3.game_over > (21*TICRATE)-10 then return end
+	if not PTV3.game_over or leveltime < PTV3.maxTitlecardTime then return end
 
 	if key.num == input.gameControlToKeyNum(GC_SCORES) then return true end
 
@@ -181,20 +173,20 @@ addHook("SpinSpecial", function(p)
 	return false
 end)
 
-addHook("MobjDeath", function(t,i,s)
-	if not PTV3:isPTV3() then return end
-	if not (i and i.valid and (i.type == MT_PTV3_PIZZAFACE or i.type == MT_PLAYER)) then return end
-	if not (t and t.player and t.player.PTRound) then return end
+-- addHook("MobjDeath", function(t,i,s)
+-- 	if not PTV3:isPTV3() then return end
+-- 	if not (i and i.valid and (i.type == MT_PTV3_PIZZAFACE or i.type == MT_PLAYER)) then return end
+-- 	if not (t and t.player and t.player.PTRound) then return end
 
-	-- if t.player.PTRound.swapModeFollower then
-	-- 	local mo = t.player.PTRound.swapModeFollower
+-- 	-- if t.player.PTRound.swapModeFollower then
+-- 	-- 	local mo = t.player.PTRound.swapModeFollower
 
-	-- 	mo.player.PTRound.swapModeFollower = nil
-	-- 	mo.player.PTRound.isSwap = nil
-	-- end
-	-- t.player.PTRound.isSwap = nil
-	-- t.player.PTRound.swapModeFollower = nil
-end, MT_PLAYER)
+-- 	-- 	mo.player.PTRound.swapModeFollower = nil
+-- 	-- 	mo.player.PTRound.isSwap = nil
+-- 	-- end
+-- 	-- t.player.PTRound.isSwap = nil
+-- 	-- t.player.PTRound.swapModeFollower = nil
+-- end, MT_PLAYER)
 
 addHook("PlayerCanDamage", function(p, mo)
 	if not PTV3:isPTV3() then return end

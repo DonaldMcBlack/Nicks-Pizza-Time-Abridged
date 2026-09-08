@@ -49,18 +49,10 @@ local function drawBarFill(v, x, y, patch, flags, scale, offset, length, color)
 	end
 end
 
-local function DelayAnimation(frame, tics, rate)
-	if leveltime % rate then
-		return frame+tics
-	else
-		return frame
-	end
-end
-
 return function(v)
 	if not PTV3:isPTV3() then return end
 	if not PTV3.pizzatime then return end
-	if PTV3.overtime or PTV3.game_over < PTV3.ranktransitiontime then return end
+	if PTV3.overtime or PTV3.game_over > PTV3.ranktransitiontime then return end
 
 	local time
 
@@ -89,7 +81,7 @@ return function(v)
 
 	if PTV3.time <= 5*TICRATE
 	and not PTV3.overtime
-	and not (PTV3.game_over <= 0)
+	and not PTV3.game_over
 	and multiplayer then
 		local maxTime = min(PTV3.maxtime, 5*TICRATE)
 		local shakePerc = FixedDiv(maxTime-PTV3.time, maxTime)*6
@@ -100,7 +92,7 @@ return function(v)
 		v.fadeScreen(0xFF00, ease.linear(shakePerc/6, 0, 31/2))
 	end
 
-	local frame = leveltime % 22
+	local frame = (leveltime/2) % 22
 	local j = v.cachePatch('JOHN'..frame)
 
 	local j_prog = max(-6*scale, min(FixedMul(progress, scale)+o-(j.width*scale/2), (b.width*scale)-(j.width*scale)+(8*scale)))
@@ -130,10 +122,10 @@ return function(v)
 	if not multiplayer then
 
 		if not PTV3.pizzaface then
-			pizzaframe.sleeping = leveltime % 17
+			pizzaframe.sleeping = (leveltime/2) % 17
 			p = v.cachePatch("PFCES"..pizzaframe.sleeping)
 		else
-			pizzaframe.awake = min(DelayAnimation(pizzaframe.awake, 1, TICRATE*(3/2)), 7)
+			pizzaframe.awake = (leveltime/2) % 8
 			p = v.cachePatch("PFCEA"..pizzaframe.awake)
 		end
 

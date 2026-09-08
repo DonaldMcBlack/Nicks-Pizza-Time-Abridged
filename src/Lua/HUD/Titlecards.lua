@@ -1,11 +1,8 @@
-local screenFadeTime = TICRATE/4
-local fadeTime = TICRATE/2
-
 local function GetSnap(string)
-	if string and type(string) ~= "string" then return end
+	if type(string) ~= "string" then return string end
 
 	if string == "top" then return V_SNAPTOTOP end
-	if string == "right" then return V_SNAPTORIGHT end
+	if string == "bottom" then return V_SNAPTOBOTTOM end
 	if string == "left" then return V_SNAPTOLEFT end
 	if string == "right" then return V_SNAPTORIGHT end
 
@@ -14,29 +11,23 @@ end
 
 return function(v)
 	if not PTV3:isPTV3() then return end
+	if gamemap == M_MapNumber("PT") then return end
 	
-	local map_keyword = mapheaderinfo[gamemap].keywords
-	local titlecard = v.cachePatch(map_keyword.."TC")
-	local titlecard_name = v.cachePatch(map_keyword.."TT")
+	local titlecard = v.patchExists(PTV3.titlecard_bg) and v.cachePatch(PTV3.titlecard_bg) or v.cachePatch("PLACETC")
+	local titlecard_name = v.patchExists(PTV3.titlecard_name) and v.cachePatch(PTV3.titlecard_name) or v.cachePatch("PLACETT")
 
-	if not PTV3.has_titlecard then return end
-
-	local x = (mapheaderinfo[gamemap].ptv3_titlecard_x or 0)*FU
-	local y = (mapheaderinfo[gamemap].ptv3_titlecard_y or 0)*FU
-	local snap = mapheaderinfo[gamemap].ptv3_titlecard_snap or nil
+	local x = (mapheaderinfo[gamemap].ptv3_titlecard_x or 300)*FU
+	local y = (mapheaderinfo[gamemap].ptv3_titlecard_y or 160)*FU
+	local snap = mapheaderinfo[gamemap].ptv3_titlecard_snap or V_SNAPTOBOTTOM|V_SNAPTORIGHT
 
 	-- fade the screen
-	local tweenTime = min(
-		FixedDiv(max(0, leveltime-PTV3.maxTitlecardTime), fadeTime),
-		FU
-	)
+	local fadeTime = TICRATE/2
+	local tweenTime = min(FixedDiv(max(0, leveltime-PTV3.maxTitlecardTime), fadeTime), FU)
 
 	local fadeStuff = ease.linear(tweenTime, 32, 0)
 
 	v.fadeScreen(0xFF00, min(fadeStuff, 31))
-	if fadeStuff == 32 then
-		v.drawFill()
-	end
+	if fadeStuff == 32 then v.drawFill() end
 
 	local scale = FixedDiv(v.height()/v.dupy(), titlecard.height)
 

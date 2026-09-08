@@ -1,5 +1,3 @@
-local inttime = 0
-
 local linear = ease.linear
 local outcubic = ease.outcubic
 local incubic = ease.incubic
@@ -13,14 +11,8 @@ local rankTexts = {
 	["S"] = { line = "PERFECT",                    color = SKINCOLOR_GOLD,  size = FU/2 }
 }
 
-addHook("NetVars", function(n) inttime = n($) end)
-
 addHook("MapLoad", function()
-	inttime = 0
-
 	if PTV3:isPTV3() then return end
-
-	hud.enable("rankings")
 	hud.enable("intermissiontally")
 end)
 
@@ -41,23 +33,10 @@ local function hAndHTween(startTween, endTween, time, start, half, finish)
 	end
 end
 
-addHook("ThinkFrame", function()
-	if not PTV3:isPTV3() then return end
-	if PTV3.game_over > PTV3.ranktransitiontime then return end
-
-	if multiplayer then G_SetCustomExitVars(M_MapNumber("PT")) else
-		G_SetCustomExitVars(nil, 1)
-	end
-	
-	-- print("Time til end of intermission: "..PTV3.game_over)
-	if not PTV3.game_over then G_ExitLevel() end
-
-end)
-
 addHook("HUD", function(v)
-	if PTV3.game_over > PTV3.ranktransitiontime then return end
+	if PTV3.game_over < PTV3.ranktransitiontime then return end
 
-	hud.disable("rankings")
+	local inttime = PTV3.game_over - PTV3.ranktransitiontime
 	hud.disable("intermissiontally")
 
 	v.drawFill(nil, nil, nil, nil, 0)

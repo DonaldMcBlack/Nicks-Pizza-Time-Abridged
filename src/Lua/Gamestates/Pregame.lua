@@ -17,11 +17,9 @@ local function cloneTable(table)
 	return clone
 end
 
-function PTV3:init()
-	-- if not PTV3:isPTV3() then return end
-	
+function PTV3:init(map)
 	hud.disable("stagetitle")
-	
+
 	for _,i in pairs(PTV3.synced_variables) do
 		self[_] = cloneTable(i)
 	end
@@ -29,10 +27,14 @@ function PTV3:init()
 	for _,i in pairs(CV_PTV3) do
 		self[_] = i.value
 	end
-	
+
 	if PTV3.callbacks then
 		PTV3.callbacks('VariableInit')
 	end
+
+	local map_keyword = mapheaderinfo[map].keywords
+	PTV3.titlecard_bg = map_keyword.."TC"
+	PTV3.titlecard_name = map_keyword.."TT"
 end
 
 local function spawnSector(t)
@@ -85,8 +87,8 @@ local function PrepareTimer(minutes, seconds)
 end
 
 addHook('MapLoad', function(map)
-	if titlemapinaction then return end
-	PTV3:init()
+	if titlemapinaction or not PTV3:isPTV3() then return end
+	PTV3:init(map)
 
 	for thing in mapthings.iterate do
 		spawnSector(thing)
@@ -102,7 +104,6 @@ addHook('MapLoad', function(map)
 		end
 	end
 	print("There are... "..PTV3.secret_count.." secrets.")
-	print("Level Gates: "..#PTV3_HUB.gates)
 
 	for player in players.iterate do
 		PTV3:InitPlayerChecks(player, true)
@@ -130,8 +131,8 @@ addHook('MapLoad', function(map)
 	-- print("John is... "..PTV3_SKINS.johnGhost[PTV3.skinIndex.johnGhost].name)
 end)
 
-addHook('MapChange', function()
-	PTV3:init()
+addHook('MapChange', function(map)
+	PTV3:init(map)
 	
 	for _, v in ipairs(PTV3.secrets) do
 		PTV3.secrets[_] = nil

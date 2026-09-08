@@ -22,7 +22,7 @@ local jingle_blacklist = {
 
 local function playPizzaTimeMusic()
 	if gametype ~= GT_PTV3DM and not PTV3.pizzatime then return end
-	if PTV3.has_titlecard and leveltime < PTV3.maxTitlecardTime then return end
+	if leveltime < PTV3.maxTitlecardTime then return end
 
 	return true
 end
@@ -44,10 +44,27 @@ local function SwitchLapMusic(lap, list)
 	return list[lap]
 end
 
+-- For Titlecards
+addHook("PreThinkFrame", function()
+	if not PTV3:isPTV3() then return end
+
+	if leveltime > PTV3.maxTitlecardTime or gamemap == M_MapNumber("PT") then return end
+
+	local loop = false
+	local mapTM = (mapheaderinfo[gamemap].keywords.."TM")
+	mapTM = S_MusicExists($) and $ or "PLACTM"
+
+	loop = leveltime == PTV3.maxTitlecardTime and true or false
+	local tune = leveltime < PTV3.maxTitlecardTime and mapTM or mapheaderinfo[gamemap].musname
+
+	S_ChangeMusic(tune, loop)
+end)
+
+-- For everything past the titlecards
 addHook('PostThinkFrame', function()
 	if not PTV3:isPTV3() then return end
 
-	local p = (displayplayer and displayplayer.valid and displayplayer.PTRound) and displayplayer or nil
+	local p = (displayplayer and displayplayer.valid) and displayplayer or nil
 
 	if not p then return end
 
@@ -56,39 +73,33 @@ addHook('PostThinkFrame', function()
 	local secretmusic = modsongs["Secret"] or "SECRET"
 	local loop = true
 
-	if PTV3.game_over <= PTV3.ranktransitiontime then
+	if PTV3.game_over > PTV3.ranktransitiontime then
 		S_ChangeMusic(p.PTRound.specforce and "ERANK" or PTV3.ranks[p.PTRound.rank].music, false, p, nil, 0)
 		return
 	end
 
-	if PTV3.has_titlecard and leveltime <= PTV3.maxTitlecardTime then
-		
-		local mapTM = mapheaderinfo[gamemap].keywords.."TM"
-		loop = leveltime == PTV3.maxTitlecardTime and true or false
-		mapmusname = leveltime < PTV3.maxTitlecardTime and mapTM or mapheaderinfo[gamemap].musname
-
-	elseif PTV3.has_titlecard and leveltime > PTV3.maxTitlecardTime or not PTV3.has_titlecard then
-		if not playPizzaTimeMusic() then
-			mapmusname = (p.PTRound.insecret and mapmusname ~= secretmusic) and secretmusic or (not p.PTRound.insecret and mapmusname == secretmusic) and mapheaderinfo[gamemap].musname or $
-		end
-
-		if (PTV3.pillarJohn and PTV3.pillarJohn.valid) and (p.mo and p.mo.valid) then
-			local dist_from_john = R_PointToDist2(0, 0, R_PointToDist2(p.mo.x, p.mo.y, PTV3.pillarJohn.x, PTV3.pillarJohn.y), p.mo.z-PTV3.pillarJohn.z)
-			mapmusname = dist_from_john < 4000*FU and "MEATO" or mapheaderinfo[gamemap].musname
-		end
-	end
-
-	if PTV3.game_over == (21*TICRATE)-11 then
+	if PTV3.game_over then
 		if PTV3.extreme then S_ChangeMusic("POTEND", false, p)
 		else S_StopMusic(p) end
 	end
 
-	if not playPizzaTimeMusic() then return S_ChangeMusic(mapmusname, loop) end
+	if leveltime <= PTV3.maxTitlecardTime then return end
+
+	if (PTV3.pillarJohn and PTV3.pillarJohn.valid) and (p.mo and p.mo.valid) then
+		local dist_from_john = R_PointToDist2(0, 0, R_PointToDist2(p.mo.x, p.mo.y, PTV3.pillarJohn.x, PTV3.pillarJohn.y), p.mo.z-PTV3.pillarJohn.z)
+		mapmusname = dist_from_john < 4000*FU and "MEATO" or mapheaderinfo[gamemap].musname
+	end
+
+	if not playPizzaTimeMusic() then
+		mapmusname = (p.PTRound.insecret and mapmusname ~= secretmusic) and secretmusic or (not p.PTRound.insecret and mapmusname == secretmusic) and mapheaderinfo[gamemap].musname or $
+		S_ChangeMusic(mapmusname, loop)
+		return
+	end
 
 	local song = nil
 
 	if gametype == GT_PTV3DM then
-		if not PTV3.has_titlecard or leveltime > PTV3.maxTitlecardTime then
+		if leveltime > PTV3.maxTitlecardTime then
 			song = "AOTKPS"
 		end
 	else

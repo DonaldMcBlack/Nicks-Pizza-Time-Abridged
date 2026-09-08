@@ -1,20 +1,8 @@
 local cutsceneTime
 
-addHook("ThinkFrame", function()
-	if not PTV3:isPTV3() then return end
-	if PTV3.pizzatime then P_StartQuake(PTV3.shakeintensity*FU, 2) end
-
-	if (PTV3.extreme or PTV3.overtime)
-	and consoleplayer
-	and consoleplayer.valid
-	and consoleplayer.mo
-	and consoleplayer.mo.valid
-	and not S_SoundPlaying(consoleplayer.mo, sfx_rumble) then S_StartSound(consoleplayer.mo, sfx_rumble, consoleplayer) end
-end)
-
 local function SpawnGateController(MaxTimeOpen)
 	if (leveltime > MaxTimeOpen and not PTV3.pizzatime)
-	or (PTV3.game_over < (21*TICRATE)-10 and PTV3.pizzatime) then
+	or (PTV3.game_over and PTV3.pizzatime) then
 		if PTV3.spawnGate._frame ~= A then
 			S_StartSound(PTV3.spawnGate, sfx_doorsh)
 			P_StartQuake(FU*5, TICRATE/2)
@@ -60,6 +48,16 @@ local function RoundThinker()
 	local alive = PTV3:playerCount("alive")
 	local finished = PTV3:playerCount("finished")
 	local total = PTV3:playerCount("total")
+
+	if PTV3.endtime > 0 then
+		PTV3.game_over = max($+1, 0)
+		
+		if PTV3.game_over >= (21*TICRATE)-10 then
+			G_SetCustomExitVars(multiplayer and M_MapNumber("PT") or nil, 1)
+			G_ExitLevel()
+		end
+		return
+	end
 
 	-- Everything that's controlled when the timer starts is in here.
 	if PTV3.pizzatime then
@@ -187,20 +185,17 @@ addHook('PostThinkFrame', function()
 	end
 
 	if PTV3.spawnGate and PTV3.spawnGate.valid then
-		cutsceneTime = PTV3.has_titlecard and PTV3.maxTitlecardTime+(2*TICRATE) or 2*TICRATE
-		if PTV3.has_titlecard then
-			SpawnGateController(PTV3.maxTitlecardTime+TICRATE)
-		else
-			SpawnGateController(TICRATE)
-		end
+		cutsceneTime = gamemap ~= M_MapNumber("PT") and PTV3.maxTitlecardTime+(2*TICRATE) or 2*TICRATE
 
+		SpawnGateController(cutsceneTime-TICRATE)
 		if consoleplayer and not PTV3.pizzatime then
 			consoleplayer.realtime = max(0, leveltime-cutsceneTime)
 		end
 	end
 
+	PTV3.shakeintensity = PTV3.highestlap < 10 and max(4, PTV3.highestlap) or 10
+
 	if gamemap == M_MapNumber("PT") then HUBThinker() return end
-	if PTV3.game_over <= 0 then return end
 
 	RoundThinker()
 end)

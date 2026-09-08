@@ -1,7 +1,8 @@
 return function(v,p)
-	if not p.PTRound then return end
+	if not PTV3:isPTV3() then return end
 	if p.PTRound.chaser then return end
 	if gamemap == M_MapNumber("PT") then return end
+
 	local rank = PTV3.ranks[p.PTRound.rank]
 	local rank_patch = gametype == GT_PTV3DM and "DM_"..rank.rank.."RANK" or "PT_"..rank.rank.."RANK"
 	local rankfill_patch = gametype == GT_PTV3DM and "DM_"..rank.rank.."FILL" or "PT_"..rank.rank.."FILL"
@@ -9,7 +10,7 @@ return function(v,p)
 	rank_patch = v.cachePatch(rank_patch)
 
 	local x = 48*FU
-	local y = (42+16+10)*FU
+	local y = 68*FU
 	local s = FU/3
 	
 	if p.PTRound.rank_changetime >= 0 then
@@ -20,8 +21,7 @@ return function(v,p)
 		end
 	end
 
-	x = $-((rank_patch.width/2)*s)
-	y = $-((rank_patch.width/2)*s)
+	x, y = $-((rank_patch.width/2)*s), $-((rank_patch.width/2)*s)
 
 	v.drawScaled(x, y, s, rank_patch, V_SNAPTOLEFT|V_SNAPTOTOP)
 
@@ -29,7 +29,8 @@ return function(v,p)
 		local percent = PTV3:returnNextRankPercent(p)
 		if percent == 0 then return end
 
-		local y = y+(rank_patch.height*s)-(rank_patch.height*FixedMul(percent, s))
+		y = y+(rank_patch.height*s)-(rank_patch.height*FixedMul(percent, s))
+		
 		local croph = FixedMul(rank_patch.height*FU, max(0,percent))
 		local cropy = (rank_patch.height*FU)-croph
 		

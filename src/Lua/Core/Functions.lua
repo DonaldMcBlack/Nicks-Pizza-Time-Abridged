@@ -26,6 +26,23 @@ local function getAllVarNames(array, ...)
 	return values
 end
 
+function PTV3:FindPlayer(name)
+	local player
+	local namenum = tonumber(name)
+	for p in players.iterate do
+		if p.name:lower() == tostring(name):lower()
+		or (namenum ~= nil
+		and namenum >= 0
+		and namenum < 31
+		and #p == namenum) then
+			player = p
+			break
+		end
+	end
+
+	return player
+end
+
 --- Checks if the gamemode is IT. Use true to skip the GS_LEVEL check.
 ---@param dontCheckState boolean
 function PTV3:isPTV3(dontCheckState)
@@ -277,17 +294,20 @@ end
 
 --- Ends the game.
 function PTV3:endGame()
-	if PTV3.game_over <= 0 then return end
+	if PTV3.endtime > 0 then return end
 	
-	if PTV3.endtime < 0 then PTV3.endtime = leveltime end
-
-	PTV3.game_over = max($-1, 0)
+	if PTV3.endtime < 0 then
+		PTV3.endtime = leveltime
+		for p in players.iterate do
+			p.PTGlobal.ringBank = p.PTGlobal and $+p.rings or 0
+		end
+	end
+	
 	for p in players.iterate do
 		if p.mo and p.mo.valid then
 			if (not p.PTRound.fake_exit) and p.playerstate ~= PST_DEAD then
 				P_KillMobj(p.mo)
 			end
-			p.mo.flags = $|MF_NOTHINK
 		end
 	end
 
@@ -397,12 +417,7 @@ function PTV3:newLap(p, int)
 	p.PTRound.laps = $+int
 	self.highestlap = $ < p.PTRound.laps and p.PTRound.laps or $
 
-	local raw_time = leveltime - PTV3.starttime_pizzatime
-
-	if p.PTRound.lap_time >= 0 then
-		raw_time = leveltime - p.PTRound.lap_time
-	end
-
+	local raw_time = p.PTRound.lap_time >= 0 and leveltime - p.PTRound.lap_time or leveltime - PTV3.starttime_pizzatime
 	local time = string.format( "%02d:%02d", G_TicsToMinutes(raw_time), G_TicsToSeconds(raw_time) )
 	local event_text = p.name.." has made it to Lap "..p.PTRound.laps.." in "..time.."!"
 
@@ -411,11 +426,7 @@ function PTV3:newLap(p, int)
 		event_text = $.." If Overtime starts while in Extreme Laps, then this player will die."
 	end
 
-	if p.PTRound.extreme then
-		event_text = $:gsub("to Lap", "to Extreme Lap")
-	else
-		P_AddPlayerScore(p, 3000)
-	end
+	P_AddPlayerScore(p, p.PTRound.extreme and 0 or 3000)
 
 	if (PTV3.spawnGate and PTV3.spawnGate.valid) and PTV3.spawnGate.lappers[p] then
 		PTV3.spawnGate.lappers[p] = false
@@ -424,9 +435,6 @@ function PTV3:newLap(p, int)
 	if abs(p.PTRound.laps) ~= 1 then
 		self:queueTeleport(p, PTV3.pizzatime < 0 and PTV3.spawn or PTV3.endpos, p.PTRound.extreme)
 	end
-
-	-- For the quakes
-	if (PTV3.pizzatime ~= 0 or PTV3.extreme) then PTV3.shakeintensity = min(abs(p.PTRound.laps), 10) end
 
 	p.PTRound.lap_time = leveltime
 	p.powers[pw_invulnerability] = 5*TICRATE
@@ -439,9 +447,7 @@ function PTV3:newLap(p, int)
 	-- 	p.PTRound.isSwap.powers[pw_invulnerability] = 5*TICRATE
 	-- end
 
-	if p.PTRound.combo then
-		p.PTRound.combo_pos = self.MAX_COMBO_TIME
-	end
+	p.PTRound.combo_pos = p.PTRound.combo and self.MAX_COMBO_TIME or 0
 
 	if gametype ~= GT_PTV3DM then
 		-- Spawn Pizzaface
@@ -553,11 +559,11 @@ function PTV3:startPizzaTime(p, int)
 
 	self.pizzatime = int
 	self.starttime_pizzatime = leveltime
+	PTV3.shakeintensity = 4
+	PTV3.time = $ * #PTV3:playerCount("total")
 
 	local callback_string = self.pizzatime < 0 and 'MinusWorld' or 'PizzaTime'
 	local triggertag = 0
-	PTV3.shakeintensity = 4
-	PTV3.time = $ * #PTV3:playerCount("total")
 
 	if self.pizzatime < 0 then
 		if PTV3.spawnGate and PTV3.spawnGate.valid then
@@ -580,8 +586,7 @@ function PTV3:startPizzaTime(p, int)
 		if not player.mo and not player.PTRound then continue end
 
 		player.PTRound.laps = $+int
-
-		if (player.PTRound.insecret) then player.PTRound.secret_tptoend = true end
+		player.PTRound.secret_tptoend = player.PTRound.insecret and true or false
 
 		if int < 0 then
 			self:queueTeleport(player, self.spawn)

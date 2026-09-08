@@ -6,12 +6,13 @@ states[freeslot "S_PTV3_WALKANIM"] = {
 }
 
 local function cutscene(p)
-	local cutsceneTime = PTV3.has_titlecard and PTV3.maxTitlecardTime+(2*TICRATE) or PTV3.maxTitlecardTime
+	local cutsceneTime = gamemap ~= M_MapNumber("PT") and PTV3.maxTitlecardTime+(2*TICRATE) or 2*TICRATE
+	local subtractTime = gamemap ~= M_MapNumber("PT") and PTV3.maxTitlecardTime or 0
 
 	if leveltime < cutsceneTime
-	and PTV3.spawnGate and PTV3.spawnGate.valid
-	and leveltime >= PTV3.maxTitlecardTime then
-		local time = leveltime - PTV3.maxTitlecardTime
+	and (PTV3.spawnGate and PTV3.spawnGate.valid)
+	and leveltime >= subtractTime then
+		local time = leveltime - subtractTime
 		local remain = cutsceneTime - leveltime
 
 		local tweenTime = min(FixedDiv(time, TICRATE), FU)
@@ -19,26 +20,19 @@ local function cutscene(p)
 		local spawn = PTV3.spawnGate.spawnPoints[#p+1] or PTV3.spawnGate.spawnPoints[1]
 		local sg = PTV3.spawnGate
 
-		p.mo.momx,p.mo.momy,p.mo.momz = 0,0,0
+		p.mo.momx, p.mo.momy, p.mo.momz = 0,0,0
 		p.drawangle = sg.angle
 
 		local tweenX = ease.outcubic(tweenTime, sg.x, spawn.x)
 		local tweenY = ease.outcubic(tweenTime, sg.y, spawn.y)
 		local tweenZ = ease.outcubic(tweenTime, sg.z, spawn.z)
 
-		P_SetOrigin(p.mo,
-			tweenX,
-			tweenY,
-			tweenZ)
+		P_SetOrigin(p.mo, tweenX, tweenY, tweenZ)
 
 		if remain > 1 then
-			local state = S_PTV3_WALKANIM
-			if remain < TICRATE then
-				state = S_PLAY_PAIN
-			end
-			if p.mo.state ~= state then
-				p.mo.state = state
-			end
+			local state = remain < TICRATE and S_PLAY_PAIN or S_PTV3_WALKANIM
+
+			if p.mo.state ~= state then p.mo.state = state end
 			p.mo.angle = PTV3.spawnGate.angle+ANGLE_180
 		else
 			p.mo.state = S_PLAY_STND
@@ -52,10 +46,7 @@ local function cutscene(p)
 end
 
 local function precutscene(p)
-
-	PTV3.has_titlecard = mapheaderinfo[gamemap].ptv3_titlecard == "true" and true or false
-
-	local cutsceneTime = PTV3.has_titlecard and PTV3.maxTitlecardTime+(2*TICRATE) or 2*TICRATE
+	local cutsceneTime = gamemap ~= M_MapNumber("PT") and PTV3.maxTitlecardTime+(2*TICRATE) or 2*TICRATE
 
 	if leveltime < cutsceneTime
 	and PTV3.spawnGate and PTV3.spawnGate.valid then

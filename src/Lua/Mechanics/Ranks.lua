@@ -48,24 +48,18 @@ end
 ---@param p player_t
 ---@param rank string
 function PTV3:canGet(p, rank)
-	if not (p and p.PTRound) then return end
+	if not (p and p.PTRound) or not self.ranks[rank] then return false end
 
-	if not self.ranks[rank] then return false end
+	if self.ranks[rank].canGet then return self.ranks[rank].canGet(p) end
 
-	if self.ranks[rank].canGet and self.ranks[rank].canGet(p) then return true end
-
-	local total_score = p.PTRound.fake_exit and (p.score and p.PTRound.comboscore) or p.score
+	local total_score = p.PTRound.fake_exit and (p.score + p.PTRound.comboscore) or p.score
 	if total_score < self.maxrankrequirement*(rank-1) then return false end
-
-	if self.ranks[rank].canGet and not self.ranks[rank].canGet(p) then return false end
 
 	return true
 end
 
 ---@param p player_t
 function PTV3:returnNextRankPercent(p)
-	if not p.PTRound then return end
-
 	local depletion = self.maxrankrequirement*(p.PTRound.rank-1)
 	local total_score = p.PTRound.fake_exit and (p.score + p.PTRound.comboscore) or p.score
 

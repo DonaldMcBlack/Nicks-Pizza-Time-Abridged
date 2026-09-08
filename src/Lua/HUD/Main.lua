@@ -41,27 +41,31 @@ end
 addHook("HUD", function(v)
 	if not PTV3:isPTV3() then
 		hud.enable('lives')
+		hud.enable('time')
+		hud.enable('rings')
+		hud.enable('score')
 		return
 	end
 
+	hud.disable('lives')
+
 	if gamemap ~= M_MapNumber("PT") then
 		hud.enable('time')
+		hud.enable('rings')
+		hud.enable('score')
 	else
 		hud.disable('time')
+		hud.disable('rings')
+		hud.disable('score')
 	end
-	hud.disable('lives')
 end)
 
 addHook("HUD", function(v)
-	if not PTV3:isPTV3() then hud.enable("stagetitle") return
-	else hud.disable("stagetitle") end
-
-	PTV3.has_titlecard = true
-
-	if v.patchExists(mapheaderinfo[gamemap].keywords.."TC") then return end
-
-	hud.enable("stagetitle")
-	PTV3.has_titlecard = false
+	if not PTV3:isPTV3() or not PTV3.titlecard_bg then
+		hud.enable("stagetitle")
+	else
+		hud.disable("stagetitle")
+	end
 end, "titlecard")
 
 customhud.SetupFont("PTFNT", 1, 12)

@@ -1,7 +1,7 @@
 local frame = 1
 return function(v)
 	if not PTV3:isPTV3() then return end
-	if PTV3.game_over >= (21*TICRATE)-10 then return end
+	if not PTV3.game_over then return end
 	
 	local sw = FixedDiv(v.width()*FU, v.dupx()*FU)
 	local sh = FixedDiv(v.height()*FU, v.dupy()*FU)
